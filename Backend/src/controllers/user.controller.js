@@ -1,3 +1,4 @@
+require("dotenv").config();
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const path = require('path');
@@ -6,7 +7,7 @@ const router = require("express").Router();
 const { sendResetPasswordEmail } = require("../services/email.service");
 const moment = require('moment');
 
-const cloudinary = require("../config/cloudinary");
+const cloudinary = require("../configs/cloudinary");
 const {
   getListUserService,
   checkUserCredentials,
@@ -14,7 +15,7 @@ const {
   getUserByIdService
 } = require("../services/user.service");
 const User = require("../models/user.model");
-const ResetToken = require("../models/userResetpassword.model");
+const ResetToken = require("../models/user.resetpassword");
 
 const getListUser = async (req, res, next) => {
   try {
@@ -37,7 +38,7 @@ const getUserById = async (req, res, next) => {
       message: "Thông tin người dùng",
       user: {
         id: user._id,
-        user_name: user.name,
+        user_name: user.user_name,
         nickname: user.nickname,
         email: user.email,
         avatar: user.avatar,
@@ -174,9 +175,6 @@ const signup = async (req, res) => {
       return res.status(400).json({ message: "Dữ liệu trống" });
     }
 
-    if (!/^[\p{L}\s]+$/u.test(user_name)) {
-      return res.status(400).json({ status: "FAILED", message: "Tên đăng kí không hợp lệ." });
-    }
     if (!/^[\p{L}\s]+$/u.test(nickname)) {
       return res.status(400).json({ status: "FAILED", message: "Tên kênh không hợp lệ." });
     }
@@ -223,7 +221,7 @@ const signup = async (req, res) => {
 
     res.status(201).json({
       status: "PENDING",
-      message: "Tài khoản đã được tạo. Vui lòng kiểm tra email xác thực!",
+      message: "Tài khoản đã được tạo!",
       user: {
         id: newUser._id,
         name: newUser.name,
@@ -262,12 +260,7 @@ const signin = async (req, res) => {
       });
     }
 
-    if (!user.verified) {
-      return res.status(403).json({
-        status: "FAILED",
-        message: "Email chưa được xác minh. Vui lòng kiểm tra hộp thư của bạn."
-      });
-    }
+    
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
 

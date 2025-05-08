@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const path = require('path');
 const { signup, signin, getUserById, getListUser, updateUser, uploadAvatar, requestPasswordReset, resetPassword, getEmail } = require("../controllers/user.controller");
-const upload = require("../middleware/uploadAvatar");
+const upload = require("../middlewares/uploadAvatar");
 
 //Đăng kí
 router.post("/signup", upload.single('avatar'), signup);
