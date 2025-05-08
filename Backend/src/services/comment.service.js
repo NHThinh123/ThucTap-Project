@@ -1,446 +1,104 @@
-const mongoose = require("mongoose");
-const AppError = require("../utils/AppError");
 const Comment = require("../models/comment.model");
-const User = require("../models/user.model");
-require("dotenv").config();
+const AppError = require("../utils/AppError");
 
-const createCommentService = async (
-  id,
-  video_id,
-  parent_comment_id,
-  comment_content
-) => {
-  if (!id || !post_id || !comment_content) {
-    throw new AppError("Missing required fields", 400);
+const createCommentService = async (data, userId, videoId) => {
+  const { comment_content, parent_comment_id } = data;
+
+  // If parentCommentId is provided, verify it exists and is not deleted
+  if (parent_comment_id) {
+    const parentComment = await Comment.findOne({
+      _id: parent_comment_id,
+      deleted: { $ne: true },
+    });
+    if (!parentComment) {
+      throw new AppError("Parent comment not found", 404);
+    }
+    // Ensure parent comment belongs to the same video
+    if (parentComment.video.toString() !== videoId) {
+      throw new AppError("Parent comment does not belong to this video", 400);
+    }
   }
 
-  if (
-    !mongoose.Types.ObjectId.isValid(id) ||
-    !mongoose.Types.ObjectId.isValid(post_id)
-  ) {
-    throw new AppError("Invalid ID or post ID", 400);
-  }
-
-  const objectId = new mongoose.Types.ObjectId(id);
-
-  const user = await User.findById(objectId);
-  const business = await Business.findById(objectId);
-
-  if (!user && !business) {
-    throw new AppError("ID does not belong to any user or business", 404);
-  }
-
-  let result = await Comment.create({
-    user_id: user ? objectId : null,
-    business_id: business ? objectId : null,
-    post_id: post_id,
-    parent_comment_id: parent_comment_id,
-    comment_content: comment_content,
+  const comment = await Comment.create({
+    comment_content,
+    user_id: userId,
+    video_id: videoId,
+    parent_comment_id: parent_comment_id || null,
   });
-  return result;
+  return comment;
 };
 
-// const getListCommentByPostService = async (query) => {
-//   const { post_id, id } = query;
-//   if (!mongoose.Types.ObjectId.isValid(post_id)) {
-//     throw new AppError("Invalid post ID", 400);
-//   }
-
-//   const isValidId = id ? mongoose.Types.ObjectId.isValid(id) : false;
-//   const objectId = isValidId ? new mongoose.Types.ObjectId(id) : null;
-
-//   let comments = await Comment.collection
-//     .aggregate([
-//       { $match: { post_id: new mongoose.Types.ObjectId(post_id) } },
-//       {
-//         $lookup: {
-//           from: "users",
-//           localField: "user_id",
-//           foreignField: "_id",
-//           as: "user",
-//         },
-//       },
-//       { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
-//       {
-//         $lookup: {
-//           from: "businesses",
-//           localField: "business_id",
-//           foreignField: "_id",
-//           as: "business",
-//         },
-//       },
-//       { $unwind: { path: "$business", preserveNullAndEmptyArrays: true } },
-//       {
-//         $lookup: {
-//           from: "user_like_comments",
-//           localField: "_id",
-//           foreignField: "comment_id",
-//           as: "likes",
-//         },
-//       },
-//       {
-//         $addFields: {
-//           likeCount: { $size: "$likes" },
-//           isLike: isValidId
-//             ? {
-//                 $or: [
-//                   { $in: [objectId, "$likes.user_id"] },
-//                   { $in: [objectId, "$likes.business_id"] },
-//                 ],
-//               }
-//             : false,
-//           author: {
-//             $cond: {
-//               if: { $ne: ["$user_id", null] },
-//               then: {
-//                 id: "$user_id",
-//                 name: "$user.name",
-//                 avatar: "$user.avatar",
-//                 isBusiness: false,
-//               },
-//               else: {
-//                 id: "$business_id",
-//                 name: "$business.business_name",
-//                 avatar: "$business.avatar",
-//                 isBusiness: true,
-//               },
-//             },
-//           },
-//           comment_content: {
-//             $cond: {
-//               if: "$deleted",
-//               then: "(bình luận đã bị xóa)",
-//               else: "$comment_content",
-//             },
-//           },
-//         },
-//       },
-//       { $sort: { createdAt: -1 } },
-//       {
-//         $project: {
-//           author: 1,
-//           comment_content: 1,
-//           createdAt: 1,
-//           likeCount: 1,
-//           isLike: 1,
-//           parent_comment_id: 1,
-//           isEdited: 1,
-//           deleted: 1,
-//         },
-//       },
-//     ])
-//     .toArray();
-
-//   let parentComments = comments.filter((c) => !c.parent_comment_id);
-//   let result = parentComments.map((comment) => ({
-//     ...comment,
-//     replyCount: comments.filter(
-//       (c) => String(c.parent_comment_id) === String(comment._id)
-//     ).length,
-//   }));
-
-//   return result;
-// };
-
-// const getCommentByIdService = async (comment_id, id) => {
-//   if (!mongoose.Types.ObjectId.isValid(comment_id)) {
-//     throw new AppError("Invalid comment ID", 400);
-//   }
-
-//   const isValidId = id ? mongoose.Types.ObjectId.isValid(id) : false;
-//   const objectId = isValidId ? new mongoose.Types.ObjectId(id) : null;
-
-//   let result = await Comment.collection
-//     .aggregate([
-//       { $match: { _id: new mongoose.Types.ObjectId(comment_id) } },
-//       {
-//         $lookup: {
-//           from: "users",
-//           localField: "user_id",
-//           foreignField: "_id",
-//           as: "user",
-//         },
-//       },
-//       { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
-//       {
-//         $lookup: {
-//           from: "businesses",
-//           localField: "business_id",
-//           foreignField: "_id",
-//           as: "business",
-//         },
-//       },
-//       { $unwind: { path: "$business", preserveNullAndEmptyArrays: true } },
-//       {
-//         $lookup: {
-//           from: "user_like_comments",
-//           localField: "_id",
-//           foreignField: "comment_id",
-//           as: "likes",
-//         },
-//       },
-//       {
-//         $addFields: {
-//           likeCount: { $size: "$likes" },
-//           isLike: isValidId
-//             ? {
-//                 $or: [
-//                   { $in: [objectId, "$likes.user_id"] },
-//                   { $in: [objectId, "$likes.business_id"] },
-//                 ],
-//               }
-//             : false,
-//           author: {
-//             $cond: {
-//               if: { $ne: ["$user_id", null] },
-//               then: {
-//                 id: "$user_id",
-//                 name: "$user.name",
-//                 avatar: "$user.avatar",
-//                 isBusiness: false,
-//               },
-//               else: {
-//                 id: "$business_id",
-//                 name: "$business.business_name",
-//                 avatar: "$business.avatar",
-//                 isBusiness: true,
-//               },
-//             },
-//           },
-//           comment_content: {
-//             $cond: {
-//               if: "$deleted",
-//               then: "(bình luận đã bị xóa)",
-//               else: "$comment_content",
-//             },
-//           },
-//         },
-//       },
-//       {
-//         $project: {
-//           author: 1,
-//           comment_content: 1,
-//           createdAt: 1,
-//           likeCount: 1,
-//           isLike: 1,
-//           parent_comment_id: 1,
-//           isEdited: 1,
-//           deleted: 1,
-//         },
-//       },
-//     ])
-//     .toArray();
-
-//   if (!result || result.length === 0) {
-//     throw new AppError("Comment not found", 404);
-//   }
-
-//   let replies = await Comment.collection
-//     .aggregate([
-//       {
-//         $match: { parent_comment_id: new mongoose.Types.ObjectId(comment_id) },
-//       },
-//       {
-//         $lookup: {
-//           from: "users",
-//           localField: "user_id",
-//           foreignField: "_id",
-//           as: "user",
-//         },
-//       },
-//       { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
-//       {
-//         $lookup: {
-//           from: "businesses",
-//           localField: "business_id",
-//           foreignField: "_id",
-//           as: "business",
-//         },
-//       },
-//       { $unwind: { path: "$business", preserveNullAndEmptyArrays: true } },
-//       {
-//         $addFields: {
-//           author: {
-//             $cond: {
-//               if: { $ne: ["$user_id", null] },
-//               then: {
-//                 id: "$user_id",
-//                 name: "$user.name",
-//                 avatar: "$user.avatar",
-//                 isBusiness: false,
-//               },
-//               else: {
-//                 id: "$business_id",
-//                 name: "$business.business_name",
-//                 avatar: "$business.avatar",
-//                 isBusiness: true,
-//               },
-//             },
-//           },
-//           comment_content: {
-//             $cond: {
-//               if: "$deleted",
-//               then: "(bình luận đã bị xóa)",
-//               else: "$comment_content",
-//             },
-//           },
-//         },
-//       },
-//       {
-//         $project: {
-//           author: 1,
-//           comment_content: 1,
-//           createdAt: 1,
-//           parent_comment_id: 1,
-//           isEdited: 1,
-//           deleted: 1,
-//         },
-//       },
-//     ])
-//     .toArray();
-
-//   return { ...result[0], replies };
-// };
-
-// const getReplyByCommentService = async (query) => {
-//   const { comment_id, id } = query;
-//   if (!mongoose.Types.ObjectId.isValid(comment_id)) {
-//     throw new AppError("Invalid comment ID", 400);
-//   }
-
-//   const isValidId = id ? mongoose.Types.ObjectId.isValid(id) : false;
-//   const objectId = isValidId ? new mongoose.Types.ObjectId(id) : null;
-
-//   let replies = await Comment.collection
-//     .aggregate([
-//       {
-//         $match: { parent_comment_id: new mongoose.Types.ObjectId(comment_id) },
-//       },
-//       {
-//         $lookup: {
-//           from: "users",
-//           localField: "user_id",
-//           foreignField: "_id",
-//           as: "user",
-//         },
-//       },
-//       { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
-//       {
-//         $lookup: {
-//           from: "businesses",
-//           localField: "business_id",
-//           foreignField: "_id",
-//           as: "business",
-//         },
-//       },
-//       { $unwind: { path: "$business", preserveNullAndEmptyArrays: true } },
-//       {
-//         $lookup: {
-//           from: "user_like_comments",
-//           localField: "_id",
-//           foreignField: "comment_id",
-//           as: "likes",
-//         },
-//       },
-//       {
-//         $addFields: {
-//           likeCount: { $size: "$likes" },
-//           isLike: isValidId
-//             ? {
-//                 $or: [
-//                   { $in: [objectId, "$likes.user_id"] },
-//                   { $in: [objectId, "$likes.business_id"] },
-//                 ],
-//               }
-//             : false,
-//           author: {
-//             $cond: {
-//               if: { $ne: ["$user_id", null] },
-//               then: {
-//                 id: "$user_id",
-//                 name: "$user.name",
-//                 avatar: "$user.avatar",
-//                 isBusiness: false,
-//               },
-//               else: {
-//                 id: "$business_id",
-//                 name: "$business.business_name",
-//                 avatar: "$business.avatar",
-//                 isBusiness: true,
-//               },
-//             },
-//           },
-//           comment_content: {
-//             $cond: {
-//               if: "$deleted",
-//               then: "(bình luận đã bị xóa)",
-//               else: "$comment_content",
-//             },
-//           },
-//         },
-//       },
-//       {
-//         $project: {
-//           author: 1,
-//           comment_content: 1,
-//           createdAt: 1,
-//           likeCount: 1,
-//           isLike: 1,
-//           parent_comment_id: 1,
-//           isEdited: 1,
-//           deleted: 1,
-//         },
-//       },
-//     ])
-//     .toArray();
-
-//   for (let reply of replies) {
-//     let replyCount = await Comment.countDocuments({
-//       parent_comment_id: reply._id,
-//     });
-//     reply.replyCount = replyCount;
-//   }
-
-//   return replies;
-// };
-
-const updateCommentService = async (comment_id, dataUpdate) => {
-  if (!mongoose.Types.ObjectId.isValid(comment_id)) {
-    throw new AppError("Invalid comment ID", 400);
-  }
-
-  const { comment_content } = dataUpdate;
-  if (!comment_content) {
-    throw new AppError("Comment content is required", 400);
-  }
-
-  let result = await Comment.findOneAndUpdate(
-    { _id: comment_id },
-    { comment_content, isEdited: true },
-    { new: true }
-  );
-
-  if (!result) {
-    throw new AppError("Comment not found", 404);
-  }
-
-  return result;
-};
-
-const deleteCommentService = async (comment_id) => {
-  let comment = await Comment.findById(comment_id);
+const getCommentByIdService = async (commentId) => {
+  const comment = await Comment.findById(commentId)
+    .populate("user_id", "user_name email")
+    .populate("video_id", "title_video")
+    .populate("parent_comment_id", "comment_content user_id");
   if (!comment) {
     throw new AppError("Comment not found", 404);
   }
-  let result = await comment.delete();
-  return result;
+  return comment;
+};
+
+const getVideoCommentsService = async (videoId) => {
+  // Get top-level comments (parentCommentId is null)
+  const comments = await Comment.find({
+    video_id: videoId,
+    parent_comment_id: null,
+  })
+    .populate("user_id", "user_name email")
+    .sort({ createdAt: -1 });
+
+  // For each top-level comment, fetch its replies
+  const commentsWithReplies = await Promise.all(
+    comments.map(async (comment) => {
+      const replies = await Comment.find({ parent_comment_id: comment._id })
+        .populate("user_id", "user_name email")
+        .sort({ createdAt: 1 });
+      return { ...comment.toObject(), replies };
+    })
+  );
+
+  return commentsWithReplies;
+};
+
+const updateCommentService = async (commentId, userId, data) => {
+  const comment = await Comment.findOneAndUpdate(
+    { _id: commentId, user_id: userId },
+    { ...data, isEdited: true },
+    { new: true, runValidators: true }
+  );
+  if (!comment) {
+    throw new AppError("Comment not found or you are not authorized", 404);
+  }
+  return comment;
+};
+
+const deleteCommentService = async (commentId, userId) => {
+  const comment = await Comment.findOne({ _id: commentId, user_id: userId });
+  if (!comment) {
+    throw new AppError("Comment not found or you are not authorized", 404);
+  }
+  await comment.delete(); // Use mongoose-delete's delete method
+  return comment;
+};
+
+const restoreCommentService = async (commentId, userId) => {
+  const comment = await Comment.findOneAndUpdate(
+    { _id: commentId, user_id: userId, deleted: true },
+    { deleted: false, deletedAt: null },
+    { new: true }
+  );
+  if (!comment) {
+    throw new AppError("Comment not found or you are not authorized", 404);
+  }
+  return comment;
 };
 
 module.exports = {
   createCommentService,
-  getListCommentByPostService,
   getCommentByIdService,
-  getReplyByCommentService,
+  getVideoCommentsService,
   updateCommentService,
   deleteCommentService,
+  restoreCommentService,
 };

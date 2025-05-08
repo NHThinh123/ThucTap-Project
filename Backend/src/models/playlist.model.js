@@ -19,12 +19,6 @@ const playlistSchema = new mongoose.Schema(
       trim: true,
       maxLength: [500, "Description cannot exceed 500 characters"],
     },
-    videos: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Video",
-      },
-    ],
     isPublic: {
       type: Boolean,
       default: true,
