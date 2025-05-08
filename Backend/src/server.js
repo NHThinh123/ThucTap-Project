@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 configViewEngine(app);
 
-app.use("/api/user", userRoute);
+app.use("/api/users", userRoute);
 
 (async () => {
   try {
