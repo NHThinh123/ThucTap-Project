@@ -1,0 +1,36 @@
+const mongoose = require("mongoose");
+const { use } = require("../routes/user.route");
+
+const videoSchema = new mongoose.Schema({
+  user_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  title: {
+    type: String,
+    required: true,
+  },
+  description_video: {
+    type: String,
+    default: null,
+  },
+  url_video: {
+    type: String,
+    required: true,
+  },
+  thumbnail_video: {
+    type: String,
+    default: "",
+  },
+  duration: {
+    type: Number,
+    default: 0,
+  },
+  views: {
+    type: Number,
+    default: 0,
+  },
+});
+
+module.exports = mongoose.model("Video", videoSchema);
