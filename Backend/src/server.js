@@ -24,7 +24,7 @@ app.get("/api/upload/progress", sse.init);
 app.set("sse", sse);
 
 // Routes
-app.use("/api/user", userRoute);
+app.use("/api/users", userRoute);
 app.use("/api/upload", uploadRoute);
 app.use("/api/video", videoRoute); // Thêm route mới
 

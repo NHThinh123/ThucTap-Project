@@ -10,7 +10,6 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     nickname: { type: String },
     dateOfBirth: { type: Date },
-    verified: { type: Boolean, default: false },
     role: { type: String, required: true, enum: ["user", "admin"] },
     avatar: { type: String, default: "" },
   },
