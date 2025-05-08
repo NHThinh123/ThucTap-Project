@@ -1,61 +1,64 @@
 const {
   createCommentService,
-  //   getListCommentByPostService,
-  //   getCommentByIdService,
-  //   getReplyByCommentService,
+  getCommentByIdService,
+  getVideoCommentsService,
   updateCommentService,
   deleteCommentService,
+  restoreCommentService,
 } = require("../services/comment.service");
 
 const createComment = async (req, res, next) => {
   try {
-    const { id, post_id, parent_comment_id, comment_content } = req.body;
-    const data = await createCommentService(
-      id,
-      post_id,
-      parent_comment_id,
-      comment_content
+    const comment = await createCommentService(
+      req.body,
+      req.user._id,
+      req.params.videoId
     );
-    res.status(200).json(data);
+    res.status(201).json({
+      status: "success",
+      data: { comment },
+    });
   } catch (error) {
     next(error);
   }
 };
 
-// const getListCommentByPost = async (req, res, next) => {
-//   try {
-//     const data = await getListCommentByPostService(req.query);
-//     res.status(200).json(data);
-//   } catch (error) {
-//     next(error);
-//   }
-// };
+const getComment = async (req, res, next) => {
+  try {
+    const comment = await getCommentByIdService(req.params.id);
+    res.status(200).json({
+      status: "success",
+      data: { comment },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
-// const getCommentById = async (req, res, next) => {
-//   try {
-//     const { id } = req.params;
-//     const data = await getCommentByIdService(id);
-//     res.status(200).json(data);
-//   } catch (error) {
-//     next(error);
-//   }
-// };
-
-// const getReplyByComment = async (req, res, next) => {
-//   try {
-//     const data = await getReplyByCommentService(req.query);
-//     res.status(200).json(data);
-//   } catch (error) {
-//     next(error);
-//   }
-// };
+const getVideoComments = async (req, res, next) => {
+  try {
+    const comments = await getVideoCommentsService(req.params.videoId);
+    res.status(200).json({
+      status: "success",
+      results: comments.length,
+      data: { comments },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 const updateComment = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const dataUpdate = req.body;
-    const data = await updateCommentService(id, dataUpdate);
-    res.status(200).json(data);
+    const comment = await updateCommentService(
+      req.params.id,
+      req.user._id,
+      req.body
+    );
+    res.status(200).json({
+      status: "success",
+      data: { comment },
+    });
   } catch (error) {
     next(error);
   }
@@ -63,9 +66,23 @@ const updateComment = async (req, res, next) => {
 
 const deleteComment = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const data = await deleteCommentService(id);
-    res.status(200).json(data);
+    await deleteCommentService(req.params.id, req.user._id);
+    res.status(204).json({
+      status: "success",
+      data: null,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const restoreComment = async (req, res, next) => {
+  try {
+    const comment = await restoreCommentService(req.params.id, req.user._id);
+    res.status(200).json({
+      status: "success",
+      data: { comment },
+    });
   } catch (error) {
     next(error);
   }
@@ -73,9 +90,9 @@ const deleteComment = async (req, res, next) => {
 
 module.exports = {
   createComment,
-  //   getListCommentByPost,
-  //   getCommentById,
-  //   getReplyByComment,
+  getComment,
+  getVideoComments,
   updateComment,
   deleteComment,
+  restoreComment,
 };

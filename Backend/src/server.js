@@ -12,6 +12,11 @@ const port = process.env.PORT || 5000;
 const userRoute = require("./routes/user.route");
 const uploadRoute = require("./routes/upload.route");
 const videoRoute = require("./routes/video.route"); // Thêm route mới
+const playlistRoute = require("./routes/playlist.route");
+const reviewRoute = require("./routes/review.route");
+const userLikeVideoRoute = require("./routes/user_like_video.route");
+const userDislikeVideoRoute = require("./routes/user_dislike_video.route");
+const commentRoute = require("./routes/comment.route");
 
 const sse = new SSE();
 app.use(cors());
@@ -31,6 +36,11 @@ app.use("/api/video", videoRoute); // Thêm route mới
 // Middleware xử lý lỗi
 app.use(errorHandler);
 
+app.use("/api/playlist", playlistRoute);
+app.use("/api/review", reviewRoute);
+app.use("/api/user-like-video", userLikeVideoRoute);
+app.use("/api/user-dislike-video", userDislikeVideoRoute);
+app.use("/api/comment", commentRoute);
 (async () => {
   try {
     await connectDB();
