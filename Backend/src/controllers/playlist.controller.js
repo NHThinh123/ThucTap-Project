@@ -11,7 +11,8 @@ const {
 
 const createPlaylist = async (req, res, next) => {
   try {
-    const playlist = await createPlaylistService(req.body, req.user._id);
+    const { user_id } = req.body;
+    const playlist = await createPlaylistService(req.body, user_id);
     res.status(201).json({
       status: "success",
       data: { playlist },
@@ -35,7 +36,8 @@ const getPlaylist = async (req, res, next) => {
 
 const getUserPlaylists = async (req, res, next) => {
   try {
-    const playlists = await getUserPlaylistsService(req.user._id);
+    const { user_id } = req.body;
+    const playlists = await getUserPlaylistsService(user_id);
     res.status(200).json({
       status: "success",
       results: playlists.length,
@@ -48,9 +50,10 @@ const getUserPlaylists = async (req, res, next) => {
 
 const updatePlaylist = async (req, res, next) => {
   try {
+    const { user_id } = req.body;
     const playlist = await updatePlaylistService(
       req.params.id,
-      req.user._id,
+      user_id,
       req.body
     );
     res.status(200).json({
@@ -64,7 +67,8 @@ const updatePlaylist = async (req, res, next) => {
 
 const deletePlaylist = async (req, res, next) => {
   try {
-    await deletePlaylistService(req.params.id, req.user._id);
+    const { user_id } = req.body;
+    await deletePlaylistService(req.params.id, user_id);
     res.status(204).json({
       status: "success",
       data: null,
@@ -76,9 +80,10 @@ const deletePlaylist = async (req, res, next) => {
 
 const addVideoToPlaylist = async (req, res, next) => {
   try {
+    const { user_id } = req.body;
     const playlist = await addVideoToPlaylistService(
       req.params.id,
-      req.user._id,
+      user_id,
       req.body.videoId
     );
     res.status(200).json({
@@ -92,9 +97,10 @@ const addVideoToPlaylist = async (req, res, next) => {
 
 const removeVideoFromPlaylist = async (req, res, next) => {
   try {
+    const { user_id } = req.body;
     const playlist = await removeVideoFromPlaylistService(
       req.params.id,
-      req.user._id,
+      user_id,
       req.body.videoId
     );
     res.status(200).json({
@@ -108,7 +114,8 @@ const removeVideoFromPlaylist = async (req, res, next) => {
 
 const restorePlaylist = async (req, res, next) => {
   try {
-    const playlist = await restorePlaylistService(req.params.id, req.user._id);
+    const { user_id } = req.body;
+    const playlist = await restorePlaylistService(req.params.id, user_id);
     res.status(200).json({
       status: "success",
       data: { playlist },

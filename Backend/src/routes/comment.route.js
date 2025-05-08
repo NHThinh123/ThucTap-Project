@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router({ mergeParams: true });
-const commentController = require("./comment.controller");
+const commentController = require("../controllers/comment.controller");
 
 // Quản lý bình luận
 router

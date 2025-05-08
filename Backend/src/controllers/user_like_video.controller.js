@@ -4,8 +4,7 @@ const AppError = require("../utils/AppError");
 
 const likeVideo = async (req, res, next) => {
   try {
-    const { video_id } = req.body;
-    const user_id = req.user._id;
+    const { video_id, user_id } = req.body;
 
     // Check if user has already disliked the video
     const existingDislike =
@@ -31,8 +30,7 @@ const likeVideo = async (req, res, next) => {
 
 const unlikeVideo = async (req, res, next) => {
   try {
-    const { video_id } = req.params;
-    const user_id = req.user._id;
+    const { user_id, video_id } = req.body;
 
     const result = await userLikeVideoService.unlikeVideoService(
       user_id,
@@ -47,7 +45,7 @@ const unlikeVideo = async (req, res, next) => {
   }
 };
 
-const getVideoLikes = async (req, res, next) => {
+const getUserLikedVideos = async (req, res, next) => {
   try {
     const { video_id } = req.params;
     const result = await userLikeVideoService.getUserLikeVideoService(video_id);
@@ -60,9 +58,9 @@ const getVideoLikes = async (req, res, next) => {
   }
 };
 
-const getUserLikedVideos = async (req, res, next) => {
+const getVideoLikes = async (req, res, next) => {
   try {
-    const user_id = req.user._id;
+    const { user_id } = req.params;
     const result = await userLikeVideoService.getVideoLikeByUserService(
       user_id
     );

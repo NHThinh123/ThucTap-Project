@@ -7,12 +7,16 @@ const {
   getNumberOfReviewsByVideoId,
 } = require("../controllers/review.controller");
 
-router.route("/").post(createReview);
+// Create a new review
+router.post("/", createReview);
 
-router.route("/:id").get(getReviewById);
+// Get review by ID
+router.get("/:id", getReviewById);
 
-router.route("/video/:videoId").get(getReviewsByVideoId);
+// Get all reviews for a specific video
+router.get("/video/:videoId", getReviewsByVideoId);
 
-router.route("/video/:videoId/count").get(getNumberOfReviewsByVideoId);
+// Get total number of reviews for a specific video
+router.get("/video/:videoId/count", getNumberOfReviewsByVideoId);
 
 module.exports = router;

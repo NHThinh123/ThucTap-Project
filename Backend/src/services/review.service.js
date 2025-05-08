@@ -1,71 +1,64 @@
 const Review = require("../models/review.model");
 
-// const getListReviewService = async (page = 1, limit = 10, search = "") => {
-//   const skip = (page - 1) * limit;
-//   const query = search
-//     ? { review_contents: { $regex: search, $options: "i" } }
-//     : {};
-
-//   const reviews = await Review.find(query)
-//     .populate("user_id", "user_name email") // Lấy thông tin user liên quan
-//     .populate("business_id", "business_name") // Lấy thông tin business liên quan
-//     .skip(skip)
-//     .limit(limit);
-//   const total = await Review.countDocuments(query);
-
-//   return {
-//     total,
-//     page,
-//     limit,
-//     totalPages: Math.ceil(total / limit),
-//     data: reviews,
-//   };
-// };
-
 const getReviewByIdService = async (id) => {
-  return await Review.findById(id)
-    .populate("user_id", "user_name email")
-    .populate("video_id", "title_video");
+  try {
+    const review = await Review.findById(id)
+      .populate("user_id", "user_name email")
+      .populate("video_id", "title_video");
+
+    if (!review) {
+      throw new Error("Review not found");
+    }
+
+    return review;
+  } catch (error) {
+    throw new Error(`Error getting review: ${error.message}`);
+  }
 };
 
 const createReviewService = async (video_id, review_rating, user_id) => {
-  let result = await Review.create({
-    video_id: video_id,
-    review_rating: review_rating || null,
-    user_id: user_id || null,
-  });
+  try {
+    // Validate rating
+    if (review_rating < 1 || review_rating > 5) {
+      throw new Error("Rating must be between 1 and 5");
+    }
 
-  return result;
+    const review = await Review.create({
+      video_id,
+      review_rating,
+      user_id,
+    });
+
+    return review;
+  } catch (error) {
+    throw new Error(`Error creating review: ${error.message}`);
+  }
 };
 
 const getReviewsByVideoIdService = async (videoId) => {
   try {
     const reviews = await Review.find({ video_id: videoId })
-      .populate("user_id", "avatar name")
-      .populate("business_id_review", "business_name avatar");
+      .populate("user_id", "user_name email")
+      .populate("video_id", "title_video");
+
     return reviews;
   } catch (error) {
-    throw new Error(error.message);
+    throw new Error(`Error getting reviews: ${error.message}`);
   }
 };
 
 const getNumberOfReviewsByVideoIdService = async (videoId) => {
   try {
-    const totalReviews = await Review.countDocuments({
-      video_id: videoId,
-    });
+    const totalReviews = await Review.countDocuments({ video_id: videoId });
     return totalReviews;
   } catch (error) {
-    throw new Error(error.mesage);
+    throw new Error(`Error counting reviews: ${error.message}`);
   }
 };
 
 module.exports = {
-  getListReviewService,
   getReviewByIdService,
   createReviewService,
-  getNumberOfReviewsByBusinessIdService,
-  deleteReviewService,
-  getReviewsByBusinessIdService,
-  getReviewResponseByParentReviewIdService,
+  getReviewsByVideoIdService,
+  getNumberOfReviewsByVideoIdService,
 };

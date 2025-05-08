@@ -9,11 +9,8 @@ const {
 
 const createComment = async (req, res, next) => {
   try {
-    const comment = await createCommentService(
-      req.body,
-      req.user._id,
-      req.params.videoId
-    );
+    const { user_id, video_id } = req.body;
+    const comment = await createCommentService(req.body, user_id, video_id);
     res.status(201).json({
       status: "success",
       data: { comment },
@@ -37,7 +34,8 @@ const getComment = async (req, res, next) => {
 
 const getVideoComments = async (req, res, next) => {
   try {
-    const comments = await getVideoCommentsService(req.params.videoId);
+    const { video_id } = req.body;
+    const comments = await getVideoCommentsService(video_id);
     res.status(200).json({
       status: "success",
       results: comments.length,
@@ -50,9 +48,10 @@ const getVideoComments = async (req, res, next) => {
 
 const updateComment = async (req, res, next) => {
   try {
+    const { user_id } = req.body;
     const comment = await updateCommentService(
       req.params.id,
-      req.user._id,
+      user_id,
       req.body
     );
     res.status(200).json({
@@ -66,7 +65,8 @@ const updateComment = async (req, res, next) => {
 
 const deleteComment = async (req, res, next) => {
   try {
-    await deleteCommentService(req.params.id, req.user._id);
+    const { user_id } = req.body;
+    await deleteCommentService(req.params.id, user_id);
     res.status(204).json({
       status: "success",
       data: null,
@@ -78,7 +78,8 @@ const deleteComment = async (req, res, next) => {
 
 const restoreComment = async (req, res, next) => {
   try {
-    const comment = await restoreCommentService(req.params.id, req.user._id);
+    const { user_id } = req.body;
+    const comment = await restoreCommentService(req.params.id, user_id);
     res.status(200).json({
       status: "success",
       data: { comment },

@@ -70,14 +70,8 @@ const getUserDislikeVideoService = async (video_id) => {
   if (!mongoose.Types.ObjectId.isValid(video_id)) {
     throw new AppError("Invalid video ID", 400);
   }
-  let result = await User_Dislike_Video.find({ video_id }).populate(
-    "user_id",
-    "nick_name _id"
-  );
-  return result.map((item) => ({
-    id: item.user_id._id,
-    nick_name: item.user_id.nick_name,
-  }));
+  let result = await User_Dislike_Video.find({ video_id }).populate("user_id");
+  return result.map((item) => item.user_id);
 };
 
 const getVideoDislikeByUserService = async (user_id) => {
