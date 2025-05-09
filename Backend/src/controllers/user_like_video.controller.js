@@ -76,9 +76,7 @@ const getVideoLikes = async (req, res, next) => {
 const countLikeVideo = async (req, res, next) => {
   try {
     const { video_id } = req.params;
-    const result = await userDislikeVideoService.countDislikeVideoService(
-      video_id
-    );
+    const result = await userLikeVideoService.countLikeVideoService(video_id);
     res.status(200).json({
       status: "success",
       data: result,
