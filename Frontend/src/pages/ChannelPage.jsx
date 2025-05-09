@@ -1,7 +1,6 @@
 import { Button, Col, Row, Space, Tabs, Typography } from "antd";
 import React from "react";
 import MainChannel from "../features/channel/components/templates/MainChannel";
-import HorizontalListVideo from "../features/channel/components/organisms/HorizontalListVideo";
 
 const tabs = [
   {
@@ -12,14 +11,15 @@ const tabs = [
   {
     key: "2",
     label: "Video",
-    children: "Content of Tab Pane 2",
+    children: "Content of Tab Pane 2", // Replace with actual content
   },
   {
     key: "3",
     label: "Danh sách phát",
-    children: "Content of Tab Pane 3",
+    children: "Content of Tab Pane 3", // Replace with actual content
   },
 ];
+
 const ChannelPage = () => {
   return (
     <>
@@ -47,15 +47,10 @@ const ChannelPage = () => {
           </div>
         </Col>
       </Row>
-      <Row style={{ marginTop: "16px" }}>
-        <Tabs defaultActiveKey="1" items={tabs} />
-        <Row style={{ marginTop: "16px" }}>
-          <Col span={24}>
-            <div style={{ width: "100%", backgroundColor: "aqua" }}>
-              <HorizontalListVideo />
-            </div>
-          </Col>
-        </Row>
+      <Row style={{ marginTop: "16px", width: "100%" }}>
+        <Col span={24}>
+          <Tabs defaultActiveKey="1" items={tabs} />
+        </Col>
       </Row>
     </>
   );
