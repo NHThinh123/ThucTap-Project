@@ -1,5 +1,4 @@
-import { Col, Divider, List, Row, Typography } from "antd";
-
+import { Col, Divider, Row, Typography } from "antd";
 import React from "react";
 import HorizontalListVideo from "../organisms/HorizontalListVideo";
 
@@ -40,7 +39,7 @@ const MainChannel = () => {
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
               textOverflow: "ellipsis",
-              maxWidth: "500px", // Giới hạn chiều rộng để kiểm soát dòng
+              maxWidth: "500px",
             }}
           >
             Anime Youtube Thumbnails designs, themes, templates and downloadable
@@ -49,10 +48,27 @@ const MainChannel = () => {
           </Text>
         </Col>
       </Row>
+
       <Divider />
       <Title level={3}>Dành cho bạn</Title>
-      <Row>
-        <HorizontalListVideo />
+      <Row style={{ marginTop: "16px" }}>
+        <Col span={24}>
+          <HorizontalListVideo />
+        </Col>
+      </Row>
+      <Divider />
+      <Title level={3}>Video mới nhất</Title>
+      <Row style={{ marginTop: "16px" }}>
+        <Col span={24}>
+          <HorizontalListVideo />
+        </Col>
+      </Row>
+      <Divider />
+      <Title level={3}>Video phổ biến</Title>
+      <Row style={{ marginTop: "16px" }}>
+        <Col span={24}>
+          <HorizontalListVideo />
+        </Col>
       </Row>
     </>
   );
