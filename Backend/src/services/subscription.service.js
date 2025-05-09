@@ -61,5 +61,28 @@ const getSubscribers = async (channelId) => {
 
     return { userId: channelId, userName: targetUser.user_name, subscribers };
 };
+const getUserSubscriptions = async (userId) => {
+    
+    const targetUser = await User.findById(userId);
+    if (!targetUser) {
+        throw new Error('User not found');
+    }
 
-module.exports = { subscribe, unsubscribe, getSubscriptionCount, getSubscribers };
+    
+    const subscriptions = await UserSubscription.find({ user_id: userId })
+        .populate('channel_id', '_id user_name');
+
+    
+    const channels = subscriptions.map(sub => ({
+        channelId: sub.channel_id._id,
+        channelName: sub.channel_id.user_name
+    }));
+
+    return {
+        userId,
+        userName: targetUser.user_name,
+        channels
+    };
+};
+
+module.exports = { subscribe, unsubscribe, getSubscriptionCount, getSubscribers, getUserSubscriptions };

@@ -2,7 +2,8 @@ const {
     subscribe: subscribeService,
     unsubscribe: unsubscribeService,
     getSubscriptionCount: getSubscriptionCountService,
-    getSubscribers: getSubscribersService
+    getSubscribers: getSubscribersService,
+    getUserSubscriptions: getUserSubscriptionsService
   } = require('../services/subscription.service');
   
   const subscribe = async (req, res) => {
@@ -104,10 +105,38 @@ const {
       });
     }
   };
+  const getUserSubscriptions = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // Kiểm tra xem userId có được cung cấp không
+        if (!userId) {
+            return res.status(400).json({
+                status: 'FAILED',
+                message: 'userId is required'
+            });
+        }
+
+        // Gọi hàm service để lấy danh sách channels
+        const result = await getUserSubscriptionsService(userId);
+
+        return res.status(200).json({
+            status: 'SUCCESS',
+            data: result
+        });
+    } catch (error) {
+        console.error('Get user subscriptions error:', error.message);
+        return res.status(400).json({
+            status: 'FAILED',
+            message: error.message || 'Failed to get user subscriptions'
+        });
+    }
+};
   
   module.exports = {
     subscribe,
     unsubscribe,
     getSubscriptionCount,
-    getSubscribers
+    getSubscribers,
+    getUserSubscriptions
   };
