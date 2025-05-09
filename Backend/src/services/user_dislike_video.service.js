@@ -82,9 +82,18 @@ const getVideoDislikeByUserService = async (user_id) => {
   return result.map((item) => item.video_id);
 };
 
+const countDislikeVideoService = async (video_id) => {
+  if (!mongoose.Types.ObjectId.isValid(video_id)) {
+    throw new AppError("Invalid video ID", 400);
+  }
+  let result = await User_Dislike_Video.countDocuments({ video_id });
+  return result;
+};
+
 module.exports = {
   dislikeVideoService,
   getUserDislikeVideoService,
   getVideoDislikeByUserService,
   undislikeVideoService,
+  countDislikeVideoService,
 };

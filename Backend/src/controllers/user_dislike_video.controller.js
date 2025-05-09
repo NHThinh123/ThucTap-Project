@@ -74,9 +74,25 @@ const getVideoDislikes = async (req, res, next) => {
   }
 };
 
+const countDislikeVideo = async (req, res, next) => {
+  try {
+    const { video_id } = req.params;
+    const result = await userDislikeVideoService.countDislikeVideoService(
+      video_id
+    );
+    res.status(200).json({
+      status: "success",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   dislikeVideo,
   undislikeVideo,
   getVideoDislikes,
   getUserDislikedVideos,
+  countDislikeVideo,
 };
