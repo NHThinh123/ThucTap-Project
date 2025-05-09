@@ -1,27 +1,74 @@
-import ScrollMenu from "react-horizontal-scrolling-menu";
+import React from "react";
+import Slider from "react-slick";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+import { Typography } from "antd";
 
-const HorizontalList = () => {
-  const items = Array.from({ length: 10 }).map((_, index) => ({
+const { Title, Text } = Typography;
+
+const HorizontalListVideo = () => {
+  const settings = {
+    dots: true, // Hiển thị chấm điều hướng
+    infinite: false, // Không lặp vô hạn
+    speed: 500, // Tốc độ chuyển slide
+    slidesToShow: 4, // Hiển thị 4 video cùng lúc
+    slidesToScroll: 1, // Cuộn 1 video mỗi lần
+    arrows: true, // Hiển thị mũi tên điều hướng
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 3,
+        },
+      },
+      {
+        breakpoint: 768,
+        settings: {
+          slidesToShow: 2,
+        },
+      },
+      {
+        breakpoint: 480,
+        settings: {
+          slidesToShow: 1,
+        },
+      },
+    ],
+  };
+
+  // Dữ liệu mẫu cho video
+  const videos = Array.from({ length: 10 }, (_, index) => ({
     id: index,
     title: `Video Title ${index + 1}`,
+    views: "100 N lượt xem",
+    time: "1 tháng trước",
+    thumbnail:
+      "https://cdn.dribbble.com/userupload/12205471/file/original-6e438536dab71e35649e6c5ab9111f7e.png?format=webp&resize=400x300&vertical=center",
   }));
 
   return (
-    <ScrollMenu
-      data={items.map((item) => (
-        <div key={item.id} style={{ width: "200px", margin: "0 8px" }}>
-          <img
-            src="https://cdn.dribbble.com/userupload/12205471/file/original-6e438536dab71e35649e6c5ab9111f7e.png?format=webp&resize=400x300&vertical=center"
-            alt="Thumbnail"
-            style={{ width: "100%", borderRadius: "8px" }}
-          />
-          <h4>{item.title}</h4>
-        </div>
-      ))}
-      arrowLeft={<div>{"<"}</div>}
-      arrowRight={<div>{">"}</div>}
-    />
+    <div className="slider-container" style={{ padding: "0 8px" }}>
+      <Slider {...settings}>
+        {videos.map((video) => (
+          <div key={video.id} style={{ padding: "0 8px" }}>
+            <img
+              src={video.thumbnail}
+              alt="Thumbnail"
+              style={{ width: "100%", height: "200px", borderRadius: "8px" }}
+            />
+            <div style={{ marginTop: "8px" }}>
+              <Title level={4} style={{ margin: 0 }}>
+                {video.title}
+              </Title>
+              <Text>
+                {video.views} • {video.time}
+              </Text>
+            </div>
+          </div>
+        ))}
+      </Slider>
+    </div>
   );
 };
 
-export default HorizontalList;
+export default HorizontalListVideo;

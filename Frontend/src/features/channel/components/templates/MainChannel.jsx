@@ -51,9 +51,6 @@ const MainChannel = () => {
       </Row>
       <Divider />
       <Title level={3}>Dành cho bạn</Title>
-      <Row>
-        <HorizontalListVideo />
-      </Row>
     </>
   );
 };

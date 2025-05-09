@@ -105,8 +105,7 @@ function App() {
           style={{
             marginLeft: collapsed ? "80px" : "200px",
             padding: "24px",
-            minHeight: "calc(100vh - 64px)",
-            transition: "margin-left 0.2s",
+
             background: "#fff",
           }}
         >
