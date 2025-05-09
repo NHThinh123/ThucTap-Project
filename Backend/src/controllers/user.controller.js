@@ -224,7 +224,8 @@ const signup = async (req, res) => {
       message: "Tài khoản đã được tạo!",
       user: {
         id: newUser._id,
-        name: newUser.name,
+        user_name: newUser.user_name,
+        nickname: newUser.nickname,
         email: newUser.email,
         avatar: newUser.avatar,
         dateOfBirth: newUser.dateOfBirth,

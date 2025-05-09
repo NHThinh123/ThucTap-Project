@@ -17,6 +17,7 @@ const reviewRoute = require("./routes/review.route");
 const userLikeVideoRoute = require("./routes/user_like_video.route");
 const userDislikeVideoRoute = require("./routes/user_dislike_video.route");
 const commentRoute = require("./routes/comment.route");
+const subscriptionRoutes = require('./routes/subscription.route');
 
 const sse = new SSE();
 app.use(cors());
@@ -32,6 +33,7 @@ app.set("sse", sse);
 app.use("/api/users", userRoute);
 app.use("/api/upload", uploadRoute);
 app.use("/api/video", videoRoute); // Thêm route mới
+app.use('/api', subscriptionRoutes);
 
 // Middleware xử lý lỗi
 app.use(errorHandler);

@@ -1,0 +1,65 @@
+const User = require('../models/user.model');
+const UserSubscription = require('../models/user_subscription.model');
+
+const subscribe = async (userId, channelId) => {
+    // Find users by their MongoDB _id
+    const user = await User.findById(userId);
+    const targetUser = await User.findById(channelId);
+  
+    if (!user || !targetUser) {
+      throw new Error('User not found');
+    }
+  
+    const existingSubscription = await UserSubscription.findOne({ 
+      user_id: userId, 
+      channel_id: channelId 
+    });
+    
+    if (existingSubscription) {
+      throw new Error('Already subscribed');
+    }
+  
+    await UserSubscription.create({ user_id: userId, channel_id: channelId });
+    return { message: `Subscribed to ${targetUser.user_name}` };
+};
+
+const unsubscribe = async (userId, channelId) => {
+    const user = await User.findById(userId);
+    const targetUser = await User.findById(channelId);
+
+    if (!user || !targetUser) {
+      throw new Error('User not found');
+    }
+
+    await UserSubscription.deleteOne({ user_id: userId, channel_id: channelId });
+    return { message: `Unsubscribed from ${targetUser.user_name}` };
+};
+
+const getSubscriptionCount = async (channelId) => {
+    const targetUser = await User.findById(channelId);
+    if (!targetUser) {
+      throw new Error('User not found');
+    }
+
+    const count = await UserSubscription.countDocuments({ channel_id: channelId });
+    return { userId: channelId, userName: targetUser.user_name, subscriptionCount: count };
+};
+
+const getSubscribers = async (channelId) => {
+    const targetUser = await User.findById(channelId);
+    if (!targetUser) {
+      throw new Error('User not found');
+    }
+
+    const subscriptions = await UserSubscription.find({ channel_id: channelId })
+      .populate('user_id', '_id user_name');
+      
+    const subscribers = subscriptions.map(sub => ({
+      userId: sub.user_id._id,
+      userName: sub.user_id.user_name
+    }));
+
+    return { userId: channelId, userName: targetUser.user_name, subscribers };
+};
+
+module.exports = { subscribe, unsubscribe, getSubscriptionCount, getSubscribers };
