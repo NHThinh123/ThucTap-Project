@@ -2,20 +2,14 @@ const Comment = require("../models/comment.model");
 const AppError = require("../utils/AppError");
 
 const createCommentService = async (data, userId, videoId) => {
-  const { comment_content, parent_comment_id } = data;
+  const { parent_comment_id, comment_content } = data;
 
-  // If parentCommentId is provided, verify it exists and is not deleted
   if (parent_comment_id) {
     const parentComment = await Comment.findOne({
       _id: parent_comment_id,
-      deleted: { $ne: true },
     });
     if (!parentComment) {
       throw new AppError("Parent comment not found", 404);
-    }
-    // Ensure parent comment belongs to the same video
-    if (parentComment.video.toString() !== videoId) {
-      throw new AppError("Parent comment does not belong to this video", 400);
     }
   }
 
@@ -30,7 +24,7 @@ const createCommentService = async (data, userId, videoId) => {
 
 const getCommentByIdService = async (commentId) => {
   const comment = await Comment.findById(commentId)
-    .populate("user_id", "user_name email")
+    .populate("user_id", "user_name email avatar nick_name")
     .populate("video_id", "title_video")
     .populate("parent_comment_id", "comment_content user_id");
   if (!comment) {
@@ -45,14 +39,14 @@ const getVideoCommentsService = async (videoId) => {
     video_id: videoId,
     parent_comment_id: null,
   })
-    .populate("user_id", "user_name email")
+    .populate("user_id", "user_name email avatar nick_name")
     .sort({ createdAt: -1 });
 
   // For each top-level comment, fetch its replies
   const commentsWithReplies = await Promise.all(
     comments.map(async (comment) => {
       const replies = await Comment.find({ parent_comment_id: comment._id })
-        .populate("user_id", "user_name email")
+        .populate("user_id", "user_name email avatar nick_name")
         .sort({ createdAt: 1 });
       return { ...comment.toObject(), replies };
     })
@@ -82,23 +76,10 @@ const deleteCommentService = async (commentId, userId) => {
   return comment;
 };
 
-const restoreCommentService = async (commentId, userId) => {
-  const comment = await Comment.findOneAndUpdate(
-    { _id: commentId, user_id: userId, deleted: true },
-    { deleted: false, deletedAt: null },
-    { new: true }
-  );
-  if (!comment) {
-    throw new AppError("Comment not found or you are not authorized", 404);
-  }
-  return comment;
-};
-
 module.exports = {
   createCommentService,
   getCommentByIdService,
   getVideoCommentsService,
   updateCommentService,
   deleteCommentService,
-  restoreCommentService,
 };

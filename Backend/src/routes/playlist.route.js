@@ -3,26 +3,17 @@ const router = express.Router();
 const {
   createPlaylist,
   getPlaylist,
-  getUserPlaylists,
+  getAllPlaylistOfUser,
   updatePlaylist,
   deletePlaylist,
-  addVideoToPlaylist,
-  removeVideoFromPlaylist,
-  restorePlaylist,
 } = require("../controllers/playlist.controller");
 
-router.route("/").post(createPlaylist).get(getUserPlaylists);
+router.route("/").post(createPlaylist).get(getAllPlaylistOfUser);
 
 router
   .route("/:id")
   .get(getPlaylist)
   .patch(updatePlaylist)
-  .delete(deletePlaylist)
-  .post(restorePlaylist);
-
-router
-  .route("/:id/videos")
-  .post(addVideoToPlaylist)
-  .delete(removeVideoFromPlaylist);
+  .delete(deletePlaylist);
 
 module.exports = router;

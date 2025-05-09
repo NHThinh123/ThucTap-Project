@@ -33,6 +33,7 @@ const commentSchema = new mongoose.Schema(
 commentSchema.plugin(mongooseDelete, {
   deletedAt: true, // Tự động thêm trường `deletedAt`
   overrideMethods: "all", // Ghi đè các phương thức mặc định (find, findOne, count...)
+  deleted: true,
 });
 
 const Comment = mongoose.model("Comment", commentSchema);
