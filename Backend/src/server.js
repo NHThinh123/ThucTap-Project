@@ -17,6 +17,7 @@ const reviewRoute = require("./routes/review.route");
 const userLikeVideoRoute = require("./routes/user_like_video.route");
 const userDislikeVideoRoute = require("./routes/user_dislike_video.route");
 const commentRoute = require("./routes/comment.route");
+const playlistVideoRoute = require("./routes/playlist_video.route");
 
 const sse = new SSE();
 app.use(cors());
@@ -32,15 +33,16 @@ app.set("sse", sse);
 app.use("/api/users", userRoute);
 app.use("/api/upload", uploadRoute);
 app.use("/api/video", videoRoute); // Thêm route mới
-
-// Middleware xử lý lỗi
-app.use(errorHandler);
-
 app.use("/api/playlist", playlistRoute);
 app.use("/api/review", reviewRoute);
 app.use("/api/user-like-video", userLikeVideoRoute);
 app.use("/api/user-dislike-video", userDislikeVideoRoute);
 app.use("/api/comment", commentRoute);
+app.use("/api/playlist-video", playlistVideoRoute);
+
+// Middleware xử lý lỗi
+app.use(errorHandler);
+
 (async () => {
   try {
     await connectDB();
