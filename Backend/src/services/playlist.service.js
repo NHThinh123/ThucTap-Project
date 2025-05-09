@@ -21,7 +21,7 @@ const getPlaylistByIdService = async (playlistId) => {
 
 const getUserPlaylistsService = async (userId) => {
   return Playlist.find({ user_id: userId })
-    .populate("videos", "title thumbnail duration")
+    .populate("playlist")
     .sort({ createdAt: -1 });
 };
 
