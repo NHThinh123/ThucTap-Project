@@ -29,6 +29,8 @@ const commentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+commentSchema.index({ user_id: 1, video_id: 1 });
+
 // Thêm plugin xóa mềm
 commentSchema.plugin(mongooseDelete, {
   deletedAt: true, // Tự động thêm trường `deletedAt`

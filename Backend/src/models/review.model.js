@@ -22,6 +22,8 @@ const reviewSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+reviewSchema.index({ user_id: 1, video_id: 1 });
+
 const Review = mongoose.model("Review", reviewSchema);
 
 module.exports = Review;

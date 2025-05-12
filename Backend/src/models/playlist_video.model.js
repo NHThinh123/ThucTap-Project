@@ -17,6 +17,8 @@ const playlist_videoSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+playlist_videoSchema.index({ playlist_id: 1, video_id: 1 });
+
 // Thêm plugin xóa mềm
 playlist_videoSchema.plugin(mongooseDelete, {
   deletedAt: true, // Tự động thêm trường `deletedAt`

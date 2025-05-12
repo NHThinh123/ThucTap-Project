@@ -21,7 +21,6 @@ const videoSchema = new mongoose.Schema({
   },
   thumbnail_video: {
     type: String,
-    default: "",
   },
   duration: {
     type: Number,
@@ -32,5 +31,7 @@ const videoSchema = new mongoose.Schema({
     default: 0,
   },
 });
+
+videoSchema.index({ user_id: 1, createdAt: -1 });
 
 module.exports = mongoose.model("Video", videoSchema);

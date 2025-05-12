@@ -45,7 +45,7 @@ const HorizontalListVideo = () => {
     dots: false,
     infinite: false,
     speed: 500,
-    slidesToShow: 4,
+    slidesToShow: 5,
     slidesToScroll: 2,
     arrows: true,
     responsive: [
@@ -98,8 +98,8 @@ const HorizontalListVideo = () => {
                 src={video.thumbnail}
                 alt="Thumbnail"
                 style={{
-                  width: "90%",
-                  height: "200px",
+                  width: "95%",
+                  height: "150px",
                   borderRadius: "8px",
                   objectFit: "cover", // Đảm bảo hình ảnh tỷ lệ đúng
                 }}

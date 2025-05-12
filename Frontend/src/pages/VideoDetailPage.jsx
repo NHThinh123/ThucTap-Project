@@ -6,11 +6,7 @@ const VideoDetailPage = () => {
   return (
     <div>
       <Row style={{ marginTop: "16px" }}>
-        <Col span={24}>
-          <div style={{ width: "100%", backgroundColor: "aqua" }}>
-            <HorizontalListVideo />
-          </div>
-        </Col>
+        <Col span={24}>video</Col>
       </Row>
     </div>
   );
