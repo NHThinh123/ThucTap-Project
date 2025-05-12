@@ -1,64 +1,54 @@
 const Review = require("../models/review.model");
+const AppError = require("../utils/AppError");
 
-const getReviewByIdService = async (id) => {
-  try {
-    const review = await Review.findById(id)
-      .populate("user_id", "user_name email")
-      .populate("video_id", "title_video");
+const createReviewService = async (data) => {
+  const { user_id, video_id, review_rating } = data;
 
-    if (!review) {
-      throw new Error("Review not found");
-    }
-
-    return review;
-  } catch (error) {
-    throw new Error(`Error getting review: ${error.message}`);
+  // Kiểm tra xem đã tồn tại bản ghi với user_id và video_id chưa
+  const existingReview = await Review.findOne({ user_id, video_id });
+  if (existingReview) {
+    throw new AppError("This user already reviewed this video", 400);
   }
+
+  const review = await Review.create({ user_id, video_id, review_rating });
+  return review;
 };
 
-const createReviewService = async (video_id, review_rating, user_id) => {
-  try {
-    // Validate rating
-    if (review_rating < 1 || review_rating > 5) {
-      throw new Error("Rating must be between 1 and 5");
-    }
-
-    const review = await Review.create({
-      video_id,
-      review_rating,
-      user_id,
-    });
-
-    return review;
-  } catch (error) {
-    throw new Error(`Error creating review: ${error.message}`);
+const getReviewByIdService = async (reviewId) => {
+  const review = await Review.findById(reviewId);
+  if (!review) {
+    throw new AppError("Review not found", 404);
   }
+  return review;
 };
 
-const getReviewsByVideoIdService = async (videoId) => {
-  try {
-    const reviews = await Review.find({ video_id: videoId })
-      .populate("user_id", "user_name email")
-      .populate("video_id", "title_video");
-
-    return reviews;
-  } catch (error) {
-    throw new Error(`Error getting reviews: ${error.message}`);
-  }
+const getAllReviewsOfVideoService = async (videoId) => {
+  return Review.find({ video_id: videoId });
 };
 
-const getNumberOfReviewsByVideoIdService = async (videoId) => {
-  try {
-    const totalReviews = await Review.countDocuments({ video_id: videoId });
-    return totalReviews;
-  } catch (error) {
-    throw new Error(`Error counting reviews: ${error.message}`);
+const getAllReviewsOfUserService = async (userId) => {
+  return Review.find({ user_id: userId });
+};
+
+const deleteReviewService = async (reviewId) => {
+  const review = await Review.findById(reviewId);
+  if (!review) {
+    throw new AppError("Review not found", 404);
   }
+  await review.deleteOne();
+  return review;
+};
+
+const deleteAllReviewsService = async (videoId) => {
+  const reviews = await Review.deleteMany({ video_id: videoId });
+  return reviews;
 };
 
 module.exports = {
-  getReviewByIdService,
   createReviewService,
-  getReviewsByVideoIdService,
-  getNumberOfReviewsByVideoIdService,
+  getReviewByIdService,
+  getAllReviewsOfVideoService,
+  getAllReviewsOfUserService,
+  deleteReviewService,
+  deleteAllReviewsService,
 };
