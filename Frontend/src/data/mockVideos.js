@@ -1,15 +1,26 @@
 export const mockVideos = [
   {
     id: 1,
+    title: "Anime Youtube Thumbnails designs",
+    thumbnailUrl:
+      "https://cdn.dribbble.com/userupload/12205471/file/original-6e438536dab71e35649e6c5ab9111f7e.png?format=webp&resize=400x300&vertical=center",
+    channelName: "KAFF Gaming",
+    channelAvatar: "https://pbs.twimg.com/media/F_vO2geW0AE1mmW.jpg",
+    views: 10060000000,
+    createdAt: "2025-02-20T10:00:00Z",
+  },
+  {
+    id: 2,
     title: "Hướng dẫn React cho người mới bắt đầu - Phần 1",
-    thumbnailUrl: "/assets/background.jpg",
+    thumbnailUrl:
+      "https://cdn.dribbble.com/userupload/12205471/file/original-6e438536dab71e35649e6c5ab9111f7e.png?format=webp&resize=400x300&vertical=center",
     channelName: "Code Master",
     channelAvatar: "https://i.pravatar.cc/150?img=1",
     views: 15000,
     createdAt: "2024-03-20T10:00:00Z",
   },
   {
-    id: 2,
+    id: 3,
     title: "JavaScript ES6+ Features - Arrow Functions & Destructuring",
     thumbnailUrl: "/assets/background.jpg",
     channelName: "Web Dev Pro",
@@ -18,7 +29,7 @@ export const mockVideos = [
     createdAt: "2024-03-19T15:30:00Z",
   },
   {
-    id: 3,
+    id: 4,
     title: "Xây dựng REST API với Node.js và Express",
     thumbnailUrl: "/assets/background.jpg",
     channelName: "Backend Master",
@@ -27,7 +38,7 @@ export const mockVideos = [
     createdAt: "2024-03-18T09:15:00Z",
   },
   {
-    id: 4,
+    id: 5,
     title: "CSS Grid Layout - Hướng dẫn từ cơ bản đến nâng cao",
     thumbnailUrl: "/assets/background.jpg",
     channelName: "Frontend Guru",
@@ -36,7 +47,7 @@ export const mockVideos = [
     createdAt: "2024-03-17T14:20:00Z",
   },
   {
-    id: 5,
+    id: 6,
     title: "TypeScript vs JavaScript - So sánh chi tiết",
     thumbnailUrl: "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
     channelName: "Tech Explorer",
@@ -45,7 +56,7 @@ export const mockVideos = [
     createdAt: "2024-03-16T11:45:00Z",
   },
   {
-    id: 6,
+    id: 7,
     title: "Docker cho người mới bắt đầu - Cài đặt và sử dụng",
     thumbnailUrl: "https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
     channelName: "DevOps Master",
