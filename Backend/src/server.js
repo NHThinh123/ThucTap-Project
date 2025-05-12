@@ -35,10 +35,6 @@ app.use("/api/users", userRoute);
 app.use("/api/upload", uploadRoute);
 app.use("/api/video", videoRoute); // Thêm route mới
 app.use("/api", subscriptionRoutes);
-
-// Middleware xử lý lỗi
-app.use(errorHandler);
-
 app.use("/api/playlist", playlistRoute);
 app.use("/api/review", reviewRoute);
 app.use("/api/user-like-video", userLikeVideoRoute);

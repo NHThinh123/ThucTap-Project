@@ -10,14 +10,13 @@ const addVideoToPlaylistService = async (playlistId, videoId) => {
 };
 
 const removeVideoFromPlaylistService = async (playlistId, videoId) => {
-  const playlist_video = await Playlist_Video.findOne({
+  const playlist_video = await Playlist_Video.findOneAndDelete({
     playlist_id: playlistId,
     video_id: videoId,
   });
   if (!playlist_video) {
     throw new AppError("Playlist not found or you are not authorized", 404);
   }
-  await playlist_video.delete();
   return playlist_video;
 };
 
