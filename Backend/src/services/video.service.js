@@ -1,4 +1,9 @@
 const Video = require("../models/video.model");
+const Review = require("../models/review.model");
+const User_Like_Video = require("../models/user_like_video.model");
+const User_Dislike_Video = require("../models/user_dislike_video.model");
+const Comment = require("../models/comment.model");
+const Playlist_Video = require("../models/playlist_video.model");
 
 const createVideoService = async (videoData, userId) => {
   try {
@@ -33,7 +38,7 @@ const getVideosService = async (query) => {
     const filter = user_id ? { user_id } : {};
 
     const videos = await Video.find(filter)
-      .populate("user_id", "username email") // Populate thông tin user
+      .populate("user_id", "user_name email")
       .skip((page - 1) * limit)
       .limit(parseInt(limit))
       .sort({ createdAt: -1 });
@@ -58,7 +63,7 @@ const getVideoByIdService = async (videoId) => {
   try {
     const video = await Video.findById(videoId).populate(
       "user_id",
-      "username email"
+      "user_name email"
     );
     if (!video) {
       throw new Error("Video not found");
@@ -126,10 +131,98 @@ const deleteVideoService = async (videoId, userId) => {
   }
 };
 
+const getInteractionDataService = async () => {
+  try {
+    console.time("Fetch reviews");
+    const reviews = await Review.find().select(
+      "user_id video_id review_rating"
+    );
+    console.timeEnd("Fetch reviews");
+    console.log(`Fetched ${reviews.length} reviews`);
+    const reviewData = reviews.map((review) => ({
+      user_id: review.user_id.toString(),
+      video_id: review.video_id.toString(),
+      rating: review.review_rating,
+    }));
+
+    console.time("Fetch likes");
+    const likes = await User_Like_Video.find().select("user_id video_id");
+    console.timeEnd("Fetch likes");
+    console.log(`Fetched ${likes.length} likes`);
+    const likeData = likes.map((like) => ({
+      user_id: like.user_id.toString(),
+      video_id: like.video_id.toString(),
+      rating: 1,
+    }));
+
+    console.time("Fetch dislikes");
+    const dislikes = await User_Dislike_Video.find().select("user_id video_id");
+    console.timeEnd("Fetch dislikes");
+    console.log(`Fetched ${dislikes.length} dislikes`);
+    const dislikeData = dislikes.map((dislike) => ({
+      user_id: dislike.user_id.toString(),
+      video_id: dislike.video_id.toString(),
+      rating: -1,
+    }));
+
+    console.time("Fetch comments");
+    const comments = await Comment.find().select("user_id video_id");
+    console.timeEnd("Fetch comments");
+    console.log(`Fetched ${comments.length} comments`);
+    const commentData = comments.map((comment) => ({
+      user_id: comment.user_id.toString(),
+      video_id: comment.video_id.toString(),
+      rating: 1,
+    }));
+
+    console.time("Fetch playlist videos");
+    const playlistVideos = await Playlist_Video.find()
+      .select("video_id")
+      .populate("playlist_id", "user_id");
+    console.timeEnd("Fetch playlist videos");
+    console.log(`Fetched ${playlistVideos.length} playlist videos`);
+    const playlistData = playlistVideos.map((pv) => ({
+      user_id: pv.playlist_id.user_id.toString(),
+      video_id: pv.video_id.toString(),
+      rating: 1,
+    }));
+
+    console.time("Aggregate data");
+    const interactionData = [
+      ...reviewData,
+      ...likeData,
+      ...dislikeData,
+      ...commentData,
+      ...playlistData,
+    ];
+    const aggregatedData = interactionData.reduce((acc, curr) => {
+      const key = `${curr.user_id}-${curr.video_id}`;
+      if (!acc[key]) {
+        acc[key] = { ...curr, rating: 0 };
+      }
+      acc[key].rating = Math.min(
+        Math.max(acc[key].rating + curr.rating, -1),
+        5
+      );
+      return acc;
+    }, {});
+    console.timeEnd("Aggregate data");
+    console.log(
+      `Aggregated ${Object.keys(aggregatedData).length} interactions`
+    );
+
+    return Object.values(aggregatedData);
+  } catch (error) {
+    console.error("Interaction data error:", error);
+    throw new Error(`Error retrieving interaction data: ${error.message}`);
+  }
+};
+
 module.exports = {
   createVideoService,
   getVideosService,
   getVideoByIdService,
   updateVideoService,
   deleteVideoService,
+  getInteractionDataService,
 };

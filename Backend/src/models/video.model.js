@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { use } = require("../routes/user.route");
 
 const videoSchema = new mongoose.Schema({
   user_id: {
