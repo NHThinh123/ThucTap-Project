@@ -36,6 +36,8 @@ const router = createBrowserRouter([
       {
         path: "watch",
         element: <VideoWatchPage />,
+      },
+      {
         path: "profile",
         element: <ProfilePage />,
       },

@@ -1,6 +1,16 @@
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import { CircleUserRound } from "lucide-react";
-import { Layout, Menu, Input, Button, Space, Row, Col, Avatar, Dropdown } from "antd";
+import {
+  Layout,
+  Menu,
+  Input,
+  Button,
+  Space,
+  Row,
+  Col,
+  Avatar,
+  Dropdown,
+} from "antd";
 import {
   SearchOutlined,
   MenuOutlined,
@@ -20,12 +30,11 @@ function App() {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const { auth, setAuth } = useContext(AuthContext);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [setIsLoggingOut] = useState(false);
   const isUserLoggedIn = auth?.isAuthenticated;
 
   const avatarSrc = isUserLoggedIn ? auth.user?.avatar : null;
   const displayName = isUserLoggedIn ? auth.user?.name : "";
-  const userId = isUserLoggedIn ? auth.user?.id : null;
 
   const handleLogout = () => {
     setIsLoggingOut(true);
@@ -41,13 +50,29 @@ function App() {
 
   const menuItems = [
     { key: "home", icon: <HomeOutlined />, label: <Link to="/">Home</Link> },
-    { key: "video", icon: <YoutubeOutlined />, label: <Link to="/video">Video</Link> },
-    { key: "channel", icon: <UserOutlined />, label: <Link to="/channel">Channel</Link> },
-    { key: "watch", icon: <YoutubeOutlined />, label: <Link to="/watch">Watch</Link> },
+    {
+      key: "video",
+      icon: <YoutubeOutlined />,
+      label: <Link to="/video">Video</Link>,
+    },
+    {
+      key: "channel",
+      icon: <UserOutlined />,
+      label: <Link to="/channel">Channel</Link>,
+    },
+    {
+      key: "watch",
+      icon: <YoutubeOutlined />,
+      label: <Link to="/watch">Watch</Link>,
+    },
   ];
 
   const userMenuItems = [
-    { key: "profile", label: "Hồ sơ cá nhân", onClick: () => navigate("/profile") },
+    {
+      key: "profile",
+      label: "Hồ sơ cá nhân",
+      onClick: () => navigate("/profile"),
+    },
     { key: "logout", label: "Đăng xuất", onClick: handleLogout },
   ];
 
@@ -92,19 +117,30 @@ function App() {
                 />
               </Space>
             </Col>
-            <Col span={12} style={{ display: "flex", justifyContent: "center" }}>
+            <Col
+              span={12}
+              style={{ display: "flex", justifyContent: "center" }}
+            >
               <Input.Search
                 size="large"
                 placeholder="Search..."
                 style={{ width: "100%", maxWidth: "600px" }}
-                enterButton={<Button type="primary" icon={<SearchOutlined />} />}
+                enterButton={
+                  <Button type="primary" icon={<SearchOutlined />} />
+                }
               />
             </Col>
-            <Col span={6} style={{ display: "flex", justifyContent: "flex-end" }}>
+            <Col
+              span={6}
+              style={{ display: "flex", justifyContent: "flex-end" }}
+            >
               {isUserLoggedIn ? (
                 <Dropdown overlay={userMenu} trigger={["click"]}>
                   <Space style={{ cursor: "pointer" }}>
-                    <Avatar src={avatarSrc} icon={!avatarSrc && <CircleUserRound />} />
+                    <Avatar
+                      src={avatarSrc}
+                      icon={!avatarSrc && <CircleUserRound />}
+                    />
                     <span>{displayName}</span>
                   </Space>
                 </Dropdown>
