@@ -19,6 +19,7 @@ const userDislikeVideoRoute = require("./routes/user_dislike_video.route");
 const commentRoute = require("./routes/comment.route");
 const subscriptionRoutes = require("./routes/subscription.route");
 const playlistVideoRoute = require("./routes/playlist_video.route");
+const historyRoute = require("./routes/history.route");
 
 const sse = new SSE();
 app.use(cors());
@@ -35,16 +36,13 @@ app.use("/api/users", userRoute);
 app.use("/api/upload", uploadRoute);
 app.use("/api/video", videoRoute); // Thêm route mới
 app.use("/api", subscriptionRoutes);
-
-// Middleware xử lý lỗi
-app.use(errorHandler);
-
 app.use("/api/playlist", playlistRoute);
 app.use("/api/review", reviewRoute);
 app.use("/api/user-like-video", userLikeVideoRoute);
 app.use("/api/user-dislike-video", userDislikeVideoRoute);
 app.use("/api/comment", commentRoute);
 app.use("/api/playlist-video", playlistVideoRoute);
+app.use("/api/history", historyRoute);
 
 // Middleware xử lý lỗi
 app.use(errorHandler);

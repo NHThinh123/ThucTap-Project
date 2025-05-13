@@ -1,22 +1,20 @@
 const express = require("express");
 const router = express.Router();
 const {
-  getReviewById,
   createReview,
-  getReviewsByVideoId,
-  getNumberOfReviewsByVideoId,
+  getReview,
+  getAllReviewsOfVideo,
+  getAllReviewsOfUser,
+  deleteReview,
+  deleteAllReviews,
 } = require("../controllers/review.controller");
 
-// Create a new review
-router.post("/", createReview);
+router.route("/").post(createReview).delete(deleteAllReviews);
 
-// Get review by ID
-router.get("/:id", getReviewById);
+router.route("/:id").get(getReview).delete(deleteReview);
 
-// Get all reviews for a specific video
-router.get("/video/:videoId", getReviewsByVideoId);
+router.route("/video/:video_id").get(getAllReviewsOfVideo);
 
-// Get total number of reviews for a specific video
-router.get("/video/:videoId/count", getNumberOfReviewsByVideoId);
+router.route("/user/:user_id").get(getAllReviewsOfUser);
 
 module.exports = router;

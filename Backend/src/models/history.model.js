@@ -1,10 +1,11 @@
 const mongoose = require("mongoose");
+const mongooseDelete = require("mongoose-delete");
 
-const playlist_videoSchema = new mongoose.Schema(
+const historySchema = new mongoose.Schema(
   {
-    playlist_id: {
+    user_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Playlist",
+      ref: "User",
       required: true,
     },
     video_id: {
@@ -12,19 +13,21 @@ const playlist_videoSchema = new mongoose.Schema(
       ref: "Video",
       required: true,
     },
+    watch_duration: {
+      type: Number,
+      required: true,
+    },
   },
   { timestamps: true }
 );
 
-playlist_videoSchema.index({ playlist_id: 1, video_id: 1 });
-
 // Thêm plugin xóa mềm
-playlist_videoSchema.plugin(mongooseDelete, {
+historySchema.plugin(mongooseDelete, {
   deletedAt: true, // Tự động thêm trường `deletedAt`
   overrideMethods: "all", // Ghi đè các phương thức mặc định (find, findOne, count...)
   deleted: true,
 });
 
-const Playlist_Video = mongoose.model("Playlist_Video", playlist_videoSchema);
+const History = mongoose.model("History", historySchema);
 
-module.exports = Playlist_Video;
+module.exports = History;

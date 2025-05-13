@@ -1,77 +1,94 @@
 const {
-  getReviewByIdService,
   createReviewService,
-  getReviewsByVideoIdService,
-  getNumberOfReviewsByVideoIdService,
+  getReviewByIdService,
+  getAllReviewsOfVideoService,
+  getAllReviewsOfUserService,
+  deleteReviewService,
+  deleteAllReviewsService,
 } = require("../services/review.service");
-
-const getReviewById = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    if (!id) {
-      return res.status(400).json({ message: "Review ID is required" });
-    }
-
-    const review = await getReviewByIdService(id);
-    res.status(200).json(review);
-  } catch (error) {
-    next(error);
-  }
-};
 
 const createReview = async (req, res, next) => {
   try {
-    const { video_id, review_rating, user_id } = req.body;
-
-    // Validate required fields
-    if (!video_id || !review_rating || !user_id) {
-      return res.status(400).json({
-        message: "video_id, review_rating, and user_id are required",
-      });
-    }
-
-    const newReview = await createReviewService(
-      video_id,
-      review_rating,
-      user_id
-    );
-    res.status(201).json(newReview);
+    const review = await createReviewService(req.body);
+    res.status(201).json({
+      status: "success",
+      data: { review },
+    });
   } catch (error) {
     next(error);
   }
 };
 
-const getReviewsByVideoId = async (req, res, next) => {
+const getReview = async (req, res, next) => {
   try {
-    const { videoId } = req.params;
-    if (!videoId) {
-      return res.status(400).json({ message: "Video ID is required" });
-    }
-
-    const reviews = await getReviewsByVideoIdService(videoId);
-    res.status(200).json(reviews);
+    const review = await getReviewByIdService(req.params.id);
+    res.status(200).json({
+      status: "success",
+      data: { review },
+    });
   } catch (error) {
     next(error);
   }
 };
 
-const getNumberOfReviewsByVideoId = async (req, res, next) => {
+const getAllReviewsOfVideo = async (req, res, next) => {
   try {
-    const { videoId } = req.params;
-    if (!videoId) {
-      return res.status(400).json({ message: "Video ID is required" });
-    }
+    const { video_id } = req.params;
+    const reviews = await getAllReviewsOfVideoService(video_id);
+    res.status(200).json({
+      status: "success",
+      results: reviews.length,
+      data: { reviews },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
-    const totalReviews = await getNumberOfReviewsByVideoIdService(videoId);
-    res.status(200).json({ totalReviews });
+const getAllReviewsOfUser = async (req, res, next) => {
+  try {
+    const { user_id } = req.params;
+    const reviews = await getAllReviewsOfUserService(user_id);
+    res.status(200).json({
+      status: "success",
+      results: reviews.length,
+      data: { reviews },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteReview = async (req, res, next) => {
+  try {
+    await deleteReviewService(req.params.id);
+    res.status(204).json({
+      status: "success",
+      data: null,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteAllReviews = async (req, res, next) => {
+  try {
+    const { video_id } = req.body;
+    await deleteAllReviewsService(video_id);
+    res.status(204).json({
+      status: "success",
+      data: null,
+    });
   } catch (error) {
     next(error);
   }
 };
 
 module.exports = {
-  getReviewById,
   createReview,
-  getReviewsByVideoId,
-  getNumberOfReviewsByVideoId,
+  getReview,
+  getAllReviewsOfVideo,
+  getAllReviewsOfUser,
+  deleteReview,
+  deleteAllReviews,
 };
