@@ -1,5 +1,7 @@
-pandas
-numpy
-scikit-learn
-scipy
-surprise
+pandas==2.2.3
+numpy==1.26.4
+scikit-learn==1.6.1
+scipy==1.15.3
+surprise==0.1
+scikit-surprise==1.1.4
+pip==25.1.1

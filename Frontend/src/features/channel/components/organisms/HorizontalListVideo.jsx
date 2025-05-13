@@ -108,7 +108,7 @@ const HorizontalListVideo = () => {
                 <Title level={5} style={{ margin: 0 }}>
                   {video.title}
                 </Title>
-                <Text>
+                <Text type="secondary" style={{ fontSize: "14px" }}>
                   {video.views} • {video.time}
                 </Text>
               </div>

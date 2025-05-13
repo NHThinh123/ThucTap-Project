@@ -22,15 +22,15 @@ def get_recommendations(user_id, interaction_data, n=5):
 
     # Sử dụng user-based collaborative filtering với cosine similarity
     sim_options = {"name": "cosine", "user_based": True}
-    algo = KNNBasic(sim_options=sim_options)
+    algo = KNNBasic(sim_options=sim_options, verbose=False)  # Tắt thông báo debug
     algo.fit(trainset)
 
-    # Đánh giá mô hình (log RMSE thay vì in)
+    # Đánh giá mô hình
     predictions = algo.test(testset)
     rmse = accuracy.rmse(predictions, verbose=False)
     print(f"RMSE: {rmse}", file=sys.stderr)  # In RMSE ra stderr
 
-    # Lấy danh sách video chưa xem
+    # Lấy danh sách video chưa xem (dựa trên History, Review, Like, Dislike, Comment, Playlist)
     all_videos = data["video_id"].unique()
     rated_videos = data[data["user_id"] == user_id]["video_id"].values
     unrated_videos = [vid for vid in all_videos if vid not in rated_videos]

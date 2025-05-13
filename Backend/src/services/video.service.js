@@ -4,6 +4,7 @@ const User_Like_Video = require("../models/user_like_video.model");
 const User_Dislike_Video = require("../models/user_dislike_video.model");
 const Comment = require("../models/comment.model");
 const Playlist_Video = require("../models/playlist_video.model");
+const History = require("../models/history.model");
 
 const createVideoService = async (videoData, userId) => {
   try {
@@ -134,87 +135,104 @@ const deleteVideoService = async (videoId, userId) => {
 const getInteractionDataService = async () => {
   try {
     console.time("Fetch reviews");
-    const reviews = await Review.find().select(
+    const reviews = await Review.find({}).select(
       "user_id video_id review_rating"
     );
     console.timeEnd("Fetch reviews");
     console.log(`Fetched ${reviews.length} reviews`);
-    const reviewData = reviews.map((review) => ({
-      user_id: review.user_id.toString(),
-      video_id: review.video_id.toString(),
-      rating: review.review_rating,
-    }));
 
     console.time("Fetch likes");
-    const likes = await User_Like_Video.find().select("user_id video_id");
+    const likes = await User_Like_Video.find({}).select("user_id video_id");
     console.timeEnd("Fetch likes");
     console.log(`Fetched ${likes.length} likes`);
-    const likeData = likes.map((like) => ({
-      user_id: like.user_id.toString(),
-      video_id: like.video_id.toString(),
-      rating: 1,
-    }));
 
     console.time("Fetch dislikes");
-    const dislikes = await User_Dislike_Video.find().select("user_id video_id");
+    const dislikes = await User_Dislike_Video.find({}).select(
+      "user_id video_id"
+    );
     console.timeEnd("Fetch dislikes");
     console.log(`Fetched ${dislikes.length} dislikes`);
-    const dislikeData = dislikes.map((dislike) => ({
-      user_id: dislike.user_id.toString(),
-      video_id: dislike.video_id.toString(),
-      rating: -1,
-    }));
 
     console.time("Fetch comments");
-    const comments = await Comment.find().select("user_id video_id");
+    const comments = await Comment.find({}).select("user_id video_id");
     console.timeEnd("Fetch comments");
     console.log(`Fetched ${comments.length} comments`);
-    const commentData = comments.map((comment) => ({
-      user_id: comment.user_id.toString(),
-      video_id: comment.video_id.toString(),
-      rating: 1,
-    }));
 
     console.time("Fetch playlist videos");
-    const playlistVideos = await Playlist_Video.find()
-      .select("video_id")
-      .populate("playlist_id", "user_id");
+    const playlistVideos = await Playlist_Video.find({}).select("video_id");
     console.timeEnd("Fetch playlist videos");
     console.log(`Fetched ${playlistVideos.length} playlist videos`);
-    const playlistData = playlistVideos.map((pv) => ({
-      user_id: pv.playlist_id.user_id.toString(),
-      video_id: pv.video_id.toString(),
-      rating: 1,
-    }));
+
+    console.time("Fetch history");
+    const histories = await History.find({
+      watch_duration: { $gte: 5 },
+    }).select("user_id video_id");
+    console.timeEnd("Fetch history");
+    console.log(`Fetched ${histories.length} history records`);
 
     console.time("Aggregate data");
-    const interactionData = [
-      ...reviewData,
-      ...likeData,
-      ...dislikeData,
-      ...commentData,
-      ...playlistData,
-    ];
-    const aggregatedData = interactionData.reduce((acc, curr) => {
-      const key = `${curr.user_id}-${curr.video_id}`;
-      if (!acc[key]) {
-        acc[key] = { ...curr, rating: 0 };
-      }
-      acc[key].rating = Math.min(
-        Math.max(acc[key].rating + curr.rating, -1),
-        5
-      );
-      return acc;
-    }, {});
-    console.timeEnd("Aggregate data");
-    console.log(
-      `Aggregated ${Object.keys(aggregatedData).length} interactions`
-    );
+    const interactionData = [];
 
-    return Object.values(aggregatedData);
+    // Xử lý reviews (explicit feedback)
+    reviews.forEach((review) => {
+      interactionData.push({
+        user_id: review.user_id.toString(),
+        video_id: review.video_id.toString(),
+        rating: review.review_rating,
+      });
+    });
+
+    // Xử lý likes (implicit feedback: +1)
+    likes.forEach((like) => {
+      interactionData.push({
+        user_id: like.user_id.toString(),
+        video_id: like.video_id.toString(),
+        rating: 1,
+      });
+    });
+
+    // Xử lý dislikes (implicit feedback: -1)
+    dislikes.forEach((dislike) => {
+      interactionData.push({
+        user_id: dislike.user_id.toString(),
+        video_id: dislike.video_id.toString(),
+        rating: -1,
+      });
+    });
+
+    // Xử lý comments (implicit feedback: +1)
+    comments.forEach((comment) => {
+      interactionData.push({
+        user_id: comment.user_id.toString(),
+        video_id: comment.video_id.toString(),
+        rating: 1,
+      });
+    });
+
+    // Xử lý playlist videos (implicit feedback: +1)
+    playlistVideos.forEach((pv) => {
+      interactionData.push({
+        video_id: pv.video_id.toString(),
+        rating: 1,
+      });
+    });
+
+    // Xử lý history (implicit feedback: +1 nếu xem >= 30 giây)
+    histories.forEach((history) => {
+      interactionData.push({
+        user_id: history.user_id.toString(),
+        video_id: history.video_id.toString(),
+        rating: 1,
+      });
+    });
+
+    console.timeEnd("Aggregate data");
+    console.log(`Aggregated ${interactionData.length} interactions`);
+
+    return interactionData;
   } catch (error) {
-    console.error("Interaction data error:", error);
-    throw new Error(`Error retrieving interaction data: ${error.message}`);
+    console.error("Error fetching interaction data:", error);
+    throw new Error(`Error fetching interaction data: ${error.message}`);
   }
 };
 

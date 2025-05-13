@@ -2,25 +2,24 @@ import { Button, Col, Row, Space, Tabs, Typography } from "antd";
 import React from "react";
 import MainChannel from "../features/channel/components/templates/MainChannel";
 
-const tabs = [
-  {
-    key: "1",
-    label: "Trang chủ",
-    children: <MainChannel />,
-  },
-  {
-    key: "2",
-    label: "Video",
-    children: "Content of Tab Pane 2", // Replace with actual content
-  },
-  {
-    key: "3",
-    label: "Danh sách phát",
-    children: "Content of Tab Pane 3", // Replace with actual content
-  },
-];
-
 const ChannelPage = () => {
+  const tabs = [
+    {
+      key: "1",
+      label: "Trang chủ",
+      children: <MainChannel />,
+    },
+    {
+      key: "2",
+      label: "Video",
+      children: "Content of Tab Pane 2", // Replace with actual content
+    },
+    {
+      key: "3",
+      label: "Danh sách phát",
+      children: "Content of Tab Pane 3", // Replace with actual content
+    },
+  ];
   return (
     <>
       <Row align={"middle"} gutter={16}>
