@@ -27,6 +27,11 @@ function App() {
       icon: <UserOutlined />,
       label: <Link to="/channel">Channel</Link>,
     },
+    {
+      key: "watch",
+      icon: <YoutubeOutlined />,
+      label: <Link to="/watch">Watch</Link>,
+    },
   ];
 
   return (
