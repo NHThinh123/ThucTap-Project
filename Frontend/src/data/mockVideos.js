@@ -24,7 +24,7 @@ export const mockVideos = [
   {
     id: 3,
     title: "JavaScript ES6+ Features - Arrow Functions & Destructuring",
-    thumbnailUrl: "/assets/background.jpg",
+    thumbnailUrl: "/src/assets/background.jpg",
     channelName: "Web Dev Pro",
     channelAvatar: "https://i.pravatar.cc/150?img=2",
     duration: 3600,
@@ -34,7 +34,7 @@ export const mockVideos = [
   {
     id: 4,
     title: "Xây dựng REST API với Node.js và Express",
-    thumbnailUrl: "/assets/background.jpg",
+    thumbnailUrl: "/src/assets/background.jpg",
     channelName: "Backend Master",
     channelAvatar: "https://i.pravatar.cc/150?img=3",
     duration: 4000,
@@ -44,7 +44,7 @@ export const mockVideos = [
   {
     id: 5,
     title: "CSS Grid Layout - Hướng dẫn từ cơ bản đến nâng cao",
-    thumbnailUrl: "/assets/background.jpg",
+    thumbnailUrl: "/src/assets/background.jpg",
     channelName: "Frontend Guru",
     channelAvatar: "https://i.pravatar.cc/150?img=4",
     duration: 1000,

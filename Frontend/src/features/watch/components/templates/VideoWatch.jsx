@@ -1,4 +1,4 @@
-import videoImg from "../../../../../public/assets/background.jpg";
+import videoImg from "../../../../assets/background.jpg";
 
 const VideoWatch = () => {
   return (
