@@ -1,7 +1,7 @@
 import { Col, Divider, List, Row, Typography } from "antd";
 
 import React from "react";
-import HorizontalListVideo from "../organisms/HorizontalListVideo";
+
 
 const { Title, Text } = Typography;
 
@@ -52,7 +52,6 @@ const MainChannel = () => {
       <Divider />
       <Title level={3}>Dành cho bạn</Title>
       <Row>
-        <HorizontalListVideo />
       </Row>
     </>
   );
