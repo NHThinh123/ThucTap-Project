@@ -1,6 +1,6 @@
 import React from "react";
 import { Layout } from "antd";
-import VideoGrid from "../components/VideoGrid";
+import VideoGrid from "../features/video/components/templates/VideoGrid";
 import { mockVideos } from "../data/mockVideos";
 
 const { Content } = Layout;
