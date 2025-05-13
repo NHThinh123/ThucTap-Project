@@ -127,7 +127,6 @@ const VideoInformation = () => {
             labore et dolore magna aliqua.
           </p>
         </Card>
-        <Divider />
       </div>
     </>
   );
