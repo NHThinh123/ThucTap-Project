@@ -56,7 +56,7 @@ const updateUser = async (req, res, next) => {
     const { id } = req.params;
     const { user_name, dateOfBirth, email, oldPassword, newPassword } = req.body;
     let updateData = {};
-    console.log("req.body:", req.body);
+
     // Tìm user trước khi cập nhật
     const user = await User.findById(id);
     if (!user) {
@@ -261,7 +261,7 @@ const signin = async (req, res) => {
       });
     }
 
-    
+
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
@@ -276,7 +276,7 @@ const signin = async (req, res) => {
     const accessToken = jwt.sign(
       { id: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" } // Access token hết hạn sau 1 giờ
+      { expiresIn: "1h" }
     );
 
     // Tạo refresh token
@@ -296,7 +296,8 @@ const signin = async (req, res) => {
       user: {
         id: user._id,
         email: user.email,
-        name: user.name,
+        user_name: user.user_name,
+        nickname: user.nickname,
         avatar: user.avatar,
         dateOfBirth: user.dateOfBirth,
         role: user.role,
@@ -474,6 +475,7 @@ module.exports = {
   signin,
   getUserById,
   uploadAvatar,
+  refreshToken,
   requestPasswordReset,
   resetPassword,
   getEmail

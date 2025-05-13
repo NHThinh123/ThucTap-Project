@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const path = require('path');
-const { signup, signin, getUserById, getListUser, updateUser, uploadAvatar, requestPasswordReset, resetPassword, getEmail } = require("../controllers/user.controller");
+const { signup, signin, getUserById, getListUser, updateUser, uploadAvatar, requestPasswordReset, resetPassword, getEmail, refreshToken } = require("../controllers/user.controller");
 const upload = require("../middlewares/uploadImage");
 
 //Đăng kí
@@ -16,6 +16,8 @@ router.put('/update/:id', upload.single('avatar'), updateUser, (req, res) => {
 router.post("/upload-avatar", upload.single('avatar'), uploadAvatar);
 //đăng nhập
 router.post("/login", signin);
+//refresh token
+router.post("/refresh-token", refreshToken);
 //Gửi yêu cầu đặt lại mật khẩu
 router.post("/reset-password-request", requestPasswordReset);
 
