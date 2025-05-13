@@ -26,6 +26,18 @@ export const formatTime = (dateString) => {
     return `${diffInDays} ngày trước`;
   }
 
+  // Dưới 12 tháng
+  const diffInMonths = Math.floor(diffInDays / 30); // Ước lượng 1 tháng = 30 ngày
+  if (diffInMonths < 12) {
+    return `${diffInMonths} tháng trước`;
+  }
+
+  // Trên 12 tháng
+  const diffInYears = Math.floor(diffInMonths / 12);
+  if (diffInYears >= 1) {
+    return `${diffInYears} năm trước`;
+  }
+
   // Trên 7 ngày thì hiển thị định dạng ngày/tháng/năm
   return postDate.toLocaleDateString("vi-VN", {
     day: "2-digit",

@@ -1,17 +1,23 @@
 import { Link } from "react-router-dom";
 import { formatTime } from "../../../../constants/formatTime";
 import { formatViews } from "../../../../constants/formatViews";
+import { formatDuration } from "../../../../constants/formatDuration";
 
 const VideoCard = ({ video }) => {
   return (
     <>
       <style>{styles}</style>
       <div className="video-card">
-        <img
-          className="video-card__cover"
-          src={video.thumbnailUrl}
-          alt={video.title}
-        />
+        <div className="video-card__thumbnail-container">
+          <img
+            className="video-card__cover"
+            src={video.thumbnailUrl}
+            alt={video.title}
+          />
+          <div className="video-card__duration">
+            {formatDuration(video.duration)}
+          </div>
+        </div>
         <div className="video-card__content">
           <Link to="/channel" className="video-card__avatar-link">
             <img
@@ -65,6 +71,23 @@ const styles = `
     padding: 0;
   }
 
+  .video-card__thumbnail-container {
+    position: relative;
+  }
+
+  .video-card__duration {
+    position: absolute;
+    bottom: 12px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 510;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
   .video-card__cover {
     width: 100%;
     height: 250px;
@@ -100,6 +123,7 @@ const styles = `
   .video-card__title {
     font-family: 'Roboto', Arial, sans-serif;
     margin: 0;
+    color: #0f0f0f;
     font-size: 17px;
     font-weight: 600;
     display: -webkit-box;
@@ -134,7 +158,7 @@ const styles = `
   .video-card__channel {
   font-family: 'Roboto', Arial, sans-serif;
   font-weight: 400;
-    font-size: 13px;
+    font-size: 14px;
     color: #606060;
     margin-top: 4px;
     display: block;
@@ -155,7 +179,6 @@ const styles = `
   }
 
   .video-card__meta .dot {
-    font-size: 12px;
     line-height: 1;
   }
 `;
