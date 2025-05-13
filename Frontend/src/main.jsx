@@ -53,7 +53,7 @@ createRoot(document.getElementById("root")).render(
       theme={{
         token: {
           //colorPrimary: "#52c41a", // Màu chính xanh lá cây
-          fontFamily: "Bitter, serif", // Font chữ
+          fontFamily: "Roboto, arial, sans-serif", // Font chữ
           fontSize: 18,
           borderRadius: "24px",
         },
