@@ -1,0 +1,166 @@
+import { Col, List, Row, Typography } from "antd";
+import { mockVideos } from "../../../../data/mockVideos";
+import { formatTime } from "../../../../constants/formatTime";
+import { formatViews } from "../../../../constants/formatViews";
+import { formatDuration } from "../../../../constants/formatDuration";
+import { Link } from "react-router-dom";
+import { useState } from "react";
+
+const VideoSuggest = () => {
+  const videos = mockVideos;
+  const [hoveredItemId, setHoveredItemId] = useState(null);
+  return (
+    <>
+      <div style={{ width: "100%", backgroundColor: "#fff", padding: "16px" }}>
+        <Typography level={1}>Suggested Videos</Typography>
+        <List
+          bordered={false}
+          dataSource={videos}
+          renderItem={(item) => (
+            <List.Item style={{ border: "none", padding: "8px 0" }}>
+              <Row
+                gutter={[0, 10]}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  background: "#fff",
+                  cursor: "pointer",
+                  border: "none",
+                  padding: 0,
+                }}
+              >
+                <Col span={10} style={{ width: "80%", height: 100 }}>
+                  <img
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      borderRadius: 10,
+                    }}
+                    src={item.thumbnailUrl}
+                    alt={item.title}
+                  />
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: 5,
+                      right: 7,
+                      background: "rgba(0, 0, 0, 0.5)",
+                      color: "#fff",
+                      fontFamily: "Roboto",
+                      fontSize: 12,
+                      fontWeight: 510,
+                      padding: "2px 6px",
+                      borderRadius: 4,
+                    }}
+                  >
+                    {formatDuration(item.duration)}
+                  </div>
+                </Col>
+                <Col
+                  span={13}
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 12,
+                    paddingLeft: 8,
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontFamily: "Roboto, arial, sans-serif",
+                          margin: 0,
+                          color: "#0f0f0f",
+                          fontSize: 15,
+                          fontWeight: 600,
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {item.title}
+                      </div>
+                    </div>
+                    <Link to="/channel" style={{ textDecoration: "none" }}>
+                      <span
+                        style={{
+                          fontFamily: "Roboto, arial, sans-serif",
+                          fontWeight: 400,
+                          fontSize: 13,
+                          color: "#606060",
+                          marginTop: 4,
+                        }}
+                      >
+                        {item.channelName}
+                      </span>
+                    </Link>
+                    <div
+                      style={{
+                        fontFamily: "Roboto, arial, sans-serif",
+                        display: "flex",
+                        fontWeight: 400,
+                        alignItems: "center",
+                        gap: 4,
+                        fontSize: 12,
+                        color: "#0606060",
+                      }}
+                    >
+                      <span>{formatViews(item.views)} lượt xem</span>
+                      <span style={{}}>•</span>
+                      <span>{formatTime(item.createdAt)}</span>
+                    </div>
+                  </div>
+                </Col>
+                <Col span={1}>
+                  <button
+                    style={{
+                      background:
+                        hoveredItemId === item.id
+                          ? "rgb(196, 196, 196)"
+                          : "none",
+                      border:
+                        hoveredItemId === item.id ? "1px solid black" : "none",
+                      borderRadius: hoveredItemId === item.id ? "50%" : "none",
+                      padding: 4,
+                      display: "flex",
+                      marginRight: -5,
+                      cursor: "pointer",
+                    }}
+                    onMouseEnter={() => setHoveredItemId(item.id)}
+                    onMouseLeave={() => setHoveredItemId(null)}
+                    aria-label="More options"
+                  >
+                    <svg
+                      style={{ width: 20, height: 20 }}
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                  </button>
+                </Col>
+              </Row>
+            </List.Item>
+          )}
+        />
+      </div>
+    </>
+  );
+};
+
+export default VideoSuggest;

@@ -10,6 +10,7 @@ import VideoDetailPage from "./pages/VideoDetailPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import SignupPage from "./pages/SignupPage.jsx";
 import ChannelPage from "./pages/ChannelPage.jsx";
+import VideoWatchPage from "./pages/VideoWatchPage.jsx";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,10 @@ const router = createBrowserRouter([
       {
         path: "channel",
         element: <ChannelPage />,
+      },
+      {
+        path: "watch",
+        element: <VideoWatchPage />,
       },
     ],
   },
