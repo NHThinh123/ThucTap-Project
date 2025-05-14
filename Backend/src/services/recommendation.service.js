@@ -1,3 +1,4 @@
+require("dotenv").config({ path: ".env.local" });
 const { PythonShell } = require("python-shell");
 const { getInteractionDataService } = require("./video.service");
 const Video = require("../models/video.model");
@@ -29,11 +30,10 @@ const getRecommendationsService = async (userId) => {
 
     // Chuẩn bị dữ liệu để gửi sang Python
     const data = JSON.stringify(interactionData);
-
     // Cấu hình PythonShell
     const options = {
       mode: "text",
-      pythonPath: "D:/ThucTap-Project/Backend/venv/Scripts/python.exe",
+      pythonPath: process.env.PYTHON_PATH,
       pythonOptions: ["-u"],
       scriptPath: "./recommendation",
       args: [userId, data],
