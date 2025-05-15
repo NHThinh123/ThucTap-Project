@@ -7,7 +7,7 @@ const BoxCustom = ({ children, style, margin, padding }) => {
         border: "1px solid #ccc",
         margin: margin || "20px 0",
         padding: padding || "20px",
-        borderRadius: "8px",
+        borderRadius: "16px",
         ...style,
       }}
     >

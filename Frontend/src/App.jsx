@@ -105,7 +105,6 @@ function App() {
             width: "100%",
             background: "#fff",
             padding: "0 24px",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
           }}
         >
           <Row align="middle" justify="space-between">
