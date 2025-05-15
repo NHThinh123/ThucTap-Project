@@ -100,7 +100,7 @@ function App() {
             width: "100%",
             background: "#fff",
             padding: "0 24px",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+            //boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
           }}
         >
           <Row align="middle" justify="space-between">
@@ -186,7 +186,7 @@ function App() {
               padding: "24px",
               minHeight: "calc(100vh - 64px)",
               transition: "margin-left 0.2s",
-              background: "#f0f2f5",
+              background: "#fff",
             }}
           >
             <Outlet />
