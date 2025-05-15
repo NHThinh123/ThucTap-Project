@@ -1,7 +1,7 @@
 import VideoWatch from "../features/watch/components/templates/VideoWatch";
 import VideoInformation from "../features/watch/components/templates/VideoInformation";
-import VideoSuggest from "../features/watch/components/templates/VideoSuggest";
-import VideoComment from "../features/watch/components/templates/VideoComment";
+import VideoSuggest from "../features/video/components/templates/VideoSuggest";
+import VideoComment from "../features/comment/components/templates/VideoComment";
 import { Col, Row } from "antd";
 
 const VideoWatchPage = () => {
