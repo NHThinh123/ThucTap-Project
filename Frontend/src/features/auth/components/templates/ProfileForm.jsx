@@ -3,8 +3,10 @@ import dayjs from "dayjs";
 import { useUpdateProfile } from "../../hooks/useProfile";
 import { useContext } from "react";
 import { AuthContext } from "../../../../contexts/auth.context";
+import { App } from "antd";
 
 const ProfileForm = ({ user, onCancel }) => {
+    const { message } = App.useApp();
     const [form] = Form.useForm();
     const { auth, setAuth } = useContext(AuthContext);
     const updateProfile = useUpdateProfile({
