@@ -5,14 +5,25 @@ import { formatViews } from "../../../../constants/formatViews";
 import { formatDuration } from "../../../../constants/formatDuration";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+const { Title } = Typography;
 
 const VideoSuggest = () => {
   const videos = mockVideos;
   const [hoveredItemId, setHoveredItemId] = useState(null);
   return (
     <>
-      <div style={{ width: "100%", backgroundColor: "#fff", padding: "16px" }}>
-        <Typography level={1}>Suggested Videos</Typography>
+      <div
+        style={{
+          width: "100%",
+          backgroundColor: "#fff",
+          padding: "0 16px 16px",
+        }}
+      >
+        <Typography>
+          <Title style={{ margin: 0, fontWeight: 600, fontSize: 25 }}>
+            Video gợi ý
+          </Title>
+        </Typography>
         <List
           bordered={false}
           dataSource={videos}
@@ -47,10 +58,9 @@ const VideoSuggest = () => {
                       right: 7,
                       background: "rgba(0, 0, 0, 0.5)",
                       color: "#fff",
-                      fontFamily: "Roboto",
-                      fontSize: 12,
-                      fontWeight: 510,
-                      padding: "2px 6px",
+                      fontSize: 11,
+                      fontWeight: 540,
+                      padding: "1px 5px",
                       borderRadius: 4,
                     }}
                   >
@@ -76,7 +86,6 @@ const VideoSuggest = () => {
                     >
                       <div
                         style={{
-                          fontFamily: "Roboto, arial, sans-serif",
                           margin: 0,
                           color: "#0f0f0f",
                           fontSize: 15,
@@ -95,7 +104,6 @@ const VideoSuggest = () => {
                     <Link to="/channel" style={{ textDecoration: "none" }}>
                       <span
                         style={{
-                          fontFamily: "Roboto, arial, sans-serif",
                           fontWeight: 400,
                           fontSize: 13,
                           color: "#606060",
@@ -107,7 +115,6 @@ const VideoSuggest = () => {
                     </Link>
                     <div
                       style={{
-                        fontFamily: "Roboto, arial, sans-serif",
                         display: "flex",
                         fontWeight: 400,
                         alignItems: "center",
@@ -117,7 +124,7 @@ const VideoSuggest = () => {
                       }}
                     >
                       <span>{formatViews(item.views)} lượt xem</span>
-                      <span style={{}}>•</span>
+                      <span>•</span>
                       <span>{formatTime(item.createdAt)}</span>
                     </div>
                   </div>

@@ -58,8 +58,8 @@ createRoot(document.getElementById("root")).render(
     <ConfigProvider
       theme={{
         token: {
-          //colorPrimary: "#52c41a", 
-          fontFamily: "Bitter, serif",
+          //colorPrimary: "#52c41a", // Màu chính xanh lá cây
+          fontFamily: "Roboto, arial, sans-serif", // Font chữ
           fontSize: 18,
           borderRadius: "24px",
         },
