@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 
 import { Outlet, Link, useNavigate } from "react-router-dom";
-import { CircleUserRound } from "lucide-react";
+import { CircleUserRound, Upload } from "lucide-react";
 import {
   Layout,
   Menu,
@@ -152,8 +152,20 @@ function App() {
                 }
               />
             </Col>
+            <Col span={5} style={{ display: "flex", justifyContent: "center" }}>
+              <Button
+                type="text"
+                icon={<Upload />}
+                style={{
+                  fontSize: "24px",
+                  color: "#000",
+                  marginLeft: "16px",
+                }}
+                onClick={() => navigate("/upload")}
+              ></Button>
+            </Col>
             <Col
-              span={6}
+              span={1}
               style={{ display: "flex", justifyContent: "flex-end" }}
             >
               {isUserLoggedIn ? (

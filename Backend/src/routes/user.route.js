@@ -1,19 +1,37 @@
 const express = require("express");
 const router = express.Router();
-const path = require('path');
-const { signup, signin, getUserById, getListUser, updateUser, uploadAvatar, requestPasswordReset, resetPassword, getEmail, refreshToken } = require("../controllers/user.controller");
+const path = require("path");
+const {
+  signup,
+  signin,
+  getUserById,
+  getListUser,
+  updateUser,
+  uploadAvatar,
+  requestPasswordReset,
+  resetPassword,
+  getEmail,
+  deleteUser,
+  refreshToken,
+} = require("../controllers/user.controller");
 const upload = require("../middlewares/uploadImage");
+const { protect, adminOnly } = require("../middlewares/admin");
+const { checkUserCredentials } = require("../services/user.service");
 
 //Đăng kí
-router.post("/signup", upload.single('avatar'), signup);
+router.post("/signup", upload.single("avatar"), signup);
 
 //lấy thông tin người dùng qua id
-router.get('/id/:id', getUserById);
+router.get("/id/:id", getUserById);
 //cập nhật thông tin người dùng
-router.put('/update/:id', upload.single('avatar'), updateUser, (req, res) => {
-});
+router.put(
+  "/update/:id",
+  upload.single("avatar"),
+  updateUser,
+  (req, res) => {}
+);
 
-router.post("/upload-avatar", upload.single('avatar'), uploadAvatar);
+router.post("/upload-avatar", upload.single("avatar"), uploadAvatar);
 //đăng nhập
 router.post("/login", signin);
 //refresh token
@@ -28,5 +46,15 @@ router.get("/reset-password/:token", (req, res) => {
 router.post("/reset-password/:token", resetPassword);
 //Lấy email
 router.get("/get-email/:token", getEmail);
+//Lấy danh sách người dùng
+router.get("/admin/list", protect, adminOnly, getListUser);
+//Lấy thông tin người dùng qua id
+router.get("/admin/get-user/:id", protect, adminOnly, getUserById);
+//Tạo người dùng mới
+router.post("/admin/create", protect, adminOnly, signup);
+//Cập nhật thông tin người dùng
+router.put("/admin/update/:id", protect, adminOnly, updateUser);
+//Xóa người dùng
+router.post("/admin/delete/:id", protect, adminOnly, deleteUser);
 
 module.exports = router;
