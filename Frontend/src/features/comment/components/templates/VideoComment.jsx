@@ -3,6 +3,7 @@ import { ChartBarDecreasing } from "lucide-react";
 import { useState } from "react";
 import ReplyButton from "../organisms/ReplyButton";
 import DisplayCommentReply from "../organisms/DisplayCommentReply";
+import ShowHideReplyButton from "../organisms/ShowHideReplyButton";
 
 const { TextArea } = Input;
 
@@ -42,6 +43,7 @@ const VideoComment = () => {
   const [newComment, setNewComment] = useState("");
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [expandedComments, setExpandedComments] = useState({});
+  const [visibleReplies, setVisibleReplies] = useState({});
   const charLimit = 300;
 
   const handleAddComment = () => {
@@ -87,6 +89,10 @@ const VideoComment = () => {
 
       if (parentComment) {
         setComments(updateReplies(comments));
+        setVisibleReplies((prev) => ({
+          ...prev,
+          [parentComment.id]: true,
+        }));
       } else {
         setComments(
           comments.map((comment) =>
@@ -95,12 +101,23 @@ const VideoComment = () => {
               : comment
           )
         );
+        setVisibleReplies((prev) => ({
+          ...prev,
+          [commentId]: true,
+        }));
       }
     }
   };
 
   const toggleCommentExpansion = (commentId) => {
     setExpandedComments((prev) => ({
+      ...prev,
+      [commentId]: !prev[commentId],
+    }));
+  };
+
+  const toggleRepliesVisibility = (commentId) => {
+    setVisibleReplies((prev) => ({
       ...prev,
       [commentId]: !prev[commentId],
     }));
@@ -115,7 +132,7 @@ const VideoComment = () => {
 
     return (
       <span>
-        <span style={{ margin: "4px 0 0 0", display: "inline" }}>
+        <span style={{ margin: "4px 0 0 0", display: "flex", width: "95%" }}>
           {isExpanded ? comment.content : truncatedContent}
         </span>
         {!isExpanded && comment.content.length > charLimit && (
@@ -127,6 +144,7 @@ const VideoComment = () => {
               fontWeight: 520,
               marginTop: 3,
               display: "block",
+              width: "fit-content",
             }}
             onClick={() => toggleCommentExpansion(comment.id)}
           >
@@ -142,6 +160,7 @@ const VideoComment = () => {
               fontSize: 15,
               fontWeight: 520,
               marginTop: 3,
+              width: "fit-content",
             }}
             onClick={() => toggleCommentExpansion(comment.id)}
           >
@@ -211,7 +230,7 @@ const VideoComment = () => {
         itemLayout="horizontal"
         dataSource={comments}
         renderItem={(item) => (
-          <List.Item>
+          <List.Item style={{ borderBottom: "none", padding: "8px 0" }}>
             <Row
               gutter={[0, 10]}
               style={{
@@ -266,13 +285,22 @@ const VideoComment = () => {
                     onAddReply={handleAddReply}
                     onCancelReply={() => {}}
                   />
-                  <DisplayCommentReply
-                    replies={item.replies}
-                    renderCommentContent={renderCommentContent}
-                    handleAddReply={handleAddReply}
-                    toggleCommentExpansion={toggleCommentExpansion}
-                    expandedComments={expandedComments}
-                  />
+                  {item.replies.length > 0 && (
+                    <ShowHideReplyButton
+                      replyCount={item.replies.length}
+                      onToggle={() => toggleRepliesVisibility(item.id)}
+                      isExpanded={visibleReplies[item.id]}
+                    />
+                  )}
+                  {visibleReplies[item.id] && (
+                    <DisplayCommentReply
+                      replies={item.replies}
+                      renderCommentContent={renderCommentContent}
+                      handleAddReply={handleAddReply}
+                      toggleCommentExpansion={toggleCommentExpansion}
+                      expandedComments={expandedComments}
+                    />
+                  )}
                 </div>
                 <div
                   style={{

@@ -1,7 +1,8 @@
 import { Avatar, Col, Row } from "antd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ReplyButton from "../organisms/ReplyButton";
 import DisplayCommentReply from "../organisms/DisplayCommentReply";
+import ShowHideReplyButton from "../organisms/ShowHideReplyButton";
 
 const SingleCommentReply = ({
   reply,
@@ -12,14 +13,25 @@ const SingleCommentReply = ({
   level,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [isRepliesExpanded, setIsRepliesExpanded] = useState(false);
+
+  // Tự động mở danh sách phản hồi khi có phản hồi mới
+  useEffect(() => {
+    if (reply.replies.length > 0) {
+      setIsRepliesExpanded(true);
+    }
+  }, [reply.replies.length]);
+
+  const handleReplySubmit = (commentId, content) => {
+    handleAddReply(commentId, content, reply);
+    setIsRepliesExpanded(true); // Đảm bảo danh sách phản hồi mở sau khi thêm
+  };
 
   return (
     <Row
       key={reply.id}
       gutter={[0, 10]}
       style={{
-        width: "100%",
-        height: "100%",
         background: "#fff",
         border: "none",
         padding: 0,
@@ -65,19 +77,26 @@ const SingleCommentReply = ({
           <ReplyButton
             commentId={reply.id}
             currentUserAvatar="https://i.pravatar.cc/40?img=3"
-            onAddReply={(commentId, content) =>
-              handleAddReply(commentId, content, reply)
-            }
+            onAddReply={handleReplySubmit}
             onCancelReply={() => {}}
           />
-          <DisplayCommentReply
-            replies={reply.replies}
-            renderCommentContent={renderCommentContent}
-            handleAddReply={handleAddReply}
-            toggleCommentExpansion={toggleCommentExpansion}
-            expandedComments={expandedComments}
-            level={level + 1}
-          />
+          {reply.replies.length > 0 && (
+            <ShowHideReplyButton
+              replyCount={reply.replies.length}
+              onToggle={() => setIsRepliesExpanded(!isRepliesExpanded)}
+              isExpanded={isRepliesExpanded}
+            />
+          )}
+          {isRepliesExpanded && (
+            <DisplayCommentReply
+              replies={reply.replies}
+              renderCommentContent={renderCommentContent}
+              handleAddReply={handleAddReply}
+              toggleCommentExpansion={toggleCommentExpansion}
+              expandedComments={expandedComments}
+              level={level + 1}
+            />
+          )}
         </div>
         <div
           style={{

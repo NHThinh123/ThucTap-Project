@@ -4,6 +4,7 @@ import { formatViews } from "../../../../constants/formatViews";
 import { formatDuration } from "../../../../constants/formatDuration";
 
 const VideoCard = ({ video }) => {
+  console.log("VideoCard videos:", video);
   return (
     <>
       <style>{styles}</style>
@@ -11,7 +12,7 @@ const VideoCard = ({ video }) => {
         <div className="video-card__thumbnail-container">
           <img
             className="video-card__cover"
-            src={video.thumbnailUrl}
+            src={video.thumbnail_video}
             alt={video.title}
           />
           <div className="video-card__duration">
@@ -22,7 +23,10 @@ const VideoCard = ({ video }) => {
           <Link to="/channel" className="video-card__avatar-link">
             <img
               className="video-card__avatar"
-              src={video.channelAvatar}
+              src={
+                video.avatar ||
+                "https://pbs.twimg.com/media/F_vO2geW0AE1mmW.jpg"
+              }
               alt="Channel avatar"
             />
           </Link>
@@ -47,7 +51,9 @@ const VideoCard = ({ video }) => {
               </button>
             </div>
             <Link to="/channel" className="video-card__channel-link">
-              <span className="video-card__channel">{video.channelName}</span>
+              <span className="video-card__channel">
+                {video.channelName || "Channel Name"}
+              </span>
             </Link>
             <div className="video-card__meta">
               <span>{formatViews(video.views)} lượt xem</span>
