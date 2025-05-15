@@ -1,6 +1,7 @@
 import { Button, Col, Row, Space, Tabs, Typography } from "antd";
 import React from "react";
 import MainChannel from "../features/channel/components/templates/MainChannel";
+import VideoChannel from "../features/channel/components/templates/VideoChannel";
 
 const ChannelPage = () => {
   const tabs = [
@@ -12,7 +13,7 @@ const ChannelPage = () => {
     {
       key: "2",
       label: "Video",
-      children: "Content of Tab Pane 2", // Replace with actual content
+      children: <VideoChannel />, // Replace with actual content
     },
     {
       key: "3",

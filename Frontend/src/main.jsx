@@ -13,6 +13,12 @@ import SignupPage from "./pages/SignupPage.jsx";
 import ChannelPage from "./pages/ChannelPage.jsx";
 import VideoWatchPage from "./pages/VideoWatchPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
+import StudioPage from "./pages/StudioPage.jsx";
+import StudioEditPage from "./pages/StudioEditPage.jsx";
+import StudioAnalyticsPage from "./pages/StudioAnalyticsPage.jsx";
+import StudioContentPage from "./pages/StudioContentPage.jsx";
+import StudioSubcribersPage from "./pages/StudioSubcribersPage.jsx";
+import StudioOverviewPage from "./pages/StudioOverviewPage.jsx";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +57,32 @@ const router = createBrowserRouter([
     path: "signup",
     element: <SignupPage />,
   },
+  {
+    path: "studio",
+    element: <StudioPage />,
+    children: [
+      {
+        index: true,
+        element: <StudioContentPage />,
+      },
+      {
+        path: "analytics",
+        element: <StudioAnalyticsPage />,
+      },
+      {
+        path: "edit",
+        element: <StudioEditPage />,
+      },
+      {
+        path: "subcribers",
+        element: <StudioSubcribersPage />,
+      },
+      {
+        path: "overview",
+        element: <StudioOverviewPage />,
+      },
+    ],
+  },
 ]);
 
 createRoot(document.getElementById("root")).render(
@@ -60,7 +92,7 @@ createRoot(document.getElementById("root")).render(
         token: {
           //colorPrimary: "#52c41a", // Màu chính xanh lá cây
           fontFamily: "Roboto, arial, sans-serif", // Font chữ
-          fontSize: 18,
+          fontSize: 16,
           borderRadius: "24px",
         },
       }}
