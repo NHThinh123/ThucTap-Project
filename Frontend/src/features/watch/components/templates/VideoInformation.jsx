@@ -5,6 +5,8 @@ import {
 } from "@ant-design/icons";
 import { Avatar, Button, Card, Divider, Space, Typography } from "antd";
 import { Bookmark } from "lucide-react";
+import { Link } from "react-router-dom";
+import VideoDescription from "./VideoDescription";
 const { Title } = Typography;
 
 const VideoInformation = () => {
@@ -23,24 +25,28 @@ const VideoInformation = () => {
             Tiêu đề Video
           </Title>
         </Typography>
-        <div className="video-info">
-          <Space className="channel-info">
-            <Avatar
-              src="https://pbs.twimg.com/media/F_vO2geW0AE1mmW.jpg"
-              size={45}
-            />
+        <div>
+          <Space>
+            <Link to="/channel">
+              <Avatar
+                src="https://pbs.twimg.com/media/F_vO2geW0AE1mmW.jpg"
+                size={45}
+              />
+            </Link>
             <div style={{ marginLeft: 5, fontSize: 14 }}>
-              <p
-                style={{
-                  marginBottom: 4,
-                  fontWeight: "bold",
-                  fontSize: 15,
-                  color: "#000",
-                }}
-              >
-                KAFF Gaming
-              </p>
-              <p style={{ fontWeight: 400, fontSize: 12, color: "#606060" }}>
+              <Link to="/channel">
+                <p
+                  style={{
+                    marginBottom: 4,
+                    fontWeight: "bold",
+                    fontSize: 15,
+                    color: "#000",
+                  }}
+                >
+                  KAFF Gaming
+                </p>
+              </Link>
+              <p style={{ fontWeight: 400, fontSize: 13, color: "#606060" }}>
                 50 N người đăng ký
               </p>
             </div>
@@ -55,13 +61,14 @@ const VideoInformation = () => {
                 fontSize: 16,
                 fontWeight: 500,
                 padding: "0 20px",
-                height: 35,
+                height: 40,
+                boxShadow: "none",
               }}
             >
               Đăng ký
             </Button>
           </Space>
-          <Space className="video-actions">
+          <Space style={{ float: "right" }}>
             <div
               style={{
                 border: "1px solid #d9d9d9",
@@ -119,14 +126,7 @@ const VideoInformation = () => {
             </div>
           </Space>
         </div>
-        <Card className="description-card">
-          <p type="secondary">Published on May 13, 2025</p>
-          <p style={{ marginTop: "8px" }}>
-            This is the video description. Lorem ipsum dolor sit amet,
-            consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut
-            labore et dolore magna aliqua.
-          </p>
-        </Card>
+        <VideoDescription />
       </div>
     </>
   );
