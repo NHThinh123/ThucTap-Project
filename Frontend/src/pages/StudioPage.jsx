@@ -1,34 +1,30 @@
-/* eslint-disable no-unused-vars */
-import { Outlet, Link, useNavigate } from "react-router-dom";
-import { CircleUserRound } from "lucide-react";
 import {
+  Avatar,
+  Button,
+  Col,
+  Dropdown,
+  Input,
   Layout,
   Menu,
-  Input,
-  Button,
-  Space,
   Row,
-  Col,
-  Avatar,
-  Dropdown,
+  Space,
 } from "antd";
+import React, { useContext, useState } from "react";
+import { Link, Outlet, useNavigate } from "react-router-dom";
+import { AuthContext } from "../contexts/auth.context";
+import logo from "../assets/logo/logo.png";
 import {
-  SearchOutlined,
-  MenuOutlined,
-  HomeOutlined,
-  YoutubeOutlined,
-  UserOutlined,
   AppstoreOutlined,
+  HomeOutlined,
+  MenuOutlined,
+  SearchOutlined,
+  UserOutlined,
+  YoutubeOutlined,
 } from "@ant-design/icons";
-import logo from "./assets/logo/logo.png";
-import { useState, useContext } from "react";
-import { AuthContext } from "./contexts/auth.context";
 import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-
+import { CircleUserRound, CircleUserRoundIcon } from "lucide-react";
 const { Header, Content, Sider } = Layout;
-
-function App() {
+const StudioPage = () => {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const { auth, setAuth } = useContext(AuthContext);
@@ -51,26 +47,30 @@ function App() {
   };
 
   const menuItems = [
-    { key: "home", icon: <HomeOutlined />, label: <Link to="/">Home</Link> },
     {
-      key: "video",
-      icon: <YoutubeOutlined />,
-      label: <Link to="/video">Video</Link>,
-    },
-    {
-      key: "channel",
-      icon: <UserOutlined />,
-      label: <Link to="/channel">Channel</Link>,
-    },
-    {
-      key: "watch",
-      icon: <YoutubeOutlined />,
-      label: <Link to="/watch">Watch</Link>,
-    },
-    {
-      key: "studio",
+      key: "overview",
       icon: <AppstoreOutlined />,
-      label: <Link to="/studio">Studio</Link>,
+      label: <Link to="/studio/overview">Tổng quan</Link>,
+    },
+    {
+      key: "content",
+      icon: <HomeOutlined />,
+      label: <Link to="/studio">Nội dung</Link>,
+    },
+    {
+      key: "analytics",
+      icon: <YoutubeOutlined />,
+      label: <Link to="/studio/analytics">Thống kê</Link>,
+    },
+    {
+      key: "edit",
+      icon: <UserOutlined />,
+      label: <Link to="/studio/edit">Chỉnh sửa</Link>,
+    },
+    {
+      key: "subcribers",
+      icon: <YoutubeOutlined />,
+      label: <Link to="/studio/subcribers">Người đăng ký</Link>,
     },
   ];
 
@@ -84,7 +84,6 @@ function App() {
   ];
 
   const userMenu = <Menu items={userMenuItems} />;
-
   return (
     <>
       <ToastContainer
@@ -106,7 +105,7 @@ function App() {
             width: "100%",
             background: "#fff",
             padding: "0 24px",
-            //boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
           }}
         >
           <Row align="middle" justify="space-between">
@@ -134,7 +133,7 @@ function App() {
                   alt="logo"
                 />
                 <span style={{ fontSize: "18px", fontWeight: "bold" }}>
-                  TrueTube
+                  TrueTube Studio
                 </span>
               </div>
             </Col>
@@ -144,7 +143,7 @@ function App() {
             >
               <Input.Search
                 size="large"
-                placeholder="Search..."
+                placeholder="Tìm kiếm trên kênh"
                 style={{ width: "100%", maxWidth: "600px" }}
                 enterButton={
                   <Button type="primary" icon={<SearchOutlined />} />
@@ -171,7 +170,7 @@ function App() {
                   style={{ padding: "0 16px" }}
                   onClick={() => navigate("/login")}
                 >
-                  <CircleUserRound style={{ marginRight: "8px" }} />
+                  <CircleUserRoundIcon style={{ marginRight: "8px" }} />
                   Đăng nhập
                 </Button>
               )}
@@ -182,7 +181,6 @@ function App() {
         <Layout style={{ marginTop: "64px" }}>
           <Sider
             collapsed={collapsed}
-            width={200}
             style={{
               position: "fixed",
               height: "calc(100vh - 64px)",
@@ -190,11 +188,36 @@ function App() {
               top: "64px",
               overflow: "auto",
               background: "#fff",
+              scrollbarWidth: "none",
+              borderRight: "1px solid #e8e8e8",
             }}
           >
+            <div style={{ padding: "16px", textAlign: "center" }}>
+              <Avatar
+                src={avatarSrc || <CircleUserRound />}
+                size={collapsed ? 40 : 100}
+                style={{ marginBottom: "8px" }}
+              />
+              {!collapsed && (
+                <>
+                  <div style={{ fontWeight: "bold", fontSize: 16 }}>
+                    Kênh của bạn
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "14px",
+
+                      color: "#6a6a6a",
+                    }}
+                  >
+                    {displayName || "Người dùng"}
+                  </div>
+                </>
+              )}
+            </div>
             <Menu
               mode="inline"
-              defaultSelectedKeys={["home"]}
+              defaultSelectedKeys={["content"]}
               items={menuItems}
               style={{ height: "100%", borderRight: 0 }}
             />
@@ -215,6 +238,6 @@ function App() {
       </Layout>
     </>
   );
-}
+};
 
-export default App;
+export default StudioPage;
