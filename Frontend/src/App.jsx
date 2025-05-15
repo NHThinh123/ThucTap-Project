@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import { CircleUserRound } from "lucide-react";
 import {
@@ -32,7 +33,7 @@ function App() {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const { auth, setAuth } = useContext(AuthContext);
-  const [setIsLoggingOut] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isUserLoggedIn = auth?.isAuthenticated;
 
   const avatarSrc = isUserLoggedIn ? auth.user?.avatar : null;
