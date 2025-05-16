@@ -20,6 +20,7 @@ const commentRoute = require("./routes/comment.route");
 const subscriptionRoutes = require("./routes/subscription.route");
 const playlistVideoRoute = require("./routes/playlist_video.route");
 const historyRoute = require("./routes/history.route");
+const statsRoutes = require("./routes/stats.route");
 
 const sse = new SSE();
 app.use(cors());
@@ -43,6 +44,7 @@ app.use("/api/user-dislike-video", userDislikeVideoRoute);
 app.use("/api/comment", commentRoute);
 app.use("/api/playlist-video", playlistVideoRoute);
 app.use("/api/history", historyRoute);
+app.use("/api/stats", statsRoutes);
 
 // Middleware xử lý lỗi
 app.use(errorHandler);

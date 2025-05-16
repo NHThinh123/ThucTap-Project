@@ -5,6 +5,7 @@ const User_Dislike_Video = require("../models/user_dislike_video.model");
 const Comment = require("../models/comment.model");
 const Playlist_Video = require("../models/playlist_video.model");
 const History = require("../models/history.model");
+const VideoStats = require("../models/video_stats.model");
 
 const createVideoService = async (videoData, userId) => {
   try {
@@ -132,6 +133,31 @@ const deleteVideoService = async (videoId, userId) => {
   }
 };
 
+const incrementViewService = async (videoId) => {
+  try {
+    const video = await Video.findById(videoId);
+    if (!video) {
+      throw new AppError("Video not found", 404);
+    }
+
+    video.views += 1;
+    await video.save();
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    await VideoStats.findOneAndUpdate(
+      { video_id: videoId, date: today },
+      { $inc: { views: 1 } },
+      { upsert: true, new: true }
+    );
+
+    return { message: "View incremented successfully", views: video.views };
+  } catch (error) {
+    throw new AppError(`Error incrementing view: ${error.message}`, 500);
+  }
+};
+
 const getInteractionDataService = async () => {
   try {
     console.time("Fetch reviews");
@@ -243,4 +269,5 @@ module.exports = {
   updateVideoService,
   deleteVideoService,
   getInteractionDataService,
+  incrementViewService,
 };

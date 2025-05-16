@@ -17,7 +17,7 @@ const VideoWatch = () => {
         <iframe
           width="100%"
           height="100%"
-          src="https://www.youtube.com/embed/dIUTsFT2MeQ"
+          src="https://www.youtube.com/embed/dIUTsFT2MeQ?autoplay=1&mute=0"
           title="Video player"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen

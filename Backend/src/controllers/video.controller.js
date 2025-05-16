@@ -4,6 +4,7 @@ const {
   getVideoByIdService,
   updateVideoService,
   deleteVideoService,
+  incrementViewService,
 } = require("../services/video.service");
 
 const createVideo = async (req, res, next) => {
@@ -76,6 +77,15 @@ const updateVideo = async (req, res, next) => {
     next(error);
   }
 };
+const incrementView = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const result = await incrementViewService(id);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 
 const deleteVideo = async (req, res, next) => {
   try {
@@ -100,5 +110,6 @@ module.exports = {
   getVideos,
   getVideoById,
   updateVideo,
+  incrementView,
   deleteVideo,
 };

@@ -1,4 +1,5 @@
 const Comment = require("../models/comment.model");
+const VideoStats = require("../models/video_stats.model");
 const AppError = require("../utils/AppError");
 
 const createCommentService = async (data, userId, videoId) => {
@@ -19,6 +20,18 @@ const createCommentService = async (data, userId, videoId) => {
     video_id: videoId,
     parent_comment_id: parent_comment_id || null,
   });
+
+  //Thống kê số lượng comment cho video
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  await VideoStats.findOneAndUpdate(
+    { video_id: videoId, date: today },
+    { $inc: { comments: 1 } },
+    { upsert: true }
+  );
+  //
+
   return comment;
 };
 

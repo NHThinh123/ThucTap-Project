@@ -1,8 +1,22 @@
-import { Col, Progress, Row, Space, Table, Tag } from "antd";
-import { ChartNoAxesColumn, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Button, Col, Progress, Row, Space, Table, Tag } from "antd";
+import {
+  ChartNoAxesColumn,
+  Pencil,
+  ThumbsDown,
+  ThumbsUp,
+  Trash,
+} from "lucide-react";
 import React from "react";
 
+import { mockVideos } from "../../../../data/mockVideos";
+import { formatDate } from "../../../../constants/formatDate";
+import { formatViews } from "../../../../constants/formatViews";
+
 const VideoList = () => {
+  const data = mockVideos.map((video, index) => ({
+    key: video.id || index,
+    video: video,
+  }));
   const columns = [
     {
       title: "Video",
@@ -15,7 +29,7 @@ const VideoList = () => {
           <Col span={6}>
             <img
               alt={video.title}
-              src={video.thumbnail}
+              src={video.thumbnailUrl}
               style={{
                 width: "100%",
                 aspectRatio: "5/ 3",
@@ -58,101 +72,63 @@ const VideoList = () => {
         </Row>
       ),
     },
-    {
-      title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-    },
+
     {
       title: "Ngày đăng tải",
-      dataIndex: "createdAt",
       key: "createdAt",
+      dataIndex: "video",
+      render: (video) => <p> {formatDate(video.createdAt)}</p>,
     },
     {
       title: "Lượt xem",
-      dataIndex: "view",
-      key: "view",
+      dataIndex: "video",
+      key: "views",
+      render: (video) => <p> {formatViews(video.views)}</p>,
     },
     {
       title: "Số bình luận",
-      dataIndex: "comment",
+      dataIndex: "video",
       key: "comment",
+      render: (video) => <p> {video.commentCount}</p>,
     },
     {
       title: "Lượt thích(%)",
-      dataIndex: "like",
+      dataIndex: "video",
       key: "like",
-      render: (like) => (
-        <>
-          <Progress percent={like} size={"small"} />
-          <p style={{ color: "grey", fontSize: 14 }}>{like} lượt thích</p>
-        </>
-      ),
+      render: (video) => {
+        const like = parseInt(video.likeCount);
+        const dislike = parseInt(video.dislikeCount);
+        const total = like + dislike;
+        const percent = total === 0 ? 0 : Math.round((like / total) * 100);
+        return (
+          <>
+            <Progress
+              percent={percent}
+              size={"small"}
+              strokeColor={"#c90626"}
+            />
+            <p style={{ color: "grey", fontSize: 14 }}>{like} lượt thích</p>
+          </>
+        );
+      },
     },
 
     {
-      title: "Action",
+      title: "Hành động",
       key: "action",
       render: () => (
         <Space size="middle">
-          <a>Sửa</a>
-          <a>Xóa</a>
+          <Button type="text">
+            <Pencil strokeWidth={1.5} size={18} />
+          </Button>
+          <Button variant="text" color="primary">
+            <Trash strokeWidth={1.5} size={18} />
+          </Button>
         </Space>
       ),
     },
   ];
-  const data = [
-    {
-      key: "1",
-      video: {
-        thumbnail:
-          "https://cdn.dribbble.com/userupload/12205471/file/original-6e438536dab71e35649e6c5ab9111f7e.png?format=webp&resize=400x300&vertical=center",
-        title:
-          "Anime Youtube Thumbnails designs, themes, templates and downloadable graphic elements on Dribbble",
-        description:
-          "Anime Youtube Thumbnails designs, themes, templates and downloadable graphic elements on Dribbble. Your resource to discover and connect with designers worldwide.",
-      },
-      status: "Public",
-      createdAt: "2023-10-01",
-      view: "600 N",
-      like: "95",
-      comment: "3",
-    },
-    {
-      key: "2",
-      video: {
-        thumbnail:
-          "https://cdn.dribbble.com/userupload/12205471/file/original-6e438536dab71e35649e6c5ab9111f7e.png?format=webp&resize=400x300&vertical=center",
-        title:
-          "Anime Youtube Thumbnails designs, themes, templates and downloadable graphic elements on Dribbble",
 
-        description:
-          "Anime Youtube Thumbnails designs, themes, templates and downloadable graphic elements on Dribbble. Your resource to discover and connect with designers worldwide.",
-      },
-      status: "Private",
-      createdAt: "2023-10-01",
-      view: "600 N",
-      like: "80",
-      comment: "3",
-    },
-    {
-      key: "3",
-      video: {
-        thumbnail:
-          "https://cdn.dribbble.com/userupload/12205471/file/original-6e438536dab71e35649e6c5ab9111f7e.png?format=webp&resize=400x300&vertical=center",
-        title:
-          "Anime Youtube Thumbnails designs, themes, templates and downloadable graphic elements on Dribbble",
-
-        description:
-          "Anime Youtube Thumbnails designs, themes, templates and downloadable graphic elements on Dribbble. Your resource to discover and connect with designers worldwide.",
-      },
-      status: "Public",
-      createdAt: "2023-10-01",
-      view: "600 N",
-      like: "47",
-      comment: "3",
-    },
-  ];
   return <Table columns={columns} dataSource={data} />;
 };
 

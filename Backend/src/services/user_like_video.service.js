@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const AppError = require("../utils/AppError");
 const User_Like_Video = require("../models/user_like_video.model");
 const User = require("../models/user.model");
+const VideoStats = require("../models/video_stats.model");
 
 const likeVideoService = async (id, video_id) => {
   if (
@@ -34,6 +35,17 @@ const likeVideoService = async (id, video_id) => {
   }
 
   let result = await User_Like_Video.create(likeData);
+
+  // Thống kê số lượng like cho video
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  await VideoStats.findOneAndUpdate(
+    { video_id, date: today },
+    { $inc: { likes: 1 } },
+    { upsert: true }
+  );
+  //
   return result;
 };
 
