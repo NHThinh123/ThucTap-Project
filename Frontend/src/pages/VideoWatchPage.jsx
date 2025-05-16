@@ -6,7 +6,7 @@ import { Col, Row } from "antd";
 
 const VideoWatchPage = () => {
   return (
-    <Row style={{ background: "#fff" }}>
+    <Row style={{ background: "#fff" }} gutter={[8, 0]}>
       <Col span={16}>
         <VideoWatch />
         <VideoInformation />

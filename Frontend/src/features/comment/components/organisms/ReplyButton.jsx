@@ -32,9 +32,10 @@ const ReplyButton = ({
         type="link"
         style={{
           padding: 0,
-          marginTop: 4,
+          marginTop: 10,
           fontSize: 14,
           height: "auto",
+          color: "#000",
         }}
         onClick={() => setIsReplying(true)}
       >
