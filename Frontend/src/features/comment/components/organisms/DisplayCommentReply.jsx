@@ -10,7 +10,7 @@ const DisplayCommentReply = ({
   level = 1,
 }) => {
   return (
-    <div style={{ marginLeft: level * 24, marginTop: 8 }}>
+    <div style={{ marginLeft: level * 1, marginTop: 8 }}>
       {replies.map((reply) => (
         <SingleCommentReply
           key={reply.id}

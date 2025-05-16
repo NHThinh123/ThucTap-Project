@@ -39,14 +39,14 @@ const getVideoCommentsService = async (videoId) => {
     video_id: videoId,
     parent_comment_id: null,
   })
-    .populate("user_id", "user_name email avatar nick_name")
+    .populate("user_id", "user_name email avatar nickname")
     .sort({ createdAt: -1 });
 
   // For each top-level comment, fetch its replies
   const commentsWithReplies = await Promise.all(
     comments.map(async (comment) => {
       const replies = await Comment.find({ parent_comment_id: comment._id })
-        .populate("user_id", "user_name email avatar nick_name")
+        .populate("user_id", "user_name email avatar nickname")
         .sort({ createdAt: 1 });
       return { ...comment.toObject(), replies };
     })

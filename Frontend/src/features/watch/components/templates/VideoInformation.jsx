@@ -37,7 +37,6 @@ const VideoInformation = () => {
               <Link to="/channel">
                 <p
                   style={{
-                    marginBottom: 4,
                     fontWeight: "bold",
                     fontSize: 15,
                     color: "#000",
@@ -46,7 +45,13 @@ const VideoInformation = () => {
                   KAFF Gaming
                 </p>
               </Link>
-              <p style={{ fontWeight: 400, fontSize: 13, color: "#606060" }}>
+              <p
+                style={{
+                  fontWeight: 400,
+                  fontSize: 13,
+                  color: "#606060",
+                }}
+              >
                 50 N người đăng ký
               </p>
             </div>

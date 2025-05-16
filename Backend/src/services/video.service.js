@@ -39,7 +39,7 @@ const getVideosService = async (query) => {
     const filter = user_id ? { user_id } : {};
 
     const videos = await Video.find(filter)
-      .populate("user_id", "user_name email")
+      .populate("user_id", "user_name email avatar nickname")
       .skip((page - 1) * limit)
       .limit(parseInt(limit))
       .sort({ createdAt: -1 });
@@ -64,7 +64,7 @@ const getVideoByIdService = async (videoId) => {
   try {
     const video = await Video.findById(videoId).populate(
       "user_id",
-      "user_name email"
+      "user_name email avatar nickname"
     );
     if (!video) {
       throw new Error("Video not found");
