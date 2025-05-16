@@ -9,6 +9,7 @@ const NewestVideoAnalysis = () => {
       <Typography.Title level={5}>
         Hiệu suất video mới nhất của bạn
       </Typography.Title>
+      <Divider style={{ marginTop: 5 }} />
       <img
         alt={"video mới nhất"}
         src={"https://pbs.twimg.com/media/F_vO2geW0AE1mmW.jpg"}
@@ -58,8 +59,12 @@ const NewestVideoAnalysis = () => {
         </Col>
       </Row>
       <Divider style={{ marginTop: "10px" }} />
-      <Button style={{ marginBottom: 8 }}>Xem số liệu phân tích video</Button>
-      <Button>Xem bình luận (2)</Button>
+      <Button style={{ marginBottom: 8 }} color="primary" variant="outlined">
+        Xem số liệu phân tích video
+      </Button>
+      <Button color="primary" variant="outlined">
+        Xem bình luận (2)
+      </Button>
     </BoxCustom>
   );
 };

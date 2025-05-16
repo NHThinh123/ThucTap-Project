@@ -1,11 +1,15 @@
 import React from "react";
 import { Layout } from "antd";
 import VideoGrid from "../features/video/components/templates/VideoGrid";
-import { mockVideos } from "../data/mockVideos";
+import useVideo from "../features/video/hooks/useVideo";
+// import { mockVideos } from "../data/mockVideos";
 
 const { Content } = Layout;
 
 const HomePage = () => {
+  const { videoData, loading } = useVideo();
+  console.log("HomePage videos:", videoData);
+  if (loading) return <p>Loading...</p>;
   return (
     <Layout style={{ background: "#fff" }}>
       <Content
@@ -15,7 +19,7 @@ const HomePage = () => {
           background: "#fff",
         }}
       >
-        <VideoGrid videos={mockVideos} />
+        <VideoGrid videos={videoData} />
       </Content>
     </Layout>
   );
