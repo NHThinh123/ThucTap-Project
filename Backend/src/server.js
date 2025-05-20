@@ -1,4 +1,5 @@
 require("dotenv").config();
+require("./cron");
 const express = require("express");
 const configViewEngine = require("./configs/viewEngine");
 const connectDB = require("./configs/database");

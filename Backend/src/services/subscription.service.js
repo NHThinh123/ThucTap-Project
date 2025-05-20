@@ -24,17 +24,17 @@ const subscribe = async (userId, channelId) => {
   await UserSubscription.create({ user_id: userId, channel_id: channelId });
 
   // Thống kê số lượng subscribe cho user
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // const today = new Date();
+  // today.setHours(0, 0, 0, 0);
 
-  const videos = await Video.find({ user_id: channelId });
-  for (const video of videos) {
-    await VideoStats.findOneAndUpdate(
-      { video_id: video._id, date: today },
-      { $inc: { subscriptions: 1 } },
-      { upsert: true }
-    );
-  }
+  // const videos = await Video.find({ user_id: channelId });
+  // for (const video of videos) {
+  //   await VideoStats.findOneAndUpdate(
+  //     { video_id: video._id, date: today },
+  //     { $inc: { subscriptions: 1 } },
+  //     { upsert: true }
+  //   );
+  // }
   //
 
   return { message: `Subscribed to ${targetUser.user_name}` };
