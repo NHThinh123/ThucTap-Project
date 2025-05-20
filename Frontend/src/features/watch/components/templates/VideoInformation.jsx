@@ -6,13 +6,13 @@ import {
   ShareAltOutlined,
 } from "@ant-design/icons";
 import { Avatar, Button, Divider, Space, Typography } from "antd";
-import { Bookmark, ThumbsUp } from "lucide-react";
+import { Bookmark } from "lucide-react";
 import { Link } from "react-router-dom";
 import VideoDescription from "./VideoDescription";
 import { useState } from "react";
 const { Title } = Typography;
 
-const VideoInformation = () => {
+const VideoInformation = ({ video }) => {
   const [isClickedLike, setIsClickedLike] = useState(null);
   const [isClickedDislike, setIsClickedDislike] = useState(null);
 
@@ -40,7 +40,7 @@ const VideoInformation = () => {
               padding: "16px 0",
             }}
           >
-            Tiêu đề Video
+            {video?.title}
           </Title>
         </Typography>
         <div>

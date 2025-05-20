@@ -7,7 +7,7 @@ const VideoCard = ({ video }) => {
   return (
     <>
       <style>{styles}</style>
-      <div className="video-card">
+      <Link to={`/watch/${video._id}`} className="video-card">
         <div className="video-card__thumbnail-container">
           <img
             className="video-card__cover"
@@ -61,7 +61,7 @@ const VideoCard = ({ video }) => {
             </div>
           </div>
         </div>
-      </div>
+      </Link>
     </>
   );
 };

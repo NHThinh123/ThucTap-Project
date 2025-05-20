@@ -42,7 +42,12 @@ const router = createBrowserRouter([
       },
       {
         path: "watch",
-        element: <VideoWatchPage />,
+        children: [
+          {
+            path: ":id",
+            element: <VideoWatchPage />,
+          },
+        ],
       },
       {
         path: "search",

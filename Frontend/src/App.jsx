@@ -22,7 +22,7 @@ import {
   AppstoreOutlined,
 } from "@ant-design/icons";
 import logo from "./assets/logo/logo.png";
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { AuthContext } from "./contexts/auth.context";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -37,7 +37,13 @@ function App() {
   const { auth, setAuth } = useContext(AuthContext);
   const [setIsLoggingOut] = useState(false);
   const isUserLoggedIn = auth?.isAuthenticated;
-  const isVideoWatchPage = location.pathname === "/watch";
+  const isVideoWatchPage = location.pathname.startsWith("/watch/");
+
+  useEffect(() => {
+    if (isVideoWatchPage) {
+      setDrawerVisible(false);
+    }
+  }, [location.pathname, isVideoWatchPage]);
 
   const avatarSrc = isUserLoggedIn ? auth.user?.avatar : null;
   const displayName = isUserLoggedIn ? auth.user?.name : "";
@@ -65,15 +71,6 @@ function App() {
       key: "channel",
       icon: <UserOutlined />,
       label: <Link to="/channel">Channel</Link>,
-    },
-    {
-      key: "watch",
-      icon: <YoutubeOutlined />,
-      label: (
-        <Link to="/watch" onClick={() => setDrawerVisible(false)}>
-          Watch
-        </Link>
-      ),
     },
     {
       key: "search",
