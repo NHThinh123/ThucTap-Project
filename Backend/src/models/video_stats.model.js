@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const videoStatsSchema = new mongoose.Schema(
+const VideoStatsSchema = new mongoose.Schema(
   {
     video_id: {
       type: mongoose.Schema.Types.ObjectId,
@@ -10,7 +10,6 @@ const videoStatsSchema = new mongoose.Schema(
     date: {
       type: Date,
       required: true,
-      index: true,
     },
     views: {
       type: Number,
@@ -36,16 +35,10 @@ const videoStatsSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    subscriptions: {
-      type: Number,
-      default: 0,
-    },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-videoStatsSchema.index({ video_id: 1, date: 1 });
-
-const VideoStats = mongoose.model("VideoStats", videoStatsSchema);
-
-module.exports = VideoStats;
+module.exports = mongoose.model("VideoStats", VideoStatsSchema);

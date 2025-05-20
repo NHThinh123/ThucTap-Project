@@ -140,7 +140,7 @@ const StudioPage = () => {
                   alt="logo"
                 />
                 <span style={{ fontSize: "18px", fontWeight: "bold" }}>
-                  TrueTube Studio
+                  CUSC Tube
                 </span>
               </div>
             </Col>

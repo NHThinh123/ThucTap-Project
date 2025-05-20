@@ -158,7 +158,7 @@ function App() {
                   alt="logo"
                 />
                 <span style={{ fontSize: "18px", fontWeight: "bold" }}>
-                  TrueTube
+                  CUSC Tube
                 </span>
               </div>
             </Col>

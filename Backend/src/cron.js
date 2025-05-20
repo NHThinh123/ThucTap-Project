@@ -5,19 +5,22 @@ const Comment = require("./models/comment.model");
 const Review = require("./models/review.model");
 const User_Like_Video = require("./models/user_like_video.model");
 const User_Dislike_Video = require("./models/user_dislike_video.model");
-const UserSubscription = require("./models/user_subscription.model");
 
-// Hàm tổng hợp dữ liệu cho một ngày cụ thể
+// Hàm tổng hợp dữ liệu cho một ngày cụ thể (sử dụng UTC)
 const aggregateStatsForDay = async (targetDate) => {
   try {
-    console.log(
-      `Aggregating stats for ${targetDate.toISOString().split("T")[0]}`
+    const utcDate = new Date(
+      Date.UTC(
+        targetDate.getUTCFullYear(),
+        targetDate.getUTCMonth(),
+        targetDate.getUTCDate()
+      )
     );
+    console.log(`Aggregating stats for ${utcDate.toISOString().split("T")[0]}`);
 
-    const startOfDay = new Date(targetDate);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(startOfDay);
-    endOfDay.setDate(startOfDay.getDate() + 1);
+    const startOfDay = new Date(utcDate);
+    const endOfDay = new Date(utcDate);
+    endOfDay.setUTCDate(endOfDay.getUTCDate() + 1);
 
     const videos = await Video.find({});
 
@@ -47,11 +50,6 @@ const aggregateStatsForDay = async (targetDate) => {
         createdAt: { $gte: startOfDay, $lt: endOfDay },
       });
 
-      const subscriptions = await UserSubscription.countDocuments({
-        channel_id: video.user_id,
-        createdAt: { $gte: startOfDay, $lt: endOfDay },
-      });
-
       await VideoStats.findOneAndUpdate(
         { video_id: video._id, date: startOfDay },
         {
@@ -62,7 +60,6 @@ const aggregateStatsForDay = async (targetDate) => {
             average_rating,
             likes,
             dislikes,
-            subscriptions,
           },
         },
         { upsert: true, new: true }
@@ -70,7 +67,7 @@ const aggregateStatsForDay = async (targetDate) => {
     }
 
     console.log(
-      `Stats for ${targetDate.toISOString().split("T")[0]} updated successfully`
+      `Stats for ${utcDate.toISOString().split("T")[0]} updated successfully`
     );
   } catch (error) {
     console.error(
@@ -80,11 +77,11 @@ const aggregateStatsForDay = async (targetDate) => {
   }
 };
 
-// Chạy cron job hàng ngày lúc 0h
+// Chạy cron job hàng ngày lúc 0h UTC
 cron.schedule("0 0 * * *", async () => {
   const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  yesterday.setHours(0, 0, 0, 0);
+  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+  yesterday.setUTCHours(0, 0, 0, 0);
   await aggregateStatsForDay(yesterday);
 });
 
@@ -93,35 +90,36 @@ const catchUpMissedDays = async () => {
   try {
     console.log("Checking for missed stats aggregation...");
 
-    // Tìm ngày gần nhất có dữ liệu trong VideoStats
     const latestStat = await VideoStats.findOne().sort({ date: -1 });
     const lastAggregatedDate = latestStat
       ? new Date(latestStat.date)
-      : new Date("2025-01-01"); // Ngày mặc định
-    lastAggregatedDate.setHours(0, 0, 0, 0);
+      : new Date(Date.UTC(2025, 0, 1));
+    lastAggregatedDate.setUTCHours(0, 0, 0, 0);
 
-    // Ngày hôm qua
     const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    yesterday.setHours(0, 0, 0, 0);
+    yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+    yesterday.setUTCHours(0, 0, 0, 0);
 
-    // Tính các ngày bị bỏ lỡ
     const missedDays = [];
     let currentDate = new Date(lastAggregatedDate);
-    currentDate.setDate(currentDate.getDate() + 1);
+    currentDate.setUTCDate(currentDate.getUTCDate() + 1);
 
     while (currentDate <= yesterday) {
       missedDays.push(new Date(currentDate));
-      currentDate.setDate(currentDate.getDate() + 1);
+      currentDate.setUTCDate(currentDate.getUTCDate() + 1);
     }
 
-    // Chạy bù cho các ngày bị bỏ lỡ
-    for (const missedDay of missedDays) {
+    const maxCatchUpDays = 7;
+    const daysToProcess = missedDays.slice(-maxCatchUpDays);
+
+    for (const missedDay of daysToProcess) {
       await aggregateStatsForDay(missedDay);
     }
 
     console.log(
       "Catch-up completed. Processed",
+      daysToProcess.length,
+      "of",
       missedDays.length,
       "missed days."
     );

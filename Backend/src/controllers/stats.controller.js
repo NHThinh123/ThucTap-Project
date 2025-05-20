@@ -29,6 +29,31 @@ const getVideoStats = async (req, res, next) => {
   }
 };
 
+const getUserStats = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const { period, startDate, endDate } = req.body;
+
+    if (!period || !startDate || !endDate) {
+      throw new AppError(
+        "Missing required query parameters: period, startDate, endDate",
+        400
+      );
+    }
+
+    const result = await statsService.getUserStatsService(
+      userId,
+      period,
+      startDate,
+      endDate
+    );
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getVideoStats,
+  getUserStats,
 };
