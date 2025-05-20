@@ -76,6 +76,11 @@ function App() {
       ),
     },
     {
+      key: "search",
+      icon: <SearchOutlined />,
+      label: <Link to="/search">Search</Link>,
+    },
+    {
       key: "studio",
       icon: <AppstoreOutlined />,
       label: <Link to="/studio">Studio</Link>,
@@ -233,7 +238,6 @@ function App() {
                   style={{
                     display: "flex",
                     alignItems: "center",
-
                     flex: 1,
                   }}
                 >
@@ -255,6 +259,13 @@ function App() {
               onClose={closeDrawer}
               open={drawerVisible}
               width={200}
+              bodyStyle={{
+                flex: 1,
+                minWidth: 0,
+                minHeight: 0,
+                padding: 0,
+                overflow: "auto",
+              }}
             >
               <Menu
                 mode="inline"

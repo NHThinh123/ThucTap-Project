@@ -19,6 +19,7 @@ import StudioAnalyticsPage from "./pages/StudioAnalyticsPage.jsx";
 import StudioContentPage from "./pages/StudioContentPage.jsx";
 import StudioSubcribersPage from "./pages/StudioSubcribersPage.jsx";
 import StudioOverviewPage from "./pages/StudioOverviewPage.jsx";
+import SearchResultPage from "./pages/SearchResultPage.jsx";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,10 @@ const router = createBrowserRouter([
       {
         path: "watch",
         element: <VideoWatchPage />,
+      },
+      {
+        path: "search",
+        element: <SearchResultPage />,
       },
       {
         path: "profile",

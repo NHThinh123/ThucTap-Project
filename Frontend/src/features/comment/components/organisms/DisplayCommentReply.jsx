@@ -1,6 +1,5 @@
 import SingleCommentReply from "../molecules/SingleCommentReply";
 
-// Component chính để render danh sách phản hồi
 const DisplayCommentReply = ({
   replies,
   renderCommentContent,

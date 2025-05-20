@@ -1,9 +1,7 @@
-import React from "react";
 import { Row, Col } from "antd";
 import VideoCard from "./VideoCard";
 
 const VideoGrid = ({ videos }) => {
-  console.log("VideoGrid videos:", videos);
   return (
     <Row gutter={[20, 30]}>
       {videos.map((video) => (
