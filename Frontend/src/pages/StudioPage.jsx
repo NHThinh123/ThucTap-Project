@@ -33,7 +33,8 @@ const StudioPage = () => {
   const isUserLoggedIn = auth?.isAuthenticated;
 
   const avatarSrc = isUserLoggedIn ? auth.user?.avatar : null;
-  const displayName = isUserLoggedIn ? auth.user?.name : "";
+  const nickname = isUserLoggedIn ? auth.user?.nickname : "";
+  const user_name = isUserLoggedIn ? auth.user?.name : "";
 
   const handleLogout = () => {
     setIsLoggingOut(true);
@@ -167,7 +168,7 @@ const StudioPage = () => {
                       src={avatarSrc}
                       icon={!avatarSrc && <CircleUserRound />}
                     />
-                    <span>{displayName}</span>
+                    <span>{user_name}</span>
                   </Space>
                 </Dropdown>
               ) : (
@@ -216,7 +217,7 @@ const StudioPage = () => {
                       color: "#6a6a6a",
                     }}
                   >
-                    {displayName || "Người dùng"}
+                    {nickname || "Người dùng"}
                   </div>
                 </>
               )}
