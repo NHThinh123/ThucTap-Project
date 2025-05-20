@@ -1,4 +1,5 @@
 const Review = require("../models/review.model");
+const VideoStats = require("../models/video_stats.model");
 const AppError = require("../utils/AppError");
 
 const createReviewService = async (data) => {
@@ -11,6 +12,22 @@ const createReviewService = async (data) => {
   }
 
   const review = await Review.create({ user_id, video_id, review_rating });
+
+  //Thống kê số lượng review cho video và tính điểm trung bình
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const reviews = await Review.find({ video_id });
+  const average_rating =
+    reviews.reduce((sum, r) => sum + r.review_rating, 0) / reviews.length;
+
+  await VideoStats.findOneAndUpdate(
+    { video_id, date: today },
+    { $inc: { reviews: 1 }, $set: { average_rating } },
+    { upsert: true }
+  );
+  //
+
   return review;
 };
 
