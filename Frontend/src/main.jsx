@@ -19,6 +19,8 @@ import StudioAnalyticsPage from "./pages/StudioAnalyticsPage.jsx";
 import StudioContentPage from "./pages/StudioContentPage.jsx";
 import StudioSubcribersPage from "./pages/StudioSubcribersPage.jsx";
 import StudioOverviewPage from "./pages/StudioOverviewPage.jsx";
+import UploadPage from "./pages/UploadPage.jsx";
+import { ModalProvider } from "./contexts/modal.context.jsx";
 
 const queryClient = new QueryClient();
 
@@ -81,6 +83,10 @@ const router = createBrowserRouter([
         path: "overview",
         element: <StudioOverviewPage />,
       },
+      {
+        path: "uploadvideo",
+        element: <UploadPage />,
+      },
     ],
   },
 ]);
@@ -99,8 +105,10 @@ createRoot(document.getElementById("root")).render(
     >
       <AntdApp>
         <AuthWrapper>
-          <RouterProvider router={router} />
-          <ReactQueryDevtools initialIsOpen={false} />
+          <ModalProvider>
+            <RouterProvider router={router} />
+            <ReactQueryDevtools initialIsOpen={false} />
+          </ModalProvider>
         </AuthWrapper>
       </AntdApp>
     </ConfigProvider>

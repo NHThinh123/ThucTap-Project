@@ -27,11 +27,14 @@ import { useState, useContext } from "react";
 import { AuthContext } from "./contexts/auth.context";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useModal } from "./contexts/modal.context";
+import UploadPage from "./pages/UploadPage";
 
 const { Header, Content, Sider } = Layout;
 
 function App() {
   const navigate = useNavigate();
+  const { openModal } = useModal();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
@@ -109,6 +112,10 @@ function App() {
       setCollapsed(!collapsed);
     }
   };
+  const handleUploadClick = () => {
+    navigate("/studio");
+    openModal(<UploadPage />);
+  };
 
   return (
     <>
@@ -185,7 +192,7 @@ function App() {
                   color: "#000",
                   marginLeft: "16px",
                 }}
-                onClick={() => navigate("/upload")}
+                onClick={handleUploadClick}
               ></Button>
             </Col>
             <Col

@@ -98,7 +98,7 @@ const uploadVideoService = async (file, sse) => {
     );
 
     // Kiểm tra uploadResult
-    console.log("Cloudinary upload result:", uploadResult);
+    //console.log("Cloudinary upload result:", uploadResult);
 
     // Xóa file tạm
     if (file.path && fs.existsSync(file.path)) {
