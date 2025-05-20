@@ -3,7 +3,7 @@ import { getVideoApi } from "../services/videoApi";
 
 const useVideo = () => {
   const {
-    data: videoData = [],
+    data: videoList = [],
     isLoading,
     isError,
     error,
@@ -20,7 +20,7 @@ const useVideo = () => {
     keepPreviousData: true,
   });
 
-  return { videoData, isLoading, isError, error };
+  return { videoList, isLoading, isError, error };
 };
 
 export default useVideo;

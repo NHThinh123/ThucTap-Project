@@ -1,15 +1,33 @@
 import {
+  DislikeFilled,
   DislikeOutlined,
+  LikeFilled,
   LikeOutlined,
   ShareAltOutlined,
 } from "@ant-design/icons";
-import { Avatar, Button, Card, Divider, Space, Typography } from "antd";
+import { Avatar, Button, Divider, Space, Typography } from "antd";
 import { Bookmark } from "lucide-react";
 import { Link } from "react-router-dom";
 import VideoDescription from "./VideoDescription";
+import { useState } from "react";
 const { Title } = Typography;
 
-const VideoInformation = () => {
+const VideoInformation = ({ video }) => {
+  const [isClickedLike, setIsClickedLike] = useState(null);
+  const [isClickedDislike, setIsClickedDislike] = useState(null);
+
+  const handleClickLike = () => {
+    setIsClickedLike(!isClickedLike);
+    if (isClickedDislike && !isClickedLike) {
+      setIsClickedDislike(false);
+    }
+  };
+  const handleClickDislike = () => {
+    setIsClickedDislike(!isClickedDislike);
+    if (isClickedLike && !isClickedDislike) {
+      setIsClickedLike(false);
+    }
+  };
   return (
     <>
       <div>
@@ -22,7 +40,7 @@ const VideoInformation = () => {
               padding: "16px 0",
             }}
           >
-            Tiêu đề Video
+            {video?.title}
           </Title>
         </Typography>
         <div>
@@ -78,29 +96,34 @@ const VideoInformation = () => {
               style={{
                 border: "1px solid #d9d9d9",
                 borderRadius: 50,
-                // backgroundColor: "#606060",
               }}
             >
               <Button
-                icon={<LikeOutlined />}
+                icon={!isClickedLike ? <LikeOutlined /> : <LikeFilled />}
                 style={{
                   border: "none",
                   boxShadow: "none",
                   padding: "0 5px 0 16px",
+                  fontSize: 23,
                 }}
                 size="large"
+                onClick={handleClickLike}
               >
                 <p style={{ fontSize: 16, fontWeight: 500 }}>1,2 N</p>
               </Button>
               <Divider type="vertical" />
               <Button
-                icon={<DislikeOutlined />}
+                icon={
+                  !isClickedDislike ? <DislikeOutlined /> : <DislikeFilled />
+                }
                 style={{
                   border: "none",
                   boxShadow: "none",
                   padding: "0 16px 0 5px",
+                  fontSize: 23,
                 }}
                 size="large"
+                onClick={handleClickDislike}
               ></Button>
             </div>
             <div style={{ border: "1px solid #d9d9d9", borderRadius: 50 }}>
