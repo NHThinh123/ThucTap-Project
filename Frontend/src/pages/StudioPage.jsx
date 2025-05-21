@@ -9,12 +9,13 @@ import {
   Row,
   Space,
 } from "antd";
-import React, { useContext, useState } from "react";
+import { useContext, useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { AuthContext } from "../contexts/auth.context";
 import logo from "../assets/logo/logo.png";
 import {
   AppstoreOutlined,
+  ArrowLeftOutlined,
   HomeOutlined,
   MenuOutlined,
   SearchOutlined,
@@ -32,7 +33,8 @@ const StudioPage = () => {
   const isUserLoggedIn = auth?.isAuthenticated;
 
   const avatarSrc = isUserLoggedIn ? auth.user?.avatar : null;
-  const displayName = isUserLoggedIn ? auth.user?.name : "";
+  const nickname = isUserLoggedIn ? auth.user?.nickname : "";
+  const user_name = isUserLoggedIn ? auth.user?.name : "";
 
   const handleLogout = () => {
     setIsLoggingOut(true);
@@ -65,12 +67,17 @@ const StudioPage = () => {
     {
       key: "edit",
       icon: <UserOutlined />,
-      label: <Link to="/studio/edit">Chỉnh sửa</Link>,
+      label: <Link to="/studio/edit">Tùy chỉnh kênh</Link>,
     },
     {
       key: "subcribers",
       icon: <YoutubeOutlined />,
       label: <Link to="/studio/subcribers">Người đăng ký</Link>,
+    },
+    {
+      key: "back",
+      icon: <ArrowLeftOutlined />,
+      label: <Link to="/">Trở về trang chủ</Link>,
     },
   ];
 
@@ -133,7 +140,7 @@ const StudioPage = () => {
                   alt="logo"
                 />
                 <span style={{ fontSize: "18px", fontWeight: "bold" }}>
-                  TrueTube Studio
+                  CUSC Tube
                 </span>
               </div>
             </Col>
@@ -161,7 +168,7 @@ const StudioPage = () => {
                       src={avatarSrc}
                       icon={!avatarSrc && <CircleUserRound />}
                     />
-                    <span>{displayName}</span>
+                    <span>{user_name}</span>
                   </Space>
                 </Dropdown>
               ) : (
@@ -210,7 +217,7 @@ const StudioPage = () => {
                       color: "#6a6a6a",
                     }}
                   >
-                    {displayName || "Người dùng"}
+                    {nickname || "Người dùng"}
                   </div>
                 </>
               )}

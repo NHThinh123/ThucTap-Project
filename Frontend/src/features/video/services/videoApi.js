@@ -5,4 +5,9 @@ const getVideoApi = () => {
   return axios.get(URL_API);
 };
 
-export { getVideoApi };
+const getVideoByIdApi = (id) => {
+  const URL_API = `/api/video/${id}`;
+  return axios.get(URL_API);
+};
+
+export { getVideoApi, getVideoByIdApi };

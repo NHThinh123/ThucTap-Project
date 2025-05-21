@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { Outlet, Link, useNavigate } from "react-router-dom";
+import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { CircleUserRound } from "lucide-react";
 import {
   Layout,
@@ -11,6 +11,7 @@ import {
   Col,
   Avatar,
   Dropdown,
+  Drawer,
 } from "antd";
 import {
   SearchOutlined,
@@ -21,7 +22,7 @@ import {
   AppstoreOutlined,
 } from "@ant-design/icons";
 import logo from "./assets/logo/logo.png";
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { AuthContext } from "./contexts/auth.context";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -30,10 +31,19 @@ const { Header, Content, Sider } = Layout;
 
 function App() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const [drawerVisible, setDrawerVisible] = useState(false);
   const { auth, setAuth } = useContext(AuthContext);
   const [setIsLoggingOut] = useState(false);
   const isUserLoggedIn = auth?.isAuthenticated;
+  const isVideoWatchPage = location.pathname.startsWith("/watch/");
+
+  useEffect(() => {
+    if (isVideoWatchPage) {
+      setDrawerVisible(false);
+    }
+  }, [location.pathname, isVideoWatchPage]);
 
   const avatarSrc = isUserLoggedIn ? auth.user?.avatar : null;
   const displayName = isUserLoggedIn ? auth.user?.name : "";
@@ -63,9 +73,9 @@ function App() {
       label: <Link to="/channel">Channel</Link>,
     },
     {
-      key: "watch",
-      icon: <YoutubeOutlined />,
-      label: <Link to="/watch">Watch</Link>,
+      key: "search",
+      icon: <SearchOutlined />,
+      label: <Link to="/search">Search</Link>,
     },
     {
       key: "studio",
@@ -84,6 +94,22 @@ function App() {
   ];
 
   const userMenu = <Menu items={userMenuItems} />;
+
+  const showDrawer = () => {
+    setDrawerVisible(true);
+  };
+
+  const closeDrawer = () => {
+    setDrawerVisible(false);
+  };
+
+  const toggleMenu = () => {
+    if (isVideoWatchPage) {
+      showDrawer();
+    } else {
+      setCollapsed(!collapsed);
+    }
+  };
 
   return (
     <>
@@ -113,7 +139,7 @@ function App() {
             <Col span={6} style={{ display: "flex", alignItems: "center" }}>
               <Button
                 icon={<MenuOutlined />}
-                onClick={() => setCollapsed(!collapsed)}
+                onClick={toggleMenu}
                 style={{
                   border: "none",
                   fontSize: "18px",
@@ -134,7 +160,7 @@ function App() {
                   alt="logo"
                 />
                 <span style={{ fontSize: "18px", fontWeight: "bold" }}>
-                  TrueTube
+                  CUSC Tube
                 </span>
               </div>
             </Col>
@@ -180,29 +206,80 @@ function App() {
         </Header>
 
         <Layout style={{ marginTop: "64px" }}>
-          <Sider
-            collapsed={collapsed}
-            width={200}
-            style={{
-              position: "fixed",
-              height: "calc(100vh - 64px)",
-              left: 0,
-              top: "64px",
-              overflow: "auto",
-              background: "#fff",
-            }}
-          >
-            <Menu
-              mode="inline"
-              defaultSelectedKeys={["home"]}
-              items={menuItems}
-              style={{ height: "100%", borderRight: 0 }}
-            />
-          </Sider>
+          {!isVideoWatchPage && (
+            <Sider
+              collapsed={collapsed}
+              width={200}
+              style={{
+                position: "fixed",
+                height: "calc(100vh - 64px)",
+                left: 0,
+                top: "64px",
+                overflow: "auto",
+                background: "#fff",
+              }}
+            >
+              <Menu
+                mode="inline"
+                defaultSelectedKeys={["home"]}
+                items={menuItems}
+                style={{ height: "100%", borderRight: 0 }}
+              />
+            </Sider>
+          )}
+
+          {isVideoWatchPage && (
+            <Drawer
+              title={
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    flex: 1,
+                  }}
+                >
+                  <img
+                    src={logo}
+                    style={{
+                      height: "30px",
+                      width: "auto",
+                      marginRight: "8px",
+                    }}
+                    alt="logo"
+                  />
+                  <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+                    TrueTube
+                  </span>
+                </div>
+              }
+              placement="left"
+              onClose={closeDrawer}
+              open={drawerVisible}
+              width={200}
+              bodyStyle={{
+                flex: 1,
+                minWidth: 0,
+                minHeight: 0,
+                padding: 0,
+                overflow: "auto",
+              }}
+            >
+              <Menu
+                mode="inline"
+                defaultSelectedKeys={["watch"]}
+                items={menuItems}
+                style={{ borderRight: 0 }}
+              />
+            </Drawer>
+          )}
 
           <Content
             style={{
-              marginLeft: collapsed ? "80px" : "200px",
+              marginLeft: isVideoWatchPage
+                ? "0px"
+                : collapsed
+                ? "80px"
+                : "200px",
               padding: "24px",
               minHeight: "calc(100vh - 64px)",
               transition: "margin-left 0.2s",

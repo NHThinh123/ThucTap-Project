@@ -36,4 +36,6 @@ const videoSchema = new mongoose.Schema(
 
 videoSchema.index({ user_id: 1, createdAt: -1 });
 
-module.exports = mongoose.model("Video", videoSchema);
+const Video = mongoose.model("Video", videoSchema);
+
+module.exports = Video;

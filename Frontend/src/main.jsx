@@ -19,6 +19,7 @@ import StudioAnalyticsPage from "./pages/StudioAnalyticsPage.jsx";
 import StudioContentPage from "./pages/StudioContentPage.jsx";
 import StudioSubcribersPage from "./pages/StudioSubcribersPage.jsx";
 import StudioOverviewPage from "./pages/StudioOverviewPage.jsx";
+import SearchResultPage from "./pages/SearchResultPage.jsx";
 
 const queryClient = new QueryClient();
 
@@ -41,7 +42,16 @@ const router = createBrowserRouter([
       },
       {
         path: "watch",
-        element: <VideoWatchPage />,
+        children: [
+          {
+            path: ":id",
+            element: <VideoWatchPage />,
+          },
+        ],
+      },
+      {
+        path: "search",
+        element: <SearchResultPage />,
       },
       {
         path: "profile",
@@ -90,7 +100,7 @@ createRoot(document.getElementById("root")).render(
     <ConfigProvider
       theme={{
         token: {
-          //colorPrimary: "#52c41a", // Màu chính xanh lá cây
+          colorPrimary: "#c90626",
           fontFamily: "Roboto, arial, sans-serif", // Font chữ
           fontSize: 16,
           borderRadius: "24px",

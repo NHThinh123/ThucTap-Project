@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const AppError = require("../utils/AppError");
 const User_Dislike_Video = require("../models/user_dislike_video.model");
 const User = require("../models/user.model");
+const VideoStats = require("../models/video_stats.model");
 
 const dislikeVideoService = async (id, video_id) => {
   if (
@@ -34,6 +35,18 @@ const dislikeVideoService = async (id, video_id) => {
   }
 
   let result = await User_Dislike_Video.create(dislikeData);
+
+  // Thống kê số lượng dislike cho video
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  await VideoStats.findOneAndUpdate(
+    { video_id, date: today },
+    { $inc: { dislikes: 1 } },
+    { upsert: true }
+  );
+  //
+
   return result;
 };
 

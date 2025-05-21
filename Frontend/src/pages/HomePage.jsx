@@ -7,8 +7,7 @@ import useVideo from "../features/video/hooks/useVideo";
 const { Content } = Layout;
 
 const HomePage = () => {
-  const { videoData, loading } = useVideo();
-  console.log("HomePage videos:", videoData);
+  const { videoList, loading } = useVideo();
   if (loading) return <p>Loading...</p>;
   return (
     <Layout style={{ background: "#fff" }}>
@@ -19,7 +18,7 @@ const HomePage = () => {
           background: "#fff",
         }}
       >
-        <VideoGrid videos={videoData} />
+        <VideoGrid videos={videoList} />
       </Content>
     </Layout>
   );
