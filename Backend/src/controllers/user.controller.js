@@ -12,19 +12,12 @@ const {
   getListUserService,
   checkUserCredentials,
   updateUserService,
-  getUserByIdService
+  getUserByIdService,
+  deleteUserService,
 } = require("../services/user.service");
 const User = require("../models/user.model");
 const ResetToken = require("../models/user.resetpassword");
 
-const getListUser = async (req, res, next) => {
-  try {
-    const data = await getListUserService();
-    res.status(200).json(data);
-  } catch (error) {
-    next(error);
-  }
-};
 const getUserById = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -260,7 +253,13 @@ const signin = async (req, res) => {
         message: "Email không tồn tại"
       });
     }
-
+  // Kiểm tra xem password có tồn tại không
+    if (!user.password) {
+      return res.status(500).json({
+        status: "FAILED",
+        message: "Mật khẩu người dùng không được thiết lập trong cơ sở dữ liệu",
+      });
+    }
 
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
@@ -466,6 +465,28 @@ const getEmail = async (req, res) => {
     res.status(500).json({ message: "Lỗi server, vui lòng thử lại" });
   }
 };
+//Lấy danh sách người dùng
+const getListUser = async (req, res) => {
+    try {
+        const users = await getListUserService();
+        res.status(200).json(users);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
+
+//Xóa người dùng
+const deleteUser = async (req, res) => {
+    try {
+        const result = await deleteUserService;
+        res.status(200).json(result);
+    } catch (error) {
+        const status = error.message.includes("Không tìm thấy") ? 404 : 500;
+        res.status(status).json({ message: error.message });
+    }
+};
 
 
 module.exports = {
@@ -478,5 +499,8 @@ module.exports = {
   refreshToken,
   requestPasswordReset,
   resetPassword,
-  getEmail
+  getEmail,
+  getListUser,
+ 
+  deleteUser
 };

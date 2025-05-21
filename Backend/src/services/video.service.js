@@ -9,7 +9,7 @@ const VideoStats = require("../models/video_stats.model");
 
 const createVideoService = async (videoData, userId) => {
   try {
-    if (!videoData.url || !videoData.title || !userId) {
+    if (!videoData.video_url || !videoData.title || !userId) {
       throw new Error("Missing required fields: url, title, or user_id");
     }
 
@@ -17,7 +17,7 @@ const createVideoService = async (videoData, userId) => {
       user_id: userId,
       title: videoData.title,
       description_video: videoData.description || null,
-      url_video: videoData.url,
+      video_url: videoData.video_url,
       thumbnail_video: videoData.thumbnail || "",
       duration: videoData.duration || 0,
       views: 0,
@@ -94,7 +94,7 @@ const updateVideoService = async (videoId, videoData, userId) => {
     const updatedData = {
       title: videoData.title || video.title,
       description_video: videoData.description || video.description_video,
-      url_video: videoData.url || video.url_video,
+      video_url: videoData.video_url || video.video_url,
       thumbnail_video: videoData.thumbnail || video.thumbnail_video,
       duration: videoData.duration || video.duration,
     };

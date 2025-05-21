@@ -16,29 +16,7 @@ const LoginForm = () => {
     };
 
     return (
-        // <Row
-        //     justify="center"
-        //     align="middle"
-        //     style={{ minHeight: "100vh", position: "relative", padding: "20px" }}
-        // >
-        //     {loading && (
-        //         <div
-        //             style={{
-        //                 position: "fixed",
-        //                 top: 0,
-        //                 left: 0,
-        //                 width: "100%",
-        //                 height: "100%",
-        //                 backgroundColor: "rgba(0, 0, 0, 0.5)",
-        //                 display: "flex",
-        //                 alignItems: "center",
-        //                 justifyContent: "center",
-        //                 zIndex: 1000,
-        //             }}
-        //         >
-        //             <Spin size="large" />
-        //         </div>
-        //     )}
+        
 
         <Col xs={0} md={10} >
             <Card

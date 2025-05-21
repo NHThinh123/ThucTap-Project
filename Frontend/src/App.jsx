@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
+
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
-import { CircleUserRound } from "lucide-react";
+import { CircleUserRound, Upload } from "lucide-react";
 import {
   Layout,
   Menu,
@@ -26,16 +27,19 @@ import { useState, useContext, useEffect } from "react";
 import { AuthContext } from "./contexts/auth.context";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useModal } from "./contexts/modal.context";
+import UploadPage from "./pages/UploadPage";
 
 const { Header, Content, Sider } = Layout;
 
 function App() {
   const navigate = useNavigate();
+  const { openModal } = useModal();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const { auth, setAuth } = useContext(AuthContext);
-  const [setIsLoggingOut] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isUserLoggedIn = auth?.isAuthenticated;
   const isVideoWatchPage = location.pathname.startsWith("/watch/");
 
@@ -110,6 +114,10 @@ function App() {
       setCollapsed(!collapsed);
     }
   };
+  const handleUploadClick = () => {
+    navigate("/studio");
+    openModal(<UploadPage />);
+  };
 
   return (
     <>
@@ -177,8 +185,20 @@ function App() {
                 }
               />
             </Col>
+            <Col span={5} style={{ display: "flex", justifyContent: "center" }}>
+              <Button
+                type="text"
+                icon={<Upload />}
+                style={{
+                  fontSize: "24px",
+                  color: "#000",
+                  marginLeft: "16px",
+                }}
+                onClick={handleUploadClick}
+              ></Button>
+            </Col>
             <Col
-              span={6}
+              span={1}
               style={{ display: "flex", justifyContent: "flex-end" }}
             >
               {isUserLoggedIn ? (

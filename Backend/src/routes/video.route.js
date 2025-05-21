@@ -12,7 +12,7 @@ const {
   getRecommendations,
 } = require("../controllers/recommendation.controller");
 
-router.post("/", createVideo);
+router.post("/create", createVideo);
 router.get("/", getVideos);
 router.get("/:id", getVideoById);
 router.put("/:id", updateVideo);
