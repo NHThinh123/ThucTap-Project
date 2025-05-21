@@ -4,11 +4,10 @@ import { formatViews } from "../../../../constants/formatViews";
 import { formatDuration } from "../../../../constants/formatDuration";
 
 const VideoCard = ({ video }) => {
-  console.log("VideoCard videos:", video);
   return (
     <>
       <style>{styles}</style>
-      <div className="video-card">
+      <Link to={`/watch/${video._id}`} className="video-card">
         <div className="video-card__thumbnail-container">
           <img
             className="video-card__cover"
@@ -52,7 +51,7 @@ const VideoCard = ({ video }) => {
             </div>
             <Link to="/channel" className="video-card__channel-link">
               <span className="video-card__channel">
-                {video.channelName || "Channel Name"}
+                {video.user_id.nickname || "Channel Name"}
               </span>
             </Link>
             <div className="video-card__meta">
@@ -62,7 +61,7 @@ const VideoCard = ({ video }) => {
             </div>
           </div>
         </div>
-      </div>
+      </Link>
     </>
   );
 };
@@ -166,7 +165,6 @@ const styles = `
   font-weight: 400;
     font-size: 14px;
     color: #606060;
-    margin-top: 4px;
     display: block;
   }
 

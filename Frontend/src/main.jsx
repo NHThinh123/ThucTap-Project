@@ -21,6 +21,7 @@ import StudioSubcribersPage from "./pages/StudioSubcribersPage.jsx";
 import StudioOverviewPage from "./pages/StudioOverviewPage.jsx";
 import UploadPage from "./pages/UploadPage.jsx";
 import { ModalProvider } from "./contexts/modal.context.jsx";
+import SearchResultPage from "./pages/SearchResultPage.jsx";
 
 const queryClient = new QueryClient();
 
@@ -43,7 +44,16 @@ const router = createBrowserRouter([
       },
       {
         path: "watch",
-        element: <VideoWatchPage />,
+        children: [
+          {
+            path: ":id",
+            element: <VideoWatchPage />,
+          },
+        ],
+      },
+      {
+        path: "search",
+        element: <SearchResultPage />,
       },
       {
         path: "profile",
