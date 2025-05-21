@@ -1,11 +1,12 @@
-import React from 'react'
+import React from "react";
+
+import VideoUploadForm from "../features/uploadvideo/components/templates/UploadVideoForm";
+import { useModal } from "../contexts/modal.context";
 
 const UploadPage = () => {
-  return (
-    <div>
-      
-    </div>
-  )
-}
+  const { closeModal } = useModal();
 
-export default UploadPage
+  return <VideoUploadForm onSuccess={closeModal} />;
+};
+
+export default UploadPage;
