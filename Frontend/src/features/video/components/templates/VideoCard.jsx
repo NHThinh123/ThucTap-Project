@@ -1,13 +1,19 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { formatTime } from "../../../../constants/formatTime";
 import { formatViews } from "../../../../constants/formatViews";
 import { formatDuration } from "../../../../constants/formatDuration";
 
 const VideoCard = ({ video }) => {
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    navigate(`/watch/${video._id}`); // Navigate to the video page
+    window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll to top
+  };
   return (
     <>
       <style>{styles}</style>
-      <Link to={`/watch/${video._id}`} className="video-card">
+      <div className="video-card" onClick={handleCardClick}>
         <div className="video-card__thumbnail-container">
           <img
             className="video-card__cover"
@@ -61,7 +67,7 @@ const VideoCard = ({ video }) => {
             </div>
           </div>
         </div>
-      </Link>
+      </div>
     </>
   );
 };

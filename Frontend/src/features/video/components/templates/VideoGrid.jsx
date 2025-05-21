@@ -2,6 +2,7 @@ import { Row, Col } from "antd";
 import VideoCard from "./VideoCard";
 
 const VideoGrid = ({ videos }) => {
+  if (!videos || !Array.isArray(videos)) return null;
   return (
     <Row gutter={[20, 30]}>
       {videos.map((video) => (
