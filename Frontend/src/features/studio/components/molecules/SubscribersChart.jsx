@@ -26,7 +26,7 @@ const SubscribersChart = ({ data, labels, period }) => {
     labels,
     datasets: [
       {
-        label: "Subscribers",
+        label: "Người đăng ký",
         data: data ? data.map((item) => item.subscriptions) : [],
         borderColor: "#10b981",
         backgroundColor: "rgba(16, 185, 129, 0.2)",
@@ -42,15 +42,15 @@ const SubscribersChart = ({ data, labels, period }) => {
       legend: { position: "top" },
       title: {
         display: true,
-        text: `Subscribers Statistics (${
-          period.charAt(0).toUpperCase() + period.slice(1)
+        text: `Biểu đồ người đăng ký (${
+          period === "daily" ? "Ngày" : period === "weekly" ? "Tuần" : "Tháng"
         })`,
       },
     },
     scales: {
       x: {
         title: {
-          display: true,
+          display: false,
           text:
             period === "daily"
               ? "Date"
@@ -60,7 +60,7 @@ const SubscribersChart = ({ data, labels, period }) => {
         },
       },
       y: {
-        title: { display: true, text: "Value" },
+        title: { display: true, text: "Người đăng ký" },
         beginAtZero: true,
       },
     },

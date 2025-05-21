@@ -26,7 +26,7 @@ const ViewsChart = ({ data, labels, period }) => {
     labels,
     datasets: [
       {
-        label: "Views",
+        label: "Lượt xem",
         data: data ? data.map((item) => item.views) : [],
         borderColor: "#3b82f6",
         backgroundColor: "rgba(59, 130, 246, 0.2)",
@@ -42,15 +42,15 @@ const ViewsChart = ({ data, labels, period }) => {
       legend: { position: "top" },
       title: {
         display: true,
-        text: `Views Statistics (${
-          period.charAt(0).toUpperCase() + period.slice(1)
+        text: `Biểu đồ lượt xem (${
+          period === "daily" ? "Ngày" : period === "weekly" ? "Tuần" : "Tháng"
         })`,
       },
     },
     scales: {
       x: {
         title: {
-          display: true,
+          display: false,
           text:
             period === "daily"
               ? "Date"
@@ -60,7 +60,7 @@ const ViewsChart = ({ data, labels, period }) => {
         },
       },
       y: {
-        title: { display: true, text: "Value" },
+        title: { display: true, text: "Lượt xem" },
         beginAtZero: true,
       },
     },

@@ -11,7 +11,7 @@ const { Text, Title } = Typography;
 const { TabPane } = Tabs;
 
 const StatsChart = ({ userId }) => {
-  const [period, setPeriod] = useState("weekly");
+  const [period, setPeriod] = useState("daily");
   const [timeRange, setTimeRange] = useState("7days");
 
   // Tính startDate và endDate dựa trên timeRange

@@ -26,7 +26,7 @@ const LikesDislikesChart = ({ data, labels, period }) => {
     labels,
     datasets: [
       {
-        label: "Likes",
+        label: "Thích",
         data: data ? data.map((item) => item.likes) : [],
         borderColor: "#ef4444",
         backgroundColor: "rgba(239, 68, 68, 0.2)",
@@ -34,7 +34,7 @@ const LikesDislikesChart = ({ data, labels, period }) => {
         tension: 0.4,
       },
       {
-        label: "Dislikes",
+        label: "Không thích",
         data: data ? data.map((item) => item.dislikes) : [],
         borderColor: "#8b5cf6",
         backgroundColor: "rgba(139, 92, 246, 0.2)",
@@ -50,8 +50,8 @@ const LikesDislikesChart = ({ data, labels, period }) => {
       legend: { position: "top" },
       title: {
         display: true,
-        text: `Likes & Dislikes Statistics (${
-          period.charAt(0).toUpperCase() + period.slice(1)
+        text: `Biểu đồ Thích & Không thích (${
+          period === "daily" ? "Ngày" : period === "weekly" ? "Tuần" : "Tháng"
         })`,
       },
     },
@@ -68,7 +68,7 @@ const LikesDislikesChart = ({ data, labels, period }) => {
         },
       },
       y: {
-        title: { display: true, text: "Value" },
+        title: { display: false, text: "Value" },
         beginAtZero: true,
       },
     },
