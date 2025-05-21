@@ -7,16 +7,24 @@ const uploadVideoApi = async (file) => {
     const response = await axios.post(`/api/upload/video`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    const videoUrl = response.video_url;
-    const duration = response.duration;
+
+    // Kiểm tra cấu trúc response
+    const data = response.data || response;
+    const videoUrl = data.data?.video_url || data.video_url;
+    const duration = data.data?.duration || data.duration || 0;
+
     if (!videoUrl) {
       throw new Error("Không tìm thấy URL video trong phản hồi");
     }
     return { videoUrl, duration };
   } catch (error) {
-    throw new Error(error.response.message || "Lỗi khi tải video");
+    console.error("Upload video error:", error);
+    throw new Error(
+      error.response?.data?.message || error.message || "Lỗi khi tải video"
+    );
   }
 };
+
 const uploadThumbnailApi = async (file) => {
   try {
     const formData = new FormData();
@@ -24,38 +32,45 @@ const uploadThumbnailApi = async (file) => {
     const response = await axios.post(`/api/upload/image`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    const thumbnail = response.img_url;
+
+    // Kiểm tra cấu trúc response
+    const data = response.data || response;
+    const thumbnail = data.data?.img_url || data.img_url;
+
     if (!thumbnail) {
       throw new Error("Không tìm thấy URL thumbnail trong phản hồi");
     }
     return thumbnail;
   } catch (error) {
-    throw new Error(error.response.message || "Lỗi khi tải thumbnail");
+    console.error("Upload thumbnail error:", error);
+    throw new Error(
+      error.response?.data?.message || error.message || "Lỗi khi tải thumbnail"
+    );
   }
 };
-// uploadVideoApi.js
+
 const createVideoApi = async (videoData) => {
   try {
     const payload = {
       user_id: videoData.user_id,
       video_url: videoData.video_url,
       title: videoData.title,
-      description_video: videoData.description,
+      description: videoData.description,
       duration: videoData.duration,
       thumbnail: videoData.thumbnail,
     };
-    //console.log("Payload gửi đi:", payload); // Debug payload
-    const response = await axios.post("/api/video/create", payload, {
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //     Authorization: `Bearer ${videoData.accessToken || ""}`, // Thêm accessToken nếu cần
-      //   },
-    });
-    console.log("Phản hồi từ backend:", response.data);
-    return response;
+
+    const response = await axios.post("/api/video/create", payload);
+
+    return response.data || response; // Đảm bảo trả về data
   } catch (error) {
-    console.error("Lỗi từ backend:", error.response); // Log lỗi chi tiết
-    throw new Error(error.response?.message || "Lỗi khi tạo video");
+    console.error("Lỗi từ backend:", error);
+    throw new Error(
+      error.response?.data?.message ||
+        error.response?.message ||
+        error.message ||
+        "Lỗi khi tạo video"
+    );
   }
 };
 

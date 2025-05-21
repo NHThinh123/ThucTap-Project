@@ -8,7 +8,7 @@ import {
 import { App } from "antd";
 
 export const useVideoUpload = () => {
-  // Mutation cho bước 1: Upload video
+  // Upload video
   const { message } = App.useApp();
   const uploadMutation = useMutation({
     mutationFn: uploadVideoApi,
@@ -30,7 +30,7 @@ export const useVideoUpload = () => {
     },
   });
 
-  // Mutation cho bước 2: Tạo video
+  //create video
   const createMutation = useMutation({
     mutationFn: createVideoApi,
     onSuccess: (data) => {
@@ -44,7 +44,7 @@ export const useVideoUpload = () => {
   return {
     uploadVideo: uploadMutation.mutate,
     isUploading: uploadMutation.isPending,
-    videoUrl: uploadMutation.data,
+    videoUrl: uploadMutation.data?.videoUrl,
     duration: uploadMutation.data?.duration,
     uploadThumbnail: uploadThumbnailMutation.mutate,
     thumbnail: uploadThumbnailMutation.data,
@@ -54,6 +54,7 @@ export const useVideoUpload = () => {
     reset: () => {
       uploadMutation.reset();
       createMutation.reset();
+      uploadThumbnailMutation.reset();
     },
   };
 };

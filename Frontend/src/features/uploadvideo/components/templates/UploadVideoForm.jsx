@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useContext } from "react";
-import { Form, Input, Button, Upload, message, Steps, App } from "antd";
+import React, { useState, useContext, useEffect } from "react";
+import { Form, Input, Button, Upload, Steps, App } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { useVideoUpload } from "../../hooks/useVideoUpload";
 import { useModal } from "../../../../contexts/modal.context";
@@ -24,9 +24,17 @@ const VideoUploadForm = ({ onSuccess }) => {
     uploadThumbnail,
     isUploadingThumbnail,
     thumbnail,
+    duration,
   } = useVideoUpload();
   const { openModal, closeModal } = useModal();
   const { auth } = useContext(AuthContext);
+
+  // Cập nhật duration trong form mỗi khi duration thay đổi
+  useEffect(() => {
+    if (duration && currentStep === 2) {
+      form.setFieldsValue({ duration });
+    }
+  }, [duration, currentStep, form]);
 
   const handleUploadVideo = async () => {
     if (videoFileList.length === 0) {
@@ -38,7 +46,6 @@ const VideoUploadForm = ({ onSuccess }) => {
       await uploadVideo(videoFileList[0], {
         onSuccess: () => {
           setCurrentStep(1);
-          message.success("Tải video thành công!");
         },
         onError: (error) => {
           message.error("Tải video thất bại!");
@@ -59,7 +66,6 @@ const VideoUploadForm = ({ onSuccess }) => {
       await uploadThumbnail(thumbnailFileList[0], {
         onSuccess: () => {
           setCurrentStep(2);
-          message.success("Tải ảnh thumbnail thành công!");
         },
         onError: (error) => {
           message.error("Tải ảnh thumbnail thất bại!");
@@ -71,10 +77,6 @@ const VideoUploadForm = ({ onSuccess }) => {
   };
 
   const handleCreate = async (values) => {
-    console.log("Trạng thái auth:", auth);
-    console.log("ID người dùng:", auth.user?.id);
-    console.log("Video URL:", videoUrl);
-    console.log("Thumbnail URL:", thumbnail);
     if (!auth.isAuthenticated) {
       message.error("Vui lòng đăng nhập để tạo video!");
       return;
@@ -93,6 +95,12 @@ const VideoUploadForm = ({ onSuccess }) => {
     }
 
     try {
+      // Sử dụng duration từ form nếu có, nếu không thì lấy từ video đã upload
+      const videoDuration =
+        values.duration !== undefined
+          ? parseInt(values.duration)
+          : duration || 0;
+
       await createVideo(
         {
           user_id: auth.user.id,
@@ -100,29 +108,29 @@ const VideoUploadForm = ({ onSuccess }) => {
           description: values.description,
           video_url: videoUrl,
           thumbnail: thumbnail,
-          duration: values.duration || 0,
+          duration: videoDuration,
         },
         {
           onSuccess: (data) => {
-            console.log("Tạo video thành công:", data);
             form.resetFields();
             setVideoFileList([]);
             setThumbnailFileList([]);
             reset();
             setCurrentStep(0);
             closeModal();
-            onSuccess();
-            message.success("Tạo video thành công!");
+            onSuccess && onSuccess(data);
           },
           onError: (error) => {
-            console.error("Lỗi từ createVideo:", error.message);
-            message.error("Tạo video thất bại! Bạn có thể thử lại.");
+            console.error("Lỗi từ createVideo:", error);
+            message.error(
+              "Tạo video thất bại! " + (error.message || "Bạn có thể thử lại.")
+            );
           },
         }
       );
     } catch (error) {
-      console.error("Lỗi không xác định:", error.message);
-      message.error("Đã xảy ra lỗi khi tạo video!");
+      console.error("Lỗi không xác định:", error);
+      message.error("Đã xảy ra lỗi khi tạo video: " + (error.message || ""));
     }
   };
 
@@ -237,6 +245,7 @@ const VideoUploadForm = ({ onSuccess }) => {
           layout="vertical"
           onFinish={handleCreate}
           style={{ marginTop: 16 }}
+          initialValues={{ duration: duration || 0 }}
         >
           <Form.Item
             label="Tiêu đề"
@@ -255,9 +264,9 @@ const VideoUploadForm = ({ onSuccess }) => {
           <Form.Item
             label="Thời lượng (giây)"
             name="duration"
-            rules={[{ required: true, message: "Vui lòng nhập thời lượng!" }]}
+            tooltip="Đã tự động lấy từ video. Bạn có thể điều chỉnh nếu cần."
           >
-            <Input type="number" placeholder="Nhập thời lượng video (giây)" />
+            <Input type="number" placeholder="Thời lượng video (giây)" />
           </Form.Item>
           <Form.Item label="URL Video">
             <Input value={videoUrl} disabled />
@@ -279,7 +288,6 @@ const VideoUploadForm = ({ onSuccess }) => {
               style={{ marginTop: 8 }}
               onClick={() => {
                 setCurrentStep(1);
-                reset();
               }}
               disabled={isCreating}
               block
