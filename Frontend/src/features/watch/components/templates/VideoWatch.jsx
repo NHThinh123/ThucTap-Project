@@ -213,7 +213,7 @@ const VideoWatch = ({ video }) => {
     setCurrentTime(0);
     setDuration(0);
     setIsPlaying(false);
-  }, [video?.url_video]);
+  }, [video?.video_url]);
 
   return (
     <div
@@ -230,11 +230,11 @@ const VideoWatch = ({ video }) => {
         cursor: isCursorHidden ? "none" : "default",
       }}
     >
-      {video?.url_video ? (
+      {video?.video_url ? (
         <>
           <video
             ref={videoRef}
-            src={video.url_video}
+            src={video.video_url}
             autoPlay
             muted
             style={{

@@ -32,7 +32,7 @@ const getVideoStats = async (req, res, next) => {
 const getUserStats = async (req, res, next) => {
   try {
     const { userId } = req.params;
-    const { period, startDate, endDate } = req.body;
+    const { period, startDate, endDate } = req.query;
 
     if (!period || !startDate || !endDate) {
       throw new AppError(

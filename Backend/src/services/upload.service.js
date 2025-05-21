@@ -12,7 +12,7 @@ const uploadImageService = async (file) => {
       success: true,
       message: "Image uploaded successfully",
       data: {
-        url: file.path,
+        img_url: file.path,
         filename: file.filename,
         size: file.size,
         mimetype: file.mimetype,
@@ -98,7 +98,7 @@ const uploadVideoService = async (file, sse) => {
     );
 
     // Kiểm tra uploadResult
-    console.log("Cloudinary upload result:", uploadResult);
+    //console.log("Cloudinary upload result:", uploadResult);
 
     // Xóa file tạm
     if (file.path && fs.existsSync(file.path)) {
@@ -109,7 +109,7 @@ const uploadVideoService = async (file, sse) => {
     return {
       message: "Video uploaded successfully to Cloudinary",
       data: {
-        url: uploadResult.secure_url,
+        video_url: uploadResult.secure_url,
         public_id: uploadResult.public_id,
         filename: uploadResult.original_filename || file.originalname,
         size: totalSize,

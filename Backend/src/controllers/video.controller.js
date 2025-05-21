@@ -9,7 +9,8 @@ const {
 
 const createVideo = async (req, res, next) => {
   try {
-    const { url, title, description, thumbnail, duration, user_id } = req.body;
+    const { video_url, title, description, thumbnail, duration, user_id } =
+      req.body;
 
     if (!user_id) {
       return res
@@ -18,7 +19,7 @@ const createVideo = async (req, res, next) => {
     }
 
     const videoData = {
-      url,
+      video_url,
       title,
       description,
       thumbnail,

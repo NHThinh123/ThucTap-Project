@@ -5,26 +5,48 @@ const UserSubscription = require("../models/user_subscription.model");
 const AppError = require("../utils/AppError");
 const redisClient = require("../configs/redis");
 
+// Hàm tiện ích để chuẩn hóa dữ liệu trước khi serialize
+const sanitizeForSerialization = (data) => {
+  return {
+    ...data,
+    data: data.data.map((item) => ({
+      ...item,
+      _id: item._id.toString(),
+      lastDate: item.lastDate ? item.lastDate.toISOString() : null,
+      trends: item.trends || {}, // Đảm bảo trends luôn là object
+    })),
+  };
+};
+
 const getVideoStatsService = async (videoId, period, startDate, endDate) => {
   try {
+    // Kiểm tra videoId hợp lệ
     if (!mongoose.Types.ObjectId.isValid(videoId)) {
       throw new AppError("Invalid video ID", 400);
     }
 
+    // Tạo cache key
     const cacheKey = `stats:${videoId}:${period}:${startDate}:${endDate}`;
-    let cachedData;
+
+    // Kiểm tra cache
     try {
-      cachedData = await redisClient.get(cacheKey);
+      const cachedData = await redisClient.get(cacheKey);
       if (cachedData) {
+        const parsedData = JSON.parse(cachedData);
+        if (!parsedData || typeof parsedData !== "object") {
+          throw new Error("Invalid cache format");
+        }
         console.log(`Cache hit for ${cacheKey} (Upstash)`);
-        return JSON.parse(cachedData);
+        return parsedData;
       }
     } catch (error) {
       console.warn(
-        `Invalid cache data for ${cacheKey}: ${error.message}. Falling back to MongoDB.`
+        `Invalid cache data for ${cacheKey}: ${error.message}. Deleting cache and falling back to MongoDB.`
       );
+      await redisClient.del(cacheKey); // Xóa cache không hợp lệ
     }
 
+    // Xác định groupBy và dateFormat dựa trên period
     let groupBy, dateFormat;
     switch (period) {
       case "daily":
@@ -52,6 +74,7 @@ const getVideoStatsService = async (videoId, period, startDate, endDate) => {
         );
     }
 
+    // Truy vấn MongoDB
     const stats = await VideoStats.aggregate([
       {
         $match: {
@@ -59,9 +82,7 @@ const getVideoStatsService = async (videoId, period, startDate, endDate) => {
           date: { $gte: new Date(startDate), $lte: new Date(endDate) },
         },
       },
-      {
-        $sort: { date: 1 },
-      },
+      { $sort: { date: 1 } },
       {
         $group: {
           _id: groupBy,
@@ -104,6 +125,7 @@ const getVideoStatsService = async (videoId, period, startDate, endDate) => {
       { $sort: { _id: 1 } },
     ]);
 
+    // Tính toán trends
     const statsWithTrends = stats.map((current, index) => {
       if (index === 0) {
         return { ...current, trends: {} };
@@ -113,23 +135,27 @@ const getVideoStatsService = async (videoId, period, startDate, endDate) => {
         ...current,
         trends: {
           views: current.views - (previous.views || 0),
-          comments: current.comments - previous.comments,
-          reviews: current.reviews - previous.reviews,
-          average_rating: current.average_rating - previous.average_rating,
-          likes: current.likes - previous.likes,
-          dislikes: current.dislikes - previous.dislikes,
+          comments: current.comments - (previous.comments || 0),
+          reviews: current.reviews - (previous.reviews || 0),
+          average_rating:
+            current.average_rating - (previous.average_rating || 0),
+          likes: current.likes - (previous.likes || 0),
+          dislikes: current.dislikes - (previous.dislikes || 0),
         },
       };
     });
 
+    // Chuẩn bị kết quả
     const result = {
       message: "Statistics retrieved successfully",
       data: statsWithTrends,
     };
 
+    // Serialize và lưu vào cache
     let serializedResult;
     try {
-      serializedResult = JSON.stringify(result);
+      const cleanResult = sanitizeForSerialization(result);
+      serializedResult = JSON.stringify(cleanResult);
     } catch (error) {
       console.error(
         `Failed to serialize result for ${cacheKey}: ${error.message}`
@@ -155,24 +181,33 @@ const getVideoStatsService = async (videoId, period, startDate, endDate) => {
 
 const getUserStatsService = async (userId, period, startDate, endDate) => {
   try {
+    // Kiểm tra userId hợp lệ
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       throw new AppError("Invalid user ID", 400);
     }
 
+    // Tạo cache key
     const cacheKey = `user_stats:${userId}:${period}:${startDate}:${endDate}`;
-    let cachedData;
+
+    // Kiểm tra cache
     try {
-      cachedData = await redisClient.get(cacheKey);
+      const cachedData = await redisClient.get(cacheKey);
       if (cachedData) {
+        const parsedData = JSON.parse(cachedData);
+        if (!parsedData || typeof parsedData !== "object") {
+          throw new Error("Invalid cache format");
+        }
         console.log(`Cache hit for ${cacheKey} (Upstash)`);
-        return JSON.parse(cachedData);
+        return parsedData;
       }
     } catch (error) {
       console.warn(
-        `Invalid cache data for ${cacheKey}: ${error.message}. Falling back to MongoDB.`
+        `Invalid cache data for ${cacheKey}: ${error.message}. Deleting cache and falling back to MongoDB.`
       );
+      await redisClient.del(cacheKey); // Xóa cache không hợp lệ
     }
 
+    // Lấy danh sách video của user
     const videos = await Video.find({
       user_id: new mongoose.Types.ObjectId(userId),
     }).select("_id");
@@ -185,7 +220,8 @@ const getUserStatsService = async (userId, period, startDate, endDate) => {
 
     const videoIds = videos.map((video) => video._id);
 
-    let groupBy, dateFormat, subscriptionGroupBy;
+    // Xác định groupBy và dateFormat dựa trên period
+    let groupBy, subscriptionGroupBy, dateFormat;
     switch (period) {
       case "daily":
         groupBy = { $dateToString: { format: "%Y-%m-%d", date: "$date" } };
@@ -225,7 +261,7 @@ const getUserStatsService = async (userId, period, startDate, endDate) => {
         );
     }
 
-    // Tổng hợp stats từ VideoStats
+    // Truy vấn VideoStats
     const stats = await VideoStats.aggregate([
       {
         $match: {
@@ -233,9 +269,7 @@ const getUserStatsService = async (userId, period, startDate, endDate) => {
           date: { $gte: new Date(startDate), $lte: new Date(endDate) },
         },
       },
-      {
-        $sort: { date: 1 },
-      },
+      { $sort: { date: 1 } },
       {
         $group: {
           _id: groupBy,
@@ -278,7 +312,7 @@ const getUserStatsService = async (userId, period, startDate, endDate) => {
       { $sort: { _id: 1 } },
     ]);
 
-    // Tổng hợp subscriptions từ UserSubscription
+    // Truy vấn UserSubscription
     const subscriptionStats = await UserSubscription.aggregate([
       {
         $match: {
@@ -304,7 +338,7 @@ const getUserStatsService = async (userId, period, startDate, endDate) => {
       };
     });
 
-    // Nếu có subscriptions mà không có stats, thêm vào
+    // Thêm các subscription không có stats
     const finalStats = [
       ...statsWithSubscriptions,
       ...subscriptionStats
@@ -322,6 +356,7 @@ const getUserStatsService = async (userId, period, startDate, endDate) => {
         })),
     ].sort((a, b) => a._id.localeCompare(b._id));
 
+    // Tính toán trends
     const statsWithTrends = finalStats.map((current, index) => {
       if (index === 0) {
         return { ...current, trends: {} };
@@ -331,24 +366,28 @@ const getUserStatsService = async (userId, period, startDate, endDate) => {
         ...current,
         trends: {
           views: current.views - (previous.views || 0),
-          comments: current.comments - previous.comments,
-          reviews: current.reviews - previous.reviews,
-          average_rating: current.average_rating - previous.average_rating,
-          likes: current.likes - previous.likes,
-          dislikes: current.dislikes - previous.dislikes,
-          subscriptions: current.subscriptions - previous.subscriptions,
+          comments: current.comments - (previous.comments || 0),
+          reviews: current.reviews - (previous.reviews || 0),
+          average_rating:
+            current.average_rating - (previous.average_rating || 0),
+          likes: current.likes - (previous.likes || 0),
+          dislikes: current.dislikes - (previous.dislikes || 0),
+          subscriptions: current.subscriptions - (previous.subscriptions || 0),
         },
       };
     });
 
+    // Chuẩn bị kết quả
     const result = {
       message: "User statistics retrieved successfully",
       data: statsWithTrends,
     };
 
+    // Serialize và lưu vào cache
     let serializedResult;
     try {
-      serializedResult = JSON.stringify(result);
+      const cleanResult = sanitizeForSerialization(result);
+      serializedResult = JSON.stringify(cleanResult);
     } catch (error) {
       console.error(
         `Failed to serialize result for ${cacheKey}: ${error.message}`

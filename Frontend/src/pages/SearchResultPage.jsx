@@ -2,8 +2,8 @@ import VideoSearchGrid from "../features/video/components/templates/VideoSearchG
 import useVideo from "../features/video/hooks/useVideo";
 
 const SearchResultPage = () => {
-  const { videoData } = useVideo();
-  return <VideoSearchGrid videos={videoData} />;
+  const { videoList } = useVideo();
+  return <VideoSearchGrid videos={videoList} />;
 };
 
 export default SearchResultPage;
