@@ -4,7 +4,6 @@ const Video = require("../models/video.model");
 const UserSubscription = require("../models/user_subscription.model");
 const AppError = require("../utils/AppError");
 const redisClient = require("../configs/redis");
-const { format } = require("date-fns");
 
 // Hàm tiện ích để chuẩn hóa dữ liệu trước khi serialize
 const sanitizeForSerialization = (data) => {
@@ -41,9 +40,9 @@ const getVideoStatsService = async (videoId, period, startDate, endDate) => {
         return parsedData;
       }
     } catch (error) {
-      // console.warn(
-      //   `Invalid cache data for ${cacheKey}: ${error.message}. Deleting cache and falling back to MongoDB.`
-      // );
+      console.warn(
+        `Invalid cache data for ${cacheKey}: ${error.message}. Deleting cache and falling back to MongoDB.`
+      );
       await redisClient.del(cacheKey); // Xóa cache không hợp lệ
     }
 
@@ -202,6 +201,9 @@ const getUserStatsService = async (userId, period, startDate, endDate) => {
         return parsedData;
       }
     } catch (error) {
+      console.warn(
+        `Invalid cache data for ${cacheKey}: ${error.message}. Deleting cache and falling back to MongoDB.`
+      );
       await redisClient.del(cacheKey); // Xóa cache không hợp lệ
     }
 
@@ -277,12 +279,7 @@ const getUserStatsService = async (userId, period, startDate, endDate) => {
           weightedRatingSum: {
             $sum: {
               $cond: [
-                {
-                  $and: [
-                    { $gt: ["$reviews", 0] },
-                    { $ne: ["$average_rating", null] },
-                  ],
-                },
+                { $gt: ["$reviews", 0] },
                 { $multiply: ["$average_rating", "$reviews"] },
                 0,
               ],
@@ -304,7 +301,7 @@ const getUserStatsService = async (userId, period, startDate, endDate) => {
             $cond: [
               { $gt: ["$totalReviews", 0] },
               { $divide: ["$weightedRatingSum", "$totalReviews"] },
-              null,
+              0,
             ],
           },
           likes: 1,
@@ -332,62 +329,39 @@ const getUserStatsService = async (userId, period, startDate, endDate) => {
       { $sort: { _id: 1 } },
     ]);
 
-    // Tạo danh sách đầy đủ các ngày/tuần/tháng trong khoảng thời gian
-    const dateRange = [];
-    let currentDate = new Date(startDate);
-    const end = new Date(endDate);
-    while (currentDate <= end) {
-      let periodKey;
-      if (period === "daily") {
-        periodKey = format(currentDate, "yyyy-MM-dd");
-      } else if (period === "weekly") {
-        periodKey = `${currentDate.getFullYear()}-W${Math.ceil(
-          (currentDate.getDate() + 1 - currentDate.getDay()) / 7
-        )}`;
-      } else {
-        periodKey = format(currentDate, "yyyy-MM");
-      }
-      dateRange.push(periodKey);
-      currentDate.setDate(
-        currentDate.getDate() +
-          (period === "daily" ? 1 : period === "weekly" ? 7 : 30)
-      );
-    }
-
-    // Kết hợp stats và subscriptionStats, điền giá trị average_rating từ ngày trước
-    let lastAverageRating = null;
-    const statsWithSubscriptions = dateRange.map((periodKey) => {
-      const stat = stats.find((s) => s._id === periodKey);
-      const subscription = subscriptionStats.find((s) => s._id === periodKey);
-
-      const result = {
-        _id: periodKey,
-        views: stat ? stat.views : 0,
-        comments: stat ? stat.comments : 0,
-        reviews: stat ? stat.reviews : 0,
-        average_rating:
-          stat && stat.average_rating !== null
-            ? stat.average_rating
-            : lastAverageRating,
-        likes: stat ? stat.likes : 0,
-        dislikes: stat ? stat.dislikes : 0,
+    // Kết hợp stats và subscriptionStats
+    const statsWithSubscriptions = stats.map((stat) => {
+      const subscription = subscriptionStats.find((s) => s._id === stat._id);
+      return {
+        ...stat,
         subscriptions: subscription ? subscription.subscriptions : 0,
-        lastDate: stat ? stat.lastDate : null,
       };
-
-      if (result.average_rating !== null) {
-        lastAverageRating = result.average_rating;
-      }
-
-      return result;
     });
 
+    // Thêm các subscription không có stats
+    const finalStats = [
+      ...statsWithSubscriptions,
+      ...subscriptionStats
+        .filter((s) => !stats.some((stat) => stat._id === s._id))
+        .map((s) => ({
+          _id: s._id,
+          views: 0,
+          comments: 0,
+          reviews: 0,
+          average_rating: 0,
+          likes: 0,
+          dislikes: 0,
+          subscriptions: s.subscriptions,
+          lastDate: null,
+        })),
+    ].sort((a, b) => a._id.localeCompare(b._id));
+
     // Tính toán trends
-    const statsWithTrends = statsWithSubscriptions.map((current, index) => {
+    const statsWithTrends = finalStats.map((current, index) => {
       if (index === 0) {
         return { ...current, trends: {} };
       }
-      const previous = statsWithSubscriptions[index - 1];
+      const previous = finalStats[index - 1];
       return {
         ...current,
         trends: {
@@ -395,9 +369,7 @@ const getUserStatsService = async (userId, period, startDate, endDate) => {
           comments: current.comments - (previous.comments || 0),
           reviews: current.reviews - (previous.reviews || 0),
           average_rating:
-            current.average_rating !== null && previous.average_rating !== null
-              ? current.average_rating - previous.average_rating
-              : 0,
+            current.average_rating - (previous.average_rating || 0),
           likes: current.likes - (previous.likes || 0),
           dislikes: current.dislikes - (previous.dislikes || 0),
           subscriptions: current.subscriptions - (previous.subscriptions || 0),
