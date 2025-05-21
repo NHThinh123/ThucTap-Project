@@ -185,7 +185,7 @@ function App() {
                 }
               />
             </Col>
-            <Col span={5} style={{ display: "flex", justifyContent: "center" }}>
+            <Col span={2} style={{ display: "flex", justifyContent: "center" }}>
               <Button
                 type="text"
                 icon={<Upload />}
@@ -198,7 +198,7 @@ function App() {
               ></Button>
             </Col>
             <Col
-              span={1}
+              span={4}
               style={{ display: "flex", justifyContent: "flex-end" }}
             >
               {isUserLoggedIn ? (
