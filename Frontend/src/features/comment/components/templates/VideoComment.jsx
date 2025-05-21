@@ -46,6 +46,11 @@ const VideoComment = () => {
   const [visibleReplies, setVisibleReplies] = useState({});
   const charLimit = 300;
 
+  const avatarUrl =
+    Math.random() > 0.5
+      ? "https://i.pravatar.cc/40?img=3"
+      : "https://res.cloudinary.com/nienluan/image/upload/v1747707203/avaMacDinh_jxwsog.jpg";
+
   const handleAddComment = () => {
     if (newComment.trim()) {
       setComments([
@@ -186,7 +191,7 @@ const VideoComment = () => {
         </Button>
       </div>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-        <Avatar src="https://i.pravatar.cc/40?img=3" size={45} />
+        <Avatar src={avatarUrl} size={45} />
         <div style={{ flex: 1, position: "relative" }}>
           <TextArea
             value={newComment}

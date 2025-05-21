@@ -37,11 +37,4 @@ export const formatTime = (dateString) => {
   if (diffInYears >= 1) {
     return `${diffInYears} năm trước`;
   }
-
-  // Trên 7 ngày thì hiển thị định dạng ngày/tháng/năm
-  return postDate.toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
 };

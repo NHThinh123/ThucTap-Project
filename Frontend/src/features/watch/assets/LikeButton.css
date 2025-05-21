@@ -1,0 +1,18 @@
+.icon-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px; /* Adjust padding to control the background area size */
+  border-radius: 4px; /* Optional: rounded corners for the background */
+}
+
+.icon-wrapper.clicked {
+  background-color: #ff4d4f; /* Background color when clicked */
+}
+
+/* Ensure the icon itself inherits the default color or customize it */
+.icon-wrapper .anticon {
+  font-size: 16px; /* Adjust icon size if needed */
+  color: inherit; /* Keep the icon's stroke/fill color unchanged */
+}
