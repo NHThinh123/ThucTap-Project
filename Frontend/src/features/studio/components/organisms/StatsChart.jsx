@@ -81,7 +81,6 @@ const StatsChart = ({ userId }) => {
         Số liệu phân tích về kênh
       </Title>
       <Space direction="horizontal" style={{ marginBottom: "24px" }}>
-        <Text strong>Period:</Text>
         <Select
           value={period}
           onChange={(value) => setPeriod(value)}
@@ -92,7 +91,7 @@ const StatsChart = ({ userId }) => {
             { value: "monthly", label: "Theo tháng" },
           ]}
         />
-        <Text strong>Time Range:</Text>
+
         <Select
           value={timeRange}
           onChange={(value) => setTimeRange(value)}
@@ -105,16 +104,16 @@ const StatsChart = ({ userId }) => {
         />
       </Space>
       <Tabs defaultActiveKey="1">
-        <TabPane tab="Subscribers" key="1">
+        <TabPane tab="Người đăng ký" key="1">
           <SubscribersChart data={data} labels={labels} period={period} />
         </TabPane>
-        <TabPane tab="Views" key="2">
+        <TabPane tab="Lượt xem" key="2">
           <ViewsChart data={data} labels={labels} period={period} />
         </TabPane>
-        <TabPane tab="Likes & Dislikes" key="3">
+        <TabPane tab="Tương tác" key="3">
           <LikesDislikesChart data={data} labels={labels} period={period} />
         </TabPane>
-        <TabPane tab="Reviews" key="4">
+        <TabPane tab="Đánh giá" key="4">
           <ReviewsChart data={data} labels={labels} period={period} />
         </TabPane>
       </Tabs>

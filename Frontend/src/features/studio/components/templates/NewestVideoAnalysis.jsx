@@ -58,6 +58,21 @@ const NewestVideoAnalysis = () => {
           </Space>
         </Col>
       </Row>
+      <Col span={24}>
+        <Typography.Text type="secondary">
+          Số lượt xem tăng 2 so với hôm qua
+        </Typography.Text>
+      </Col>
+      <Col span={24}>
+        <Typography.Text type="secondary">
+          Số lượt thích tăng 2 so với hôm qua
+        </Typography.Text>
+      </Col>
+      <Col span={24}>
+        <Typography.Text type="secondary">
+          Số lượt không thích tăng 2 so với hôm qua
+        </Typography.Text>
+      </Col>
       <Divider style={{ marginTop: "10px" }} />
       <Button style={{ marginBottom: 8 }} color="primary" variant="outlined">
         Xem số liệu phân tích video

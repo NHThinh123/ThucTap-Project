@@ -14,6 +14,26 @@ const OverviewAnalysis = () => {
       <Divider style={{ marginTop: 5 }} />
       <p> Số người đăng ký hiện tại</p>
       <Typography.Title level={2}>50 N</Typography.Title>
+      <Typography.Text type="secondary" style={{ fontSize: 14 }}>
+        Giảm 2 so với hôm qua
+      </Typography.Text>
+      <Divider style={{ marginTop: 5 }} />
+      <Typography.Title level={5}>Tóm tắt</Typography.Title>
+      <Col span={24}>
+        <Typography.Text type="secondary">
+          Lượt xem: tăng 2 so với hôm qua
+        </Typography.Text>
+      </Col>
+      <Col span={24}>
+        <Typography.Text type="secondary">
+          Lượt thích: tăng 2 so với hôm qua
+        </Typography.Text>
+      </Col>
+      <Col span={24}>
+        <Typography.Text type="secondary">
+          Lượt không thích: tăng 2 so với hôm qua
+        </Typography.Text>
+      </Col>
       <Divider style={{ marginTop: 5 }} />
       <Typography.Title level={5}>Video hàng đầu của bạn</Typography.Title>
       <Typography.Text type="secondary">48h qua • Số lượt xem</Typography.Text>
