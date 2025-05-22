@@ -8,9 +8,8 @@ const VideoWatch = ({ video }) => {
   const hideTimeoutRef = useRef(null);
   const lastUpdateTimeRef = useRef(0);
   const saveHistoryTimeoutRef = useRef(null);
-  const watchTimeRef = useRef(0); // Thêm ref để theo dõi watchTime
 
-  const [isPlaying, setIsPlaying] = useState(false); // Sửa: bắt đầu với false
+  const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.5);
   const [currentTime, setCurrentTime] = useState(0);
@@ -26,17 +25,14 @@ const VideoWatch = ({ video }) => {
   const VIEW_THRESHOLD = 30;
 
   // Lưu lịch sử xem vào localStorage
-  const saveWatchHistory = () => {
-    if (!video?._id || watchTimeRef.current <= 0) return;
-
+  const saveWatchHistory = (watchTime) => {
     const watchHistory = JSON.parse(
       localStorage.getItem("watchHistory") || "[]"
     );
     const historyItem = {
-      _id: video._id,
-      video_url: video.video_url,
-      watchTime: watchTimeRef.current,
-      currentTime: videoRef.current?.currentTime || 0, // Thêm vị trí hiện tại
+      _id: video?._id,
+      video_url: video?.video_url,
+      watchTime: watchTime,
       timestamp: new Date().toISOString(),
     };
     watchHistory.push(historyItem);
@@ -49,15 +45,15 @@ const VideoWatch = ({ video }) => {
     if (!video?._id || hasIncrementedView) return;
 
     try {
-      // Sửa: sử dụng video._id thay vì video.id
+      // Giả định API endpoint để tăng lượt view
       const response = await fetch("/api/increment-view", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ videoId: video._id }),
+        body: JSON.stringify({ videoId: video.id }),
       });
       if (response.ok) {
         setHasIncrementedView(true);
-        console.log(`Lượt xem video ${video._id} đã được tăng`);
+        console.log(`Lượt xem video ${video.id} đã được tăng`);
       }
     } catch (error) {
       console.error("Lỗi khi tăng lượt xem:", error);
@@ -72,16 +68,16 @@ const VideoWatch = ({ video }) => {
     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
   };
 
-  // Xử lý phát/tạm dừng video - Sửa lỗi logic
+  // Xử lý phát/tạm dừng video
   const togglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
 
     if (isPlaying) {
-      video.pause();
+      video.play();
       setIsPlaying(false);
     } else {
-      video.play();
+      video.pause();
       setIsPlaying(true);
     }
   };
@@ -205,11 +201,8 @@ const VideoWatch = ({ video }) => {
 
       // Sau 3 giây không di chuột thì ẩn
       hideTimeoutRef.current = setTimeout(() => {
-        if (isPlaying) {
-          // Chỉ ẩn khi đang phát
-          setShowControls(false);
-          setIsCursorHidden(true);
-        }
+        setShowControls(false);
+        setIsCursorHidden(true);
       }, 3000);
     };
 
@@ -226,9 +219,9 @@ const VideoWatch = ({ video }) => {
         clearTimeout(hideTimeoutRef.current);
       }
     };
-  }, [isPlaying]);
+  }, []);
 
-  // Theo dõi thời gian xem video - Sửa logic chính
+  // Theo dõi thời gian xem video
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -236,48 +229,43 @@ const VideoWatch = ({ video }) => {
     const handleTimeUpdate = () => {
       if (!isDragging) {
         const currentTime = video.currentTime;
-        setCurrentTime(currentTime);
-
-        // Cập nhật watchTime chỉ khi video đang phát
-        if (isPlaying && lastUpdateTimeRef.current > 0) {
+        // Cập nhật watchTime khi video đang phát
+        if (isPlaying) {
           const deltaTime = currentTime - lastUpdateTimeRef.current;
-          if (deltaTime > 0 && deltaTime < 2) {
-            // Chỉ cộng nếu delta hợp lý (< 2 giây)
-            watchTimeRef.current += deltaTime;
-            setWatchTime(watchTimeRef.current);
+          if (deltaTime > 0) {
+            setWatchTime((prev) => prev + deltaTime);
           }
+          lastUpdateTimeRef.current = currentTime;
         }
-        lastUpdateTimeRef.current = currentTime;
+        setCurrentTime(currentTime);
       }
     };
 
     const handleLoadedMetadata = () => {
       setDuration(video.duration);
       console.log("Video duration: ", video.duration);
-      // Không tự động phát, chờ user click
+      if (!isPlaying) {
+        console.log("Chạy chỗ này");
+        setIsPlaying(true);
+        // Lưu lịch sử sau 5 giây kể từ khi phát tự động
+        saveHistoryTimeoutRef.current = setTimeout(() => {
+          saveWatchHistory(video.currentTime);
+        }, 5000);
+      }
     };
 
     const handlePlay = () => {
       setIsPlaying(true);
-      lastUpdateTimeRef.current = video.currentTime; // Reset thời gian bắt đầu
-
-      // Lưu lịch sử sau 5 giây kể từ khi bắt đầu phát
-      if (saveHistoryTimeoutRef.current) {
-        clearTimeout(saveHistoryTimeoutRef.current);
-      }
-      saveHistoryTimeoutRef.current = setTimeout(() => {
-        saveWatchHistory();
-      }, 5000);
     };
 
     const handlePause = () => {
       setIsPlaying(false);
-      saveWatchHistory(); // Lưu lịch sử khi tạm dừng
+      saveWatchHistory(watchTime); // Lưu lịch sử khi tạm dừng
     };
 
     const handleEnded = () => {
       setIsPlaying(false);
-      saveWatchHistory(); // Lưu lịch sử khi video kết thúc
+      saveWatchHistory(watchTime); // Lưu lịch sử khi video kết thúc
     };
 
     video.addEventListener("timeupdate", handleTimeUpdate);
@@ -293,58 +281,42 @@ const VideoWatch = ({ video }) => {
       video.removeEventListener("pause", handlePause);
       video.removeEventListener("ended", handleEnded);
       if (saveHistoryTimeoutRef.current) {
-        clearTimeout(saveHistoryTimeoutRef.current);
+        clearTimeout(saveHistoryTimeoutRef.current); // Dọn dẹp timeout
       }
     };
-  }, [isDragging, isPlaying]);
+  }, [isDragging, isPlaying, watchTime]);
 
-  // Kiểm tra thời gian xem để tăng lượt view - Sửa logic
+  // Kiểm tra thời gian xem để tăng lượt view
   useEffect(() => {
     if (watchTime >= VIEW_THRESHOLD && !hasIncrementedView) {
       incrementViewCount();
     }
+    // Lưu lịch sử xem định kỳ (mỗi 5 giây)
+    const interval = setInterval(() => {
+      if (watchTime > 0) {
+        saveWatchHistory(watchTime);
+      }
+    }, 5000);
+    return () => clearInterval(interval);
   }, [watchTime, hasIncrementedView]);
 
-  // Lưu lịch sử định kỳ
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (isPlaying && watchTime > 0) {
-        saveWatchHistory();
-      }
-    }, 30000); // Lưu mỗi 30 giây thay vì 5 giây để giảm tần suất
-
-    return () => clearInterval(interval);
-  }, [isPlaying, watchTime]);
-
-  // Reset khi video thay đổi
   useEffect(() => {
     setCurrentTime(0);
     setDuration(0);
     setIsPlaying(false);
     setWatchTime(0);
     setHasIncrementedView(false);
-    watchTimeRef.current = 0;
     lastUpdateTimeRef.current = 0;
-
     if (saveHistoryTimeoutRef.current) {
-      clearTimeout(saveHistoryTimeoutRef.current);
+      clearTimeout(saveHistoryTimeoutRef.current); // Dọn dẹp timeout khi video thay đổi
     }
   }, [video?.video_url]);
-
-  // Cleanup khi component unmount
-  useEffect(() => {
-    return () => {
-      saveWatchHistory(); // Lưu lịch sử cuối cùng khi component bị hủy
-    };
-  }, []);
 
   return (
     <div
       ref={playerContainerRef}
       onMouseEnter={() => setShowControls(true)}
-      onMouseLeave={() => {
-        if (!isPlaying) setShowControls(true); // Giữ controls khi pause
-      }}
+      onMouseLeave={() => setShowControls(false)}
       style={{
         width: "100%",
         height: "70vh",
@@ -360,7 +332,8 @@ const VideoWatch = ({ video }) => {
           <video
             ref={videoRef}
             src={video.video_url}
-            muted // Giữ muted để tuân thủ autoplay policy
+            autoPlay
+            muted
             style={{
               width: "100%",
               height: "100%",
@@ -389,9 +362,9 @@ const VideoWatch = ({ video }) => {
               left: "10px",
               color: "white",
               fontSize: "14px",
-              background: "rgba(0, 0, 0, 0.7)",
-              padding: "8px 12px",
-              borderRadius: "6px",
+              background: "rgba(0, 0, 0, 0.5)",
+              padding: "5px",
+              borderRadius: "3px",
             }}
           >
             Thời gian xem: {formatTime(watchTime)}
@@ -404,8 +377,8 @@ const VideoWatch = ({ video }) => {
               bottom: 0,
               left: 0,
               right: 0,
-              background: "linear-gradient(transparent, rgba(0, 0, 0, 0.8))",
-              padding: "20px",
+              background: "linear-gradient(transparent, rgba(0, 0, 0, 0.7))",
+              padding: "10px",
               opacity: showControls ? 1 : 0,
               pointerEvents: showControls ? "auto" : "none",
               transition: "opacity 0.3s ease",
@@ -418,11 +391,11 @@ const VideoWatch = ({ video }) => {
               ref={progressRef}
               style={{
                 width: "100%",
-                height: "6px",
+                height: "5px",
                 backgroundColor: "rgba(255, 255, 255, 0.3)",
                 cursor: "pointer",
                 borderRadius: "3px",
-                marginBottom: "15px",
+                marginBottom: "10px",
                 position: "relative",
               }}
               onMouseDown={handleProgressMouseDown}
@@ -430,7 +403,7 @@ const VideoWatch = ({ video }) => {
               <div
                 style={{
                   height: "100%",
-                  backgroundColor: "#ff0000",
+                  backgroundColor: "#f00",
                   borderRadius: "3px",
                   width: `${(currentTime / duration) * 100 || 0}%`,
                   position: "relative",
@@ -438,17 +411,15 @@ const VideoWatch = ({ video }) => {
               >
                 <div
                   style={{
-                    width: "14px",
-                    height: "14px",
-                    backgroundColor: "#ff0000",
+                    width: "12px",
+                    height: "12px",
+                    backgroundColor: "#f00",
                     borderRadius: "50%",
                     position: "absolute",
-                    right: "-7px",
-                    top: "-4px",
-                    transform: isDragging ? "scale(1.2)" : "scale(0)",
-                    transition: "transform 0.2s",
-                    border: "2px solid white",
-                    boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+                    right: "-6px",
+                    top: "-3.5px",
+                    transform: isDragging ? "scale(1)" : "scale(0)",
+                    transition: "transform 0.1s",
                   }}
                 ></div>
               </div>
@@ -477,19 +448,12 @@ const VideoWatch = ({ video }) => {
                     color: "white",
                     margin: "0 5px",
                     cursor: "pointer",
-                    width: "40px",
-                    height: "40px",
+                    width: "36px",
+                    height: "36px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     borderRadius: "50%",
-                    transition: "background 0.2s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = "rgba(255, 255, 255, 0.1)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = "none";
                   }}
                 >
                   {isPlaying ? (
@@ -522,16 +486,14 @@ const VideoWatch = ({ video }) => {
                   }}
                   onMouseEnter={() => {
                     if (volumeSliderRef.current) {
-                      volumeSliderRef.current.style.width = "80px";
+                      volumeSliderRef.current.style.width = "60px";
                       volumeSliderRef.current.style.marginLeft = "10px";
-                      volumeSliderRef.current.style.opacity = "1";
                     }
                   }}
                   onMouseLeave={() => {
                     if (volumeSliderRef.current) {
                       volumeSliderRef.current.style.width = "0";
                       volumeSliderRef.current.style.marginLeft = "0";
-                      volumeSliderRef.current.style.opacity = "0";
                     }
                   }}
                 >
@@ -543,19 +505,12 @@ const VideoWatch = ({ video }) => {
                       color: "white",
                       margin: "0 5px",
                       cursor: "pointer",
-                      width: "40px",
-                      height: "40px",
+                      width: "36px",
+                      height: "36px",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       borderRadius: "50%",
-                      transition: "background 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = "rgba(255, 255, 255, 0.1)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = "none";
                     }}
                   >
                     {isMuted || volume === 0 ? (
@@ -584,14 +539,13 @@ const VideoWatch = ({ video }) => {
                     onClick={handleVolumeChange}
                     style={{
                       width: "0",
-                      height: "4px",
+                      height: "3px",
                       backgroundColor: "rgba(255, 255, 255, 0.3)",
-                      borderRadius: "2px",
-                      transition: "width 0.3s, opacity 0.3s",
+                      borderRadius: "3px",
+                      transition: "width 0.3s",
                       overflow: "hidden",
                       marginLeft: "0",
                       cursor: "pointer",
-                      opacity: "0",
                     }}
                   >
                     <div
@@ -599,7 +553,6 @@ const VideoWatch = ({ video }) => {
                         height: "100%",
                         backgroundColor: "white",
                         width: `${volume * 100}%`,
-                        borderRadius: "2px",
                       }}
                     ></div>
                   </div>
@@ -610,8 +563,7 @@ const VideoWatch = ({ video }) => {
                   style={{
                     color: "white",
                     fontSize: "14px",
-                    margin: "0 15px",
-                    fontWeight: "500",
+                    margin: "0 10px",
                   }}
                 >
                   <span>{formatTime(currentTime)}</span> /{" "}
@@ -629,19 +581,12 @@ const VideoWatch = ({ video }) => {
                     color: "white",
                     margin: "0 5px",
                     cursor: "pointer",
-                    width: "40px",
-                    height: "40px",
+                    width: "36px",
+                    height: "36px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     borderRadius: "50%",
-                    transition: "background 0.2s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = "rgba(255, 255, 255, 0.1)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = "none";
                   }}
                 >
                   {isFullscreen ? (
@@ -676,7 +621,6 @@ const VideoWatch = ({ video }) => {
             alignItems: "center",
             height: "100%",
             color: "white",
-            fontSize: "18px",
           }}
         >
           <p>Đang tải video...</p>

@@ -4,7 +4,7 @@ import ChannelInVideo from "../organisms/ChannelInVideo";
 import InteractButton from "../organisms/InteractButton";
 const { Title } = Typography;
 
-const VideoInformation = ({ video }) => {
+const VideoInformation = ({ video, isLoading }) => {
   return (
     <>
       <div>
@@ -24,7 +24,7 @@ const VideoInformation = ({ video }) => {
           <ChannelInVideo />
           <InteractButton />
         </div>
-        <VideoDescription />
+        <VideoDescription video={video} isLoading={isLoading} />
       </div>
     </>
   );
