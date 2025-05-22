@@ -1,81 +1,98 @@
-import React from "react";
-import BoxCustom from "../../../../components/atoms/BoxCustom";
-import { Button, Col, Divider, Flex, List, Row, Typography } from "antd";
+import {
+  Button,
+  Col,
+  Divider,
+  Flex,
+  List,
+  Row,
+  Typography,
+  Spin,
+  Alert,
+} from "antd";
 import { CircleArrowDown, CircleArrowUp } from "lucide-react";
+import BoxCustom from "../../../../components/atoms/BoxCustom";
+import { useChannelOverview } from "../../hooks/useChannelOverview";
 
-const OverviewAnalysis = () => {
-  const data = Array(3).fill({
-    title:
-      "Anime Youtube Thumbnails designs, themes, templates and downloadable graphic elements on Dribbble. Your resource to discover and connect with designers worldwide.",
-    view: "600 N",
-  });
+const OverviewAnalysis = ({ userId }) => {
+  const { data, isLoading, error } = useChannelOverview({ userId });
+
+  if (isLoading) return <Spin />;
+  if (error) return <Alert message={error.message} type="error" />;
+
+  const { subscriberCount, stats, topVideos } = data || {};
+  // Lấy trends từ tuần hiện tại (index cuối cùng)
+  const latestTrends = stats?.length > 1 ? stats[stats.length - 1].trends : {};
+  console.log("latestTrends", latestTrends);
+  // Hàm định dạng số
+  const formatNumber = (num) => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num;
+  };
+
+  // Hàm hiển thị trend với icon
+  const renderTrend = (value, isPositiveGood = true) => {
+    if (!value) return <Typography.Text>0</Typography.Text>;
+    const isPositive = value >= 0;
+    const color = isPositive === isPositiveGood ? "#22bb33" : "#bb2124";
+    const Icon = isPositive ? CircleArrowUp : CircleArrowDown;
+    return (
+      <Typography.Text>
+        <Icon size={16} color={color} style={{ marginBottom: -2 }} />{" "}
+        {Math.abs(value)}
+      </Typography.Text>
+    );
+  };
+
   return (
     <BoxCustom>
       <Typography.Title level={5}>Số liệu phân tích về kênh</Typography.Title>
       <Divider style={{ marginTop: 5 }} />
-      <p> Số người đăng ký hiện tại</p>
+      <p>Số người đăng ký hiện tại</p>
       <Typography.Title level={2} style={{ marginBottom: 8 }}>
-        50 N
+        {formatNumber(subscriberCount || 0)}
       </Typography.Title>
       <Typography.Text type="secondary" style={{ fontSize: 14 }}>
         <Typography.Text
           type="secondary"
-          style={{ color: "#bb2124", fontSize: 14 }}
+          style={{
+            color: latestTrends?.subscriptions >= 0 ? "#22bb33" : "#bb2124",
+            fontSize: 14,
+          }}
         >
-          Giảm 2{" "}
+          {latestTrends?.subscriptions >= 0 ? "Tăng" : "Giảm"}{" "}
+          {Math.abs(latestTrends?.subscriptions || 0)}{" "}
         </Typography.Text>
-        trong 28 ngày qua
+        so với tuần trước
       </Typography.Text>
       <Divider style={{ marginTop: 5 }} />
       <Typography.Title level={5} style={{ margin: 0 }}>
         Tóm tắt
       </Typography.Title>
-      <Typography.Text type="secondary">28 ngày qua</Typography.Text>
+      <Typography.Text type="secondary">Trong tuần này</Typography.Text>
       <Col span={24} style={{ padding: "0px ", marginTop: 8 }}>
         <Flex justify="space-between" align="center">
           <Typography.Text>Lượt xem:</Typography.Text>
-          <Typography.Text>
-            <CircleArrowUp
-              size={16}
-              color="#22bb33"
-              style={{ marginBottom: -2 }}
-            />{" "}
-            2
-          </Typography.Text>
+          {renderTrend(latestTrends?.views || 0)}
         </Flex>
         <Flex justify="space-between" align="center">
           <Typography.Text>Lượt thích:</Typography.Text>
-          <Typography.Text>
-            <CircleArrowUp
-              size={16}
-              color="#22bb33"
-              style={{ marginBottom: -2 }}
-            />{" "}
-            2
-          </Typography.Text>
+          {renderTrend(latestTrends?.likes || 0)}
         </Flex>
         <Flex justify="space-between" align="center">
           <Typography.Text>Lượt không thích:</Typography.Text>
-          <Typography.Text>
-            <CircleArrowDown
-              size={16}
-              color="#bb2124"
-              style={{ marginBottom: -2 }}
-            />{" "}
-            2
-          </Typography.Text>
+          {renderTrend(latestTrends?.dislikes || 0, false)}
         </Flex>
       </Col>
-
       <Divider style={{ marginTop: 5 }} />
       <Typography.Title level={5}>Video hàng đầu của bạn</Typography.Title>
       <Typography.Text type="secondary">
-        28 ngày qua • Số lượt xem
+        7 ngày qua • Số lượt xem
       </Typography.Text>
       <List
         style={{ marginTop: 8 }}
         split={false}
-        dataSource={data}
+        dataSource={topVideos || []}
         grid={{
           gutter: 4,
           column: 1,
@@ -98,7 +115,9 @@ const OverviewAnalysis = () => {
                 </p>
               </Col>
               <Col span={4}>
-                <Typography.Text type="secondary">{item.view}</Typography.Text>
+                <Typography.Text type="secondary">
+                  {formatNumber(item.views)}
+                </Typography.Text>
               </Col>
             </Row>
           </List.Item>

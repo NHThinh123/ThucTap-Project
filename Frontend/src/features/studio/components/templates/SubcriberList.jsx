@@ -44,12 +44,6 @@ const SubcriberList = () => {
                 <Typography.Text type="secondary" style={{ fontSize: 14 }}>
                   {item.subcriber} người đăng ký
                 </Typography.Text>
-                <Typography.Text
-                  type="secondary"
-                  style={{ fontSize: 14, marginLeft: 8 }}
-                >
-                  Giảm 2 so với hôm qua
-                </Typography.Text>
               </Col>
             </Row>
           </List.Item>
