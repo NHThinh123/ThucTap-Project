@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
+import useIncrementView from "../../../video/hooks/useIncrementView";
 
 const VideoWatch = ({ video }) => {
+  const { incrementView, isLoading } = useIncrementView();
+
   const videoRef = useRef(null);
   const progressRef = useRef(null);
   const playerContainerRef = useRef(null);
@@ -8,9 +11,9 @@ const VideoWatch = ({ video }) => {
   const hideTimeoutRef = useRef(null);
   const lastUpdateTimeRef = useRef(0);
   const saveHistoryTimeoutRef = useRef(null);
-  const watchTimeRef = useRef(0); // Thêm ref để theo dõi watchTime
+  const watchTimeRef = useRef(0);
 
-  const [isPlaying, setIsPlaying] = useState(false); // Sửa: bắt đầu với false
+  const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.5);
   const [currentTime, setCurrentTime] = useState(0);
@@ -36,32 +39,12 @@ const VideoWatch = ({ video }) => {
       _id: video._id,
       video_url: video.video_url,
       watchTime: watchTimeRef.current,
-      currentTime: videoRef.current?.currentTime || 0, // Thêm vị trí hiện tại
+      currentTime: videoRef.current?.currentTime || 0,
       timestamp: new Date().toISOString(),
     };
     watchHistory.push(historyItem);
     localStorage.setItem("watchHistory", JSON.stringify(watchHistory));
     console.log("Lịch sử xem đã được lưu:", historyItem);
-  };
-
-  // Gửi yêu cầu tăng lượt view đến server
-  const incrementViewCount = async () => {
-    if (!video?._id || hasIncrementedView) return;
-
-    try {
-      // Sửa: sử dụng video._id thay vì video.id
-      const response = await fetch("/api/increment-view", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ videoId: video._id }),
-      });
-      if (response.ok) {
-        setHasIncrementedView(true);
-        console.log(`Lượt xem video ${video._id} đã được tăng`);
-      }
-    } catch (error) {
-      console.error("Lỗi khi tăng lượt xem:", error);
-    }
   };
 
   // Định dạng thời gian thành mm:ss
@@ -72,7 +55,7 @@ const VideoWatch = ({ video }) => {
     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
   };
 
-  // Xử lý phát/tạm dừng video - Sửa lỗi logic
+  // Xử lý phát/tạm dừng video
   const togglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
@@ -179,6 +162,26 @@ const VideoWatch = ({ video }) => {
     document.removeEventListener("mouseup", handleProgressMouseUp);
   };
 
+  // Xử lý ẩn/hiện controls và cursor
+  const handleMouseActivity = () => {
+    // Hiển thị controls và cursor
+    setShowControls(true);
+    setIsCursorHidden(false);
+
+    // Clear timeout cũ
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+    }
+
+    // Chỉ ẩn khi video đang phát
+    if (isPlaying) {
+      hideTimeoutRef.current = setTimeout(() => {
+        setShowControls(false);
+        setIsCursorHidden(true);
+      }, 3000);
+    }
+  };
+
   // Theo dõi sự kiện fullscreenchange
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -191,44 +194,62 @@ const VideoWatch = ({ video }) => {
     };
   }, []);
 
-  // Theo dõi sự kiện di chuột vào/ra khỏi video
+  // Theo dõi sự kiện di chuột - SỬA LẠI
   useEffect(() => {
+    const container = playerContainerRef.current;
+    if (!container) return;
+
     const handleMouseMove = () => {
-      // Mỗi lần di chuột thì hiện controls
+      handleMouseActivity();
+    };
+
+    const handleMouseEnter = () => {
       setShowControls(true);
       setIsCursorHidden(false);
+    };
 
-      // Reset timeout
+    const handleMouseLeave = () => {
+      // Khi chuột rời khỏi video, ẩn controls nếu đang phát
+      if (isPlaying) {
+        setShowControls(false);
+        setIsCursorHidden(true);
+      }
+      // Clear timeout
       if (hideTimeoutRef.current) {
         clearTimeout(hideTimeoutRef.current);
       }
-
-      // Sau 3 giây không di chuột thì ẩn
-      hideTimeoutRef.current = setTimeout(() => {
-        if (isPlaying) {
-          // Chỉ ẩn khi đang phát
-          setShowControls(false);
-          setIsCursorHidden(true);
-        }
-      }, 3000);
     };
 
-    const container = playerContainerRef.current;
-    if (container) {
-      container.addEventListener("mousemove", handleMouseMove);
-    }
+    container.addEventListener("mousemove", handleMouseMove);
+    container.addEventListener("mouseenter", handleMouseEnter);
+    container.addEventListener("mouseleave", handleMouseLeave);
 
     return () => {
-      if (container) {
-        container.removeEventListener("mousemove", handleMouseMove);
-      }
+      container.removeEventListener("mousemove", handleMouseMove);
+      container.removeEventListener("mouseenter", handleMouseEnter);
+      container.removeEventListener("mouseleave", handleMouseLeave);
       if (hideTimeoutRef.current) {
         clearTimeout(hideTimeoutRef.current);
       }
     };
   }, [isPlaying]);
 
-  // Theo dõi thời gian xem video - Sửa logic chính
+  // Xử lý khi trạng thái phát thay đổi - THÊM MỚI
+  useEffect(() => {
+    if (!isPlaying) {
+      // Khi video dừng, hiện controls và cursor
+      setShowControls(true);
+      setIsCursorHidden(false);
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+    } else {
+      // Khi video phát, bắt đầu timer ẩn controls
+      handleMouseActivity();
+    }
+  }, [isPlaying]);
+
+  // Theo dõi thời gian xem video
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -242,7 +263,6 @@ const VideoWatch = ({ video }) => {
         if (isPlaying && lastUpdateTimeRef.current > 0) {
           const deltaTime = currentTime - lastUpdateTimeRef.current;
           if (deltaTime > 0 && deltaTime < 2) {
-            // Chỉ cộng nếu delta hợp lý (< 2 giây)
             watchTimeRef.current += deltaTime;
             setWatchTime(watchTimeRef.current);
           }
@@ -254,12 +274,11 @@ const VideoWatch = ({ video }) => {
     const handleLoadedMetadata = () => {
       setDuration(video.duration);
       console.log("Video duration: ", video.duration);
-      // Không tự động phát, chờ user click
     };
 
     const handlePlay = () => {
       setIsPlaying(true);
-      lastUpdateTimeRef.current = video.currentTime; // Reset thời gian bắt đầu
+      lastUpdateTimeRef.current = video.currentTime;
 
       // Lưu lịch sử sau 5 giây kể từ khi bắt đầu phát
       if (saveHistoryTimeoutRef.current) {
@@ -272,12 +291,12 @@ const VideoWatch = ({ video }) => {
 
     const handlePause = () => {
       setIsPlaying(false);
-      saveWatchHistory(); // Lưu lịch sử khi tạm dừng
+      saveWatchHistory();
     };
 
     const handleEnded = () => {
       setIsPlaying(false);
-      saveWatchHistory(); // Lưu lịch sử khi video kết thúc
+      saveWatchHistory();
     };
 
     video.addEventListener("timeupdate", handleTimeUpdate);
@@ -298,12 +317,29 @@ const VideoWatch = ({ video }) => {
     };
   }, [isDragging, isPlaying]);
 
-  // Kiểm tra thời gian xem để tăng lượt view - Sửa logic
+  // Kiểm tra thời gian xem để tăng lượt view
   useEffect(() => {
-    if (watchTime >= VIEW_THRESHOLD && !hasIncrementedView) {
-      incrementViewCount();
+    if (!video?._id || !video?.user_id._id || hasIncrementedView) return;
+
+    // Điều kiện tăng view:
+    // 1. Video >= 30s: xem đủ 30s
+    // 2. Video < 30s: xem hết video (currentTime >= duration - 1)
+    const shouldIncrementView =
+      (duration >= VIEW_THRESHOLD && watchTime >= VIEW_THRESHOLD) ||
+      (duration < VIEW_THRESHOLD &&
+        currentTime >= duration - 1 &&
+        duration > 0);
+
+    if (shouldIncrementView && video?._id && video?.user_id._id) {
+      incrementView({ user_id: video.user_id._id, video_id: video._id });
+      setHasIncrementedView(true);
+      console.log(
+        `View tăng: ${
+          duration < VIEW_THRESHOLD ? "Video ngắn xem hết" : "Video dài xem 30s"
+        }`
+      );
     }
-  }, [watchTime, hasIncrementedView]);
+  }, [watchTime, currentTime, duration, hasIncrementedView, video]);
 
   // Lưu lịch sử định kỳ
   useEffect(() => {
@@ -311,7 +347,7 @@ const VideoWatch = ({ video }) => {
       if (isPlaying && watchTime > 0) {
         saveWatchHistory();
       }
-    }, 30000); // Lưu mỗi 30 giây thay vì 5 giây để giảm tần suất
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [isPlaying, watchTime]);
@@ -334,17 +370,15 @@ const VideoWatch = ({ video }) => {
   // Cleanup khi component unmount
   useEffect(() => {
     return () => {
-      saveWatchHistory(); // Lưu lịch sử cuối cùng khi component bị hủy
+      saveWatchHistory();
     };
   }, []);
+
+  if (isLoading) return;
 
   return (
     <div
       ref={playerContainerRef}
-      onMouseEnter={() => setShowControls(true)}
-      onMouseLeave={() => {
-        if (!isPlaying) setShowControls(true); // Giữ controls khi pause
-      }}
       style={{
         width: "100%",
         height: "70vh",
@@ -360,7 +394,7 @@ const VideoWatch = ({ video }) => {
           <video
             ref={videoRef}
             src={video.video_url}
-            muted // Giữ muted để tuân thủ autoplay policy
+            muted
             style={{
               width: "100%",
               height: "100%",
@@ -380,22 +414,6 @@ const VideoWatch = ({ video }) => {
             }}
             onEnded={() => setIsPlaying(false)}
           />
-
-          {/* Hiển thị thời gian xem */}
-          <div
-            style={{
-              position: "absolute",
-              top: "10px",
-              left: "10px",
-              color: "white",
-              fontSize: "14px",
-              background: "rgba(0, 0, 0, 0.7)",
-              padding: "8px 12px",
-              borderRadius: "6px",
-            }}
-          >
-            Thời gian xem: {formatTime(watchTime)}
-          </div>
 
           {/* Overlay điều khiển */}
           <div
