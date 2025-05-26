@@ -267,15 +267,15 @@ function App() {
                     }}
                     alt="logo"
                   />
-                  <span style={{ fontSize: "18px", fontWeight: "bold" }}>
-                    TrueTube
+                  <span style={{ fontSize: "16px", fontWeight: "bold" }}>
+                    CUSC Tube
                   </span>
                 </div>
               }
               placement="left"
               onClose={closeDrawer}
               open={drawerVisible}
-              width={200}
+              width={210}
               bodyStyle={{
                 flex: 1,
                 minWidth: 0,
