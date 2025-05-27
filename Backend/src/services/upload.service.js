@@ -1,6 +1,20 @@
-const { cloudinary } = require("../configs/cloudinary");
 const fs = require("fs");
+const path = require("path");
+const ffmpeg = require("fluent-ffmpeg");
 const retry = require("async-retry");
+
+// Định nghĩa thư mục lưu trữ video và thumbnail
+const VIDEO_STORAGE_PATH = path.join(__dirname, "../public/videos");
+const THUMBNAIL_STORAGE_PATH = path.join(__dirname, "../public/thumbnails");
+const BASE_URL = process.env.BASE_URL || "http://localhost:3000"; // URL cơ sở của server, cấu hình trong .env
+
+// Đảm bảo thư mục tồn tại
+if (!fs.existsSync(VIDEO_STORAGE_PATH)) {
+  fs.mkdirSync(VIDEO_STORAGE_PATH, { recursive: true });
+}
+if (!fs.existsSync(THUMBNAIL_STORAGE_PATH)) {
+  fs.mkdirSync(THUMBNAIL_STORAGE_PATH, { recursive: true });
+}
 
 const uploadImageService = async (file) => {
   try {
@@ -26,110 +40,121 @@ const uploadImageService = async (file) => {
 
 const uploadVideoService = async (file, sse) => {
   try {
-    const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB
-    const totalSize = file.size;
-
-    // Kiểm tra kích thước
-    const MAX_SIZE = 200 * 1024 * 1024; // 200MB
-    if (totalSize > MAX_SIZE) {
-      throw new Error("Video size exceeds 200MB limit");
+    // Kiểm tra file hợp lệ
+    if (!file || !file.path) {
+      throw new Error(
+        "Không có file video được tải lên hoặc file không hợp lệ"
+      );
     }
+
+    // Giới hạn kích thước file: 5GB
+    const MAX_SIZE = 5 * 1024 * 1024 * 1024; // 5GB
+    if (file.size > MAX_SIZE) {
+      throw new Error("Kích thước video vượt quá giới hạn 5GB");
+    }
+
+    const inputPath = file.path;
+    const outputFilename = `${Date.now()}-${file.originalname}`;
+    const outputPath = path.join(VIDEO_STORAGE_PATH, outputFilename);
+    const thumbnailFilename = `${Date.now()}-thumb.jpg`;
+    const thumbnailPath = path.join(THUMBNAIL_STORAGE_PATH, thumbnailFilename);
+    const videoUrl = `${BASE_URL}/videos/${outputFilename}`; // URL tuyệt đối cho video
+    const thumbnailUrl = `${BASE_URL}/thumbnails/${thumbnailFilename}`; // URL tuyệt đối cho thumbnail
 
     let uploadedBytes = 0;
+    const totalSize = file.size;
 
-    // Tạo stream từ file
-    const fileStream = fs.createReadStream(file.path);
-
-    // Promise để xử lý kết quả từ Cloudinary
-    const uploadPromise = new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          resource_type: "video",
-          folder: "videos",
-          chunk_size: CHUNK_SIZE,
-        },
-        (error, result) => {
-          if (error) {
-            console.error("Cloudinary upload error:", error);
-            if (error.http_code === 413) {
-              return reject(
-                new Error(
-                  "Upload failed: File size exceeds Cloudinary limit (100MB for free accounts)"
-                )
-              );
+    // Hàm nén video và tạo thumbnail
+    const compressVideo = () =>
+      new Promise((resolve, reject) => {
+        ffmpeg(inputPath)
+          .output(outputPath)
+          .videoCodec("libx264") // Codec H.264 để nén
+          .audioCodec("aac") // Codec AAC cho âm thanh
+          .outputOptions([
+            "-crf 28", // Mức nén
+            "-preset fast", // Tốc độ nén nhanh
+            "-movflags +faststart", // Tối ưu cho phát trực tuyến
+          ])
+          .on("progress", (progress) => {
+            if (progress.bytesWritten) {
+              uploadedBytes = progress.bytesWritten;
+              const percentage = Math.round((uploadedBytes / totalSize) * 100);
+              sse.send({ progress: percentage }, "progress");
             }
-            return reject(
-              new Error(`Cloudinary upload failed: ${error.message}`)
-            );
-          }
-          if (!result || !result.secure_url) {
-            return reject(new Error("Cloudinary did not return a valid URL"));
-          }
-          resolve(result);
-        }
-      );
+          })
+          .on("end", async () => {
+            // Tạo thumbnail
+            await new Promise((res, rej) => {
+              ffmpeg(inputPath)
+                .screenshots({
+                  count: 1, // Lấy 1 khung hình
+                  folder: THUMBNAIL_STORAGE_PATH,
+                  filename: thumbnailFilename,
+                  size: "320x180", // Kích thước thumbnail
+                  timestamps: ["10%"], // Lấy khung hình tại 10% thời lượng video
+                })
+                .on("end", () => res())
+                .on("error", (err) => rej(err));
+            });
 
-      // Theo dõi tiến độ
-      fileStream.on("data", (chunk) => {
-        uploadedBytes += chunk.length;
-        const progress = Math.round((uploadedBytes / totalSize) * 100);
-        sse.send({ progress }, "progress");
+            // Lấy metadata của video
+            const metadata = await new Promise((res, rej) => {
+              ffmpeg.ffprobe(outputPath, (err, data) => {
+                if (err) return rej(err);
+                res(data);
+              });
+            });
+
+            // Xóa file tạm
+            if (fs.existsSync(inputPath)) {
+              fs.unlinkSync(inputPath);
+            }
+
+            resolve({
+              video_url: videoUrl,
+              thumbnail: thumbnailUrl,
+              public_id: outputFilename,
+              filename: file.originalname,
+              size: fs.statSync(outputPath).size,
+              mimetype: file.mimetype || "video/mp4",
+              duration: metadata.format.duration || 0,
+              width: metadata.streams[0].width,
+              height: metadata.streams[0].height,
+              format: metadata.format.format_name,
+            });
+          })
+          .on("error", (err) => {
+            if (fs.existsSync(inputPath)) {
+              fs.unlinkSync(inputPath);
+            }
+            reject(new Error(`Nén video thất bại: ${err.message}`));
+          })
+          .run();
       });
 
-      fileStream.on("error", (err) => {
-        console.error("File stream error:", err);
-        reject(new Error(`File stream error: ${err.message}`));
-      });
-
-      fileStream.pipe(uploadStream);
+    // Thử lại nếu nén thất bại
+    const uploadResult = await retry(async () => compressVideo(), {
+      retries: 3,
+      factor: 2,
+      minTimeout: 1000,
+      maxTimeout: 5000,
     });
 
-    // Thử lại nếu upload thất bại
-    const uploadResult = await retry(
-      async () => {
-        return uploadPromise;
-      },
-      {
-        retries: 3,
-        factor: 2,
-        minTimeout: 1000,
-        maxTimeout: 5000,
-      }
-    );
-
-    // Kiểm tra uploadResult
-    //console.log("Cloudinary upload result:", uploadResult);
-
-    // Xóa file tạm
-    if (file.path && fs.existsSync(file.path)) {
-      fs.unlinkSync(file.path);
-    }
-
     sse.send({ progress: 100 }, "progress");
+
     return {
-      message: "Video uploaded successfully to Cloudinary",
-      data: {
-        video_url: uploadResult.secure_url,
-        public_id: uploadResult.public_id,
-        filename: uploadResult.original_filename || file.originalname,
-        size: totalSize,
-        mimetype: file.mimetype || "video/mp4",
-        duration: uploadResult.duration || 0,
-        width: uploadResult.width,
-        height: uploadResult.height,
-        format: uploadResult.format,
-      },
+      message: "Video được nén và lưu cục bộ thành công",
+      data: uploadResult,
     };
   } catch (error) {
-    // Xóa file tạm nếu có lỗi
     if (file.path && fs.existsSync(file.path)) {
       fs.unlinkSync(file.path);
     }
     sse.send({ error: error.message }, "error");
-    throw new Error(`Error uploading video: ${error.message}`);
+    throw new Error(`Lỗi khi xử lý video: ${error.message}`);
   }
 };
-
 module.exports = {
   uploadImageService,
   uploadVideoService,

@@ -10,4 +10,9 @@ const getVideoByIdApi = (id) => {
   return axios.get(URL_API);
 };
 
-export { getVideoApi, getVideoByIdApi };
+const incrementViewApi = ({ user_id, video_id }) => {
+  const URL_API = `/api/video/increment-view/${video_id}`;
+  return axios.put(URL_API, { user_id, video_id });
+};
+
+export { getVideoApi, getVideoByIdApi, incrementViewApi };

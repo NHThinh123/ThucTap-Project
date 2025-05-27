@@ -3,6 +3,7 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 const AppError = require("../utils/AppError");
 const User_Dislike_Video = require("../models/user_dislike_video.model");
+const User_Like_Video = require("../models/user_like_video.model");
 const User = require("../models/user.model");
 const VideoStats = require("../models/video_stats.model");
 
@@ -22,6 +23,11 @@ const dislikeVideoService = async (id, video_id) => {
     throw new AppError("User not found", 404);
   }
 
+  const existingLike = await User_Like_Video.findOneAndDelete({
+    user_id: objectId,
+    video_id,
+  });
+
   // Create dislike record
   const dislikeData = {
     user_id: objectId,
@@ -40,11 +46,14 @@ const dislikeVideoService = async (id, video_id) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  await VideoStats.findOneAndUpdate(
-    { video_id, date: today },
-    { $inc: { dislikes: 1 } },
-    { upsert: true }
-  );
+  const updateStats = { $inc: { dislikes: 1 } };
+  if (existingLike) {
+    updateStats.$inc.likes = -1;
+  }
+
+  await VideoStats.findOneAndUpdate({ video_id, date: today }, updateStats, {
+    upsert: true,
+  });
   //
 
   return result;
@@ -71,10 +80,21 @@ const undislikeVideoService = async (id, video_id) => {
     video_id,
   };
 
-  let result = await User_Dislike_Video.deleteMany(undislikeCondition);
-  if (result.deletedCount === 0) {
-    throw new AppError("No dislike found to remove", 404);
+  // Xóa bản ghi dislike
+  const result = await User_Dislike_Video.findOneAndDelete(undislikeCondition);
+  if (!result) {
+    throw new AppError("Không tìm thấy lượt không thích để xóa", 404);
   }
+
+  // Cập nhật thống kê video
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  await VideoStats.findOneAndUpdate(
+    { video_id, date: today },
+    { $inc: { dislikes: -1 } },
+    { upsert: true }
+  );
 
   return result;
 };
@@ -103,10 +123,27 @@ const countDislikeVideoService = async (video_id) => {
   return result;
 };
 
+const getUserDislikeStatusService = async (user_id, video_id) => {
+  if (
+    !mongoose.Types.ObjectId.isValid(user_id) ||
+    !mongoose.Types.ObjectId.isValid(video_id)
+  ) {
+    throw new AppError("Invalid user ID or video ID", 400);
+  }
+
+  const dislikeStatus = await User_Dislike_Video.findOne({
+    user_id: new mongoose.Types.ObjectId(user_id),
+    video_id,
+  });
+
+  return !!dislikeStatus; // Returns true if liked, false otherwise
+};
+
 module.exports = {
   dislikeVideoService,
   getUserDislikeVideoService,
   getVideoDislikeByUserService,
   undislikeVideoService,
   countDislikeVideoService,
+  getUserDislikeStatusService,
 };

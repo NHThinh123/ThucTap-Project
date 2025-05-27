@@ -1,7 +1,7 @@
 const path = require("path");
 
 const validateImage = (req, res, next) => {
-  const filetypes = /jpeg|jpg|png/;
+  const filetypes = /jpeg|jpg|png/ | /image\/jpeg|image\/jpg|image\/png/;
   const extname = filetypes.test(
     path.extname(req.file.originalname).toLowerCase()
   );

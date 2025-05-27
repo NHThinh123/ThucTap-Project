@@ -10,15 +10,15 @@ import useVideoById from "../features/video/hooks/useVideoById";
 const VideoWatchPage = () => {
   const { videoList } = useVideo();
   const { id } = useParams();
-  const { videoData } = useVideoById(id);
+  const { videoData, isLoading } = useVideoById(id);
   const { video } = videoData;
   return (
     <Row style={{ background: "#fff", padding: 0 }} gutter={[0, 0]}>
       <Col span={1}></Col>
       <Col span={15} style={{ padding: "0px 8px 0px 24px" }}>
-        <VideoWatch video={video} />
-        <VideoInformation video={video} />
-        <VideoComment />
+        <VideoWatch video={video} isLoading={isLoading} />
+        <VideoInformation video={video} isLoading={isLoading} />
+        <VideoComment video={video} isLoading={isLoading} />
       </Col>
       <Col span={7}>
         <VideoSuggestGrid videos={videoList} />

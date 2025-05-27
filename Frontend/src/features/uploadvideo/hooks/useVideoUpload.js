@@ -8,53 +8,71 @@ import {
 import { App } from "antd";
 
 export const useVideoUpload = () => {
-  // Upload video
   const { message } = App.useApp();
+
   const uploadMutation = useMutation({
-    mutationFn: uploadVideoApi,
-    onSuccess: ({ videoUrl, duration }) => {
+    mutationFn: ({ file, onProgress }) => uploadVideoApi(file, { onProgress }),
+    onSuccess: (data, { onSuccess }) => {
+      console.log("Video upload success:", data);
       message.success("Video đã tải lên thành công!");
+      onSuccess?.(data);
     },
-    onError: (error) => {
+    onError: (error, { onError }) => {
+      console.error("Video upload error:", error);
       message.error(error.message || "Lỗi khi tải video!");
-    },
-  });
-  //upload image
-  const uploadThumbnailMutation = useMutation({
-    mutationFn: uploadThumbnailApi,
-    onSuccess: (thumbnail) => {
-      message.success("Thumbnail đã tải lên thành công!");
-    },
-    onError: (error) => {
-      message.error(error.message || "Lỗi khi tải thumbnail!");
+      onError?.(error);
     },
   });
 
-  //create video
+  const uploadThumbnailMutation = useMutation({
+    mutationFn: ({ file, onProgress }) =>
+      uploadThumbnailApi(file, { onProgress }),
+    onSuccess: (data, { onSuccess }) => {
+      console.log("Thumbnail upload success:", data);
+      message.success("Thumbnail đã tải lên thành công!");
+      onSuccess?.(data);
+    },
+    onError: (error, { onError }) => {
+      console.error("Thumbnail upload error:", error);
+      message.error(error.message || "Lỗi khi tải thumbnail!");
+      onError?.(error);
+    },
+  });
+
   const createMutation = useMutation({
     mutationFn: createVideoApi,
     onSuccess: (data) => {
+      console.log("Create video success:", data);
       message.success(data.message || "Video đã được tạo thành công!");
     },
     onError: (error) => {
+      console.error("Create video error:", error);
       message.error(error.message || "Lỗi khi tạo video!");
     },
   });
 
-  return {
-    uploadVideo: uploadMutation.mutate,
+  const hookReturn = {
+    uploadVideo: (file, callbacks = {}) => {
+      uploadMutation.mutate({ file, ...callbacks });
+    },
     isUploading: uploadMutation.isPending,
     videoUrl: uploadMutation.data?.videoUrl,
-    duration: uploadMutation.data?.duration,
-    uploadThumbnail: uploadThumbnailMutation.mutate,
-    thumbnail: uploadThumbnailMutation.data,
+    thumbnail: uploadThumbnailMutation.data || uploadMutation.data?.thumbnail,
     isUploadingThumbnail: uploadThumbnailMutation.isPending,
+    duration: uploadMutation.data?.duration,
     createVideo: createMutation.mutate,
     isCreating: createMutation.isPending,
+    uploadThumbnail: (file, callbacks = {}) => {
+      uploadThumbnailMutation.mutate({ file, ...callbacks });
+    },
     reset: () => {
       uploadMutation.reset();
-      createMutation.reset();
       uploadThumbnailMutation.reset();
+      createMutation.reset();
     },
   };
+
+  console.log("useVideoUpload hook return:", Object.keys(hookReturn));
+
+  return hookReturn;
 };

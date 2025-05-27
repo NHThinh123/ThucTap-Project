@@ -26,12 +26,22 @@ const ReviewsChart = ({ data, labels, period }) => {
     labels,
     datasets: [
       {
-        label: "Reviews",
+        label: "Đánh giá",
         data: data ? data.map((item) => item.reviews) : [],
         borderColor: "#ec4899",
         backgroundColor: "rgba(236, 72, 153, 0.2)",
         fill: false,
         tension: 0.4,
+        yAxisID: "y-reviews", // Gán trục y riêng cho Reviews
+      },
+      {
+        label: "Đánh giá trung bình",
+        data: data ? data.map((item) => item.average_rating) : [],
+        borderColor: "#f59e0b",
+        backgroundColor: "rgba(245, 158, 11, 0.2)",
+        fill: false,
+        tension: 0.4,
+        yAxisID: "y-rating", // Gán trục y riêng cho Average Rating
       },
     ],
   };
@@ -42,7 +52,7 @@ const ReviewsChart = ({ data, labels, period }) => {
       legend: { position: "top" },
       title: {
         display: true,
-        text: `Reviews Statistics (${
+        text: `Biểu đồ đánh giá & Trung bình đánh giá (${
           period.charAt(0).toUpperCase() + period.slice(1)
         })`,
       },
@@ -50,18 +60,32 @@ const ReviewsChart = ({ data, labels, period }) => {
     scales: {
       x: {
         title: {
-          display: true,
+          display: false,
           text:
             period === "daily"
-              ? "Date"
+              ? "Ngày"
               : period === "weekly"
-              ? "Week"
-              : "Month",
+              ? "Tuần"
+              : "Tháng",
         },
       },
-      y: {
-        title: { display: true, text: "Value" },
+      "y-reviews": {
+        type: "linear",
+        display: true,
+        position: "left",
+        title: { display: true, text: "Đánh giá" },
         beginAtZero: true,
+      },
+      "y-rating": {
+        type: "linear",
+        display: true,
+        position: "right",
+        title: { display: true, text: "Đánh giá trung bình" },
+        beginAtZero: true,
+        max: 5, // Giả sử rating tối đa là 5
+        grid: {
+          drawOnChartArea: false, // Không hiển thị lưới của trục này để tránh chồng lấn
+        },
       },
     },
   };

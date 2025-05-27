@@ -2,9 +2,9 @@ const {
   createCommentService,
   getCommentByIdService,
   getVideoCommentsService,
+  getReplyCommentsService,
   updateCommentService,
   deleteCommentService,
-  restoreCommentService,
 } = require("../services/comment.service");
 
 const createComment = async (req, res, next) => {
@@ -34,13 +34,17 @@ const getComment = async (req, res, next) => {
 
 const getVideoComments = async (req, res, next) => {
   try {
-    const { video_id } = req.body;
-    const comments = await getVideoCommentsService(video_id);
-    res.status(200).json({
-      status: "success",
-      results: comments.length,
-      data: { comments },
-    });
+    const data = await getVideoCommentsService(req.query);
+    res.status(200).json(data);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getReplyComments = async (req, res, next) => {
+  try {
+    const replies = await getReplyCommentsService(req.query);
+    res.status(200).json(data);
   } catch (error) {
     next(error);
   }
@@ -76,24 +80,11 @@ const deleteComment = async (req, res, next) => {
   }
 };
 
-const restoreComment = async (req, res, next) => {
-  try {
-    const { user_id } = req.body;
-    const comment = await restoreCommentService(req.params.id, user_id);
-    res.status(200).json({
-      status: "success",
-      data: { comment },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
 module.exports = {
   createComment,
   getComment,
   getVideoComments,
+  getReplyComments,
   updateComment,
   deleteComment,
-  restoreComment,
 };
