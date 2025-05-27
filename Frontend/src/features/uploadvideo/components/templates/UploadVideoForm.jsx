@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useContext, useEffect } from "react";
-import { Form, Input, Button, Upload, Steps, App, Space } from "antd";
+import { Form, Input, Button, Upload, Steps, App, Space, Progress } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { useVideoUpload } from "../../hooks/useVideoUpload";
 import { useModal } from "../../../../contexts/modal.context";
@@ -14,8 +14,10 @@ const VideoUploadForm = ({ onSuccess }) => {
   const [videoFileList, setVideoFileList] = useState([]);
   const [thumbnailFileList, setThumbnailFileList] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
-  const [previewVideo, setPreviewVideo] = useState(null); // Lưu URL xem trước video cục bộ
-  const [previewThumbnail, setPreviewThumbnail] = useState(null); // Lưu URL xem trước thumbnail cục bộ
+  const [previewVideo, setPreviewVideo] = useState(null);
+  const [previewThumbnail, setPreviewThumbnail] = useState(null);
+  const [videoProgress, setVideoProgress] = useState(0);
+  const [thumbnailProgress, setThumbnailProgress] = useState(0);
   const {
     uploadVideo,
     isUploading,
@@ -28,10 +30,10 @@ const VideoUploadForm = ({ onSuccess }) => {
     thumbnail,
     duration,
   } = useVideoUpload();
+
   const { openModal, closeModal } = useModal();
   const { auth } = useContext(AuthContext);
 
-  // Cleanup URL xem trước khi component unmount hoặc file thay đổi
   useEffect(() => {
     return () => {
       if (previewVideo) {
@@ -43,44 +45,65 @@ const VideoUploadForm = ({ onSuccess }) => {
     };
   }, [previewVideo, previewThumbnail]);
 
-  const handleUploadVideo = async () => {
+  const handleUploadVideo = () => {
     if (videoFileList.length === 0) {
       message.error("Vui lòng chọn video!");
       return;
     }
 
-    try {
-      console.log("Uploading video:", videoFileList[0]);
-      await uploadVideo(videoFileList[0]);
-      setPreviewVideo(null); // Xóa xem trước cục bộ sau khi upload
-      setCurrentStep(1);
-    } catch (error) {
-      console.error("Video upload error:", error);
-      message.error("Đã xảy ra lỗi khi tải video!");
-    }
+    setVideoProgress(0);
+    console.log("Starting video upload:", videoFileList[0].name);
+    uploadVideo(videoFileList[0], {
+      onSuccess: () => {
+        console.log("Video upload completed");
+        setPreviewVideo(null);
+        setVideoProgress(100);
+        setCurrentStep(1);
+      },
+      onError: (error) => {
+        console.error("Video upload failed:", error);
+        message.error("Đã xảy ra lỗi khi tải video!");
+        setVideoProgress(0);
+      },
+      onProgress: (percent) => {
+        console.log("Video upload progress:", percent);
+        setVideoProgress(Math.round(percent));
+      },
+    });
   };
 
-  const handleUploadThumbnail = async () => {
+  const handleUploadThumbnail = () => {
     if (thumbnailFileList.length === 0) {
       message.error("Vui lòng chọn ảnh thumbnail!");
       return;
     }
 
-    try {
-      console.log("Uploading thumbnail:", thumbnailFileList[0]);
-      await uploadThumbnail(thumbnailFileList[0]);
-      setPreviewThumbnail(null); // Xóa xem trước cục bộ sau khi upload
-      setCurrentStep(2);
-    } catch (error) {
-      console.error("Thumbnail upload catch error:", error);
-      message.error("Đã xảy ra lỗi khi tải ảnh thumbnail!");
-    }
+    setThumbnailProgress(0);
+    console.log("Starting thumbnail upload:", thumbnailFileList[0].name);
+    uploadThumbnail(thumbnailFileList[0], {
+      onSuccess: () => {
+        console.log("Thumbnail upload completed");
+        setPreviewThumbnail(null);
+        setThumbnailProgress(100);
+        setCurrentStep(2);
+      },
+      onError: (error) => {
+        console.error("Thumbnail upload failed:", error);
+        message.error("Đã xảy ra lỗi khi tải ảnh thumbnail!");
+        setThumbnailProgress(0);
+      },
+      onProgress: (percent) => {
+        console.log("Thumbnail upload progress:", percent);
+        setThumbnailProgress(Math.round(percent));
+      },
+    });
   };
 
   const handleSkipThumbnail = () => {
-    setPreviewThumbnail(null); // Xóa xem trước cục bộ
-    setThumbnailFileList([]); // Xóa file đã chọn
-    setCurrentStep(2); // Bỏ qua bước tải thumbnail
+    setPreviewThumbnail(null);
+    setThumbnailFileList([]);
+    setThumbnailProgress(0);
+    setCurrentStep(2);
   };
 
   const handleCreate = async (values) => {
@@ -98,7 +121,7 @@ const VideoUploadForm = ({ onSuccess }) => {
     }
 
     try {
-      const videoDuration = duration || 0; // Lấy duration từ video
+      const videoDuration = duration || 0;
 
       console.log("Creating video with data:", {
         user_id: auth.user.id,
@@ -122,6 +145,8 @@ const VideoUploadForm = ({ onSuccess }) => {
       setThumbnailFileList([]);
       setPreviewVideo(null);
       setPreviewThumbnail(null);
+      setVideoProgress(0);
+      setThumbnailProgress(0);
       reset();
       setCurrentStep(0);
       closeModal();
@@ -137,7 +162,7 @@ const VideoUploadForm = ({ onSuccess }) => {
       const isVideo = file.type.startsWith("video/");
       const isLt5G = file.size / 1024 / 1024 / 1024 < 5;
 
-      console.log("Video file:", file);
+      console.log("Video file selected:", file);
 
       if (!isVideo) {
         message.error("Vui lòng chọn file video!");
@@ -150,7 +175,6 @@ const VideoUploadForm = ({ onSuccess }) => {
       }
 
       setVideoFileList([file]);
-      // Tạo URL xem trước cục bộ
       if (previewVideo) {
         URL.revokeObjectURL(previewVideo);
       }
@@ -161,6 +185,7 @@ const VideoUploadForm = ({ onSuccess }) => {
     onRemove: () => {
       setVideoFileList([]);
       setPreviewVideo(null);
+      setVideoProgress(0);
       reset();
     },
   };
@@ -171,7 +196,7 @@ const VideoUploadForm = ({ onSuccess }) => {
         file.type && /image\/(png|jpeg|jpg|gif|bmp|webp)/i.test(file.type);
       const isLt10M = file.size / 1024 / 1024 < 10;
 
-      console.log("Thumbnail file:", file);
+      console.log("Thumbnail file selected:", file);
 
       if (!isImage) {
         message.error(
@@ -186,7 +211,6 @@ const VideoUploadForm = ({ onSuccess }) => {
       }
 
       setThumbnailFileList([file]);
-      // Tạo URL xem trước cục bộ
       if (previewThumbnail) {
         URL.revokeObjectURL(previewThumbnail);
       }
@@ -197,7 +221,26 @@ const VideoUploadForm = ({ onSuccess }) => {
     onRemove: () => {
       setThumbnailFileList([]);
       setPreviewThumbnail(null);
+      setThumbnailProgress(0);
     },
+  };
+
+  // CSS để đảm bảo tỉ lệ 16:9 và overflow hidden
+  const mediaContainerStyle = {
+    position: "relative",
+    width: "100%",
+    aspectRatio: "16 / 9",
+    overflow: "hidden",
+    borderRadius: "8px",
+  };
+
+  const mediaStyle = {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    position: "absolute",
+    top: 0,
+    left: 0,
   };
 
   return (
@@ -216,10 +259,22 @@ const VideoUploadForm = ({ onSuccess }) => {
           {previewVideo && (
             <div style={{ marginTop: 16 }}>
               <h3>Xem trước video:</h3>
-              <video
-                src={previewVideo}
-                controls
-                style={{ maxWidth: "100%", maxHeight: 300 }}
+              <div style={mediaContainerStyle}>
+                <video src={previewVideo} controls style={mediaStyle} />
+              </div>
+            </div>
+          )}
+          {isUploading && (
+            <div style={{ marginTop: 16 }}>
+              <Progress
+                percent={videoProgress}
+                status={
+                  videoProgress === 100
+                    ? "success"
+                    : isUploading
+                    ? "active"
+                    : "exception"
+                }
               />
             </div>
           )}
@@ -241,36 +296,52 @@ const VideoUploadForm = ({ onSuccess }) => {
           {videoUrl && (
             <div style={{ marginBottom: 16 }}>
               <h3>Xem trước video:</h3>
-              <video
-                src={videoUrl}
-                controls
-                style={{ maxWidth: "100%", maxHeight: 300 }}
-              />
+              <div style={mediaContainerStyle}>
+                <video src={videoUrl} controls style={mediaStyle} />
+              </div>
             </div>
           )}
           {thumbnail && !previewThumbnail && (
             <div style={{ marginBottom: 16 }}>
               <h3>Thumbnail mặc định:</h3>
-              <img
-                src={thumbnail}
-                alt="Thumbnail mặc định"
-                style={{ maxWidth: 200, maxHeight: 200 }}
-              />
+              <div style={{ ...mediaContainerStyle, maxWidth: 200 }}>
+                <img
+                  src={thumbnail}
+                  alt="Thumbnail mặc định"
+                  style={mediaStyle}
+                />
+              </div>
             </div>
           )}
           {previewThumbnail && (
             <div style={{ marginBottom: 16 }}>
               <h3>Xem trước thumbnail:</h3>
-              <img
-                src={previewThumbnail}
-                alt="Thumbnail tùy chỉnh"
-                style={{ maxWidth: 200, maxHeight: 200 }}
-              />
+              <div style={{ ...mediaContainerStyle, maxWidth: 200 }}>
+                <img
+                  src={previewThumbnail}
+                  alt="Thumbnail tùy chỉnh"
+                  style={mediaStyle}
+                />
+              </div>
             </div>
           )}
           <Upload {...thumbnailUploadProps} accept="image/*">
             <Button icon={<UploadOutlined />}>Chọn ảnh thumbnail khác</Button>
           </Upload>
+          {isUploadingThumbnail && (
+            <div style={{ marginTop: 16 }}>
+              <Progress
+                percent={thumbnailProgress}
+                status={
+                  thumbnailProgress === 100
+                    ? "success"
+                    : isUploadingThumbnail
+                    ? "active"
+                    : "exception"
+                }
+              />
+            </div>
+          )}
           <Space style={{ marginTop: 16, width: "100%" }}>
             <Button
               type="primary"
@@ -296,6 +367,8 @@ const VideoUploadForm = ({ onSuccess }) => {
               reset();
               setPreviewVideo(null);
               setPreviewThumbnail(null);
+              setVideoProgress(0);
+              setThumbnailProgress(0);
             }}
             disabled={isUploadingThumbnail}
             block
@@ -310,20 +383,20 @@ const VideoUploadForm = ({ onSuccess }) => {
           <h3>Xem trước:</h3>
           <div style={{ marginBottom: 16 }}>
             <h4>Video:</h4>
-            <video
-              src={videoUrl}
-              poster={thumbnail}
-              controls
-              style={{ maxWidth: "100%", maxHeight: 300 }}
-            />
+            <div style={mediaContainerStyle}>
+              <video
+                src={videoUrl}
+                poster={thumbnail}
+                controls
+                style={mediaStyle}
+              />
+            </div>
           </div>
           <div style={{ marginBottom: 16 }}>
             <h4>Thumbnail:</h4>
-            <img
-              src={thumbnail}
-              alt="Thumbnail"
-              style={{ maxWidth: 200, maxHeight: 200 }}
-            />
+            <div style={{ ...mediaContainerStyle, maxWidth: 200 }}>
+              <img src={thumbnail} alt="Thumbnail" style={mediaStyle} />
+            </div>
           </div>
           <Form
             form={form}
