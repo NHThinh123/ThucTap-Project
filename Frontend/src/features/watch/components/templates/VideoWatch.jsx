@@ -25,9 +25,6 @@ const VideoWatch = ({ video }) => {
   const [watchTime, setWatchTime] = useState(0);
   const [hasIncrementedView, setHasIncrementedView] = useState(false);
 
-  // Ngưỡng thời gian xem để tăng lượt view (30 giây)
-  const VIEW_THRESHOLD = 30;
-
   // Lưu lịch sử xem vào localStorage
   const saveWatchHistory = () => {
     if (!video?._id || watchTimeRef.current <= 0) return;
@@ -321,25 +318,20 @@ const VideoWatch = ({ video }) => {
   useEffect(() => {
     if (!video?._id || !video?.user_id._id || hasIncrementedView) return;
 
-    // Điều kiện tăng view:
-    // 1. Video >= 30s: xem đủ 30s
-    // 2. Video < 30s: xem hết video (currentTime >= duration - 1)
-    const shouldIncrementView =
-      (duration >= VIEW_THRESHOLD && watchTime >= VIEW_THRESHOLD) ||
-      (duration < VIEW_THRESHOLD &&
-        currentTime >= duration - 1 &&
-        duration > 0);
+    // Ngưỡng để tăng view: 70% thời lượng video
+    const viewThreshold = duration * 0.7;
+
+    // Điều kiện tăng view: watchTime đạt hoặc vượt 70% thời lượng video
+    const shouldIncrementView = duration > 0 && watchTime >= viewThreshold;
 
     if (shouldIncrementView && video?._id && video?.user_id._id) {
       incrementView({ user_id: video.user_id._id, video_id: video._id });
       setHasIncrementedView(true);
       console.log(
-        `View tăng: ${
-          duration < VIEW_THRESHOLD ? "Video ngắn xem hết" : "Video dài xem 30s"
-        }`
+        `View tăng: Đã xem ${Math.round((watchTime / duration) * 100)}% video`
       );
     }
-  }, [watchTime, currentTime, duration, hasIncrementedView, video]);
+  }, [watchTime, duration, hasIncrementedView, video]);
 
   // Lưu lịch sử định kỳ
   useEffect(() => {

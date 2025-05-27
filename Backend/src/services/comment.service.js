@@ -1,6 +1,7 @@
 const Comment = require("../models/comment.model");
 const VideoStats = require("../models/video_stats.model");
 const AppError = require("../utils/AppError");
+const mongoose = require("mongoose");
 
 const createCommentService = async (data, userId, videoId) => {
   const { parent_comment_id, comment_content } = data;
@@ -46,26 +47,72 @@ const getCommentByIdService = async (commentId) => {
   return comment;
 };
 
-const getVideoCommentsService = async (videoId) => {
-  // Get top-level comments (parentCommentId is null)
-  const comments = await Comment.find({
-    video_id: videoId,
-    parent_comment_id: null,
-  })
+const getVideoCommentsService = async (query) => {
+  const { video_id, user_id } = query;
+  if (!mongoose.Types.ObjectId.isValid(video_id)) {
+    throw new AppError("Invalid video ID", 400);
+  }
+  const isValidId = user_id ? mongoose.Types.ObjectId.isValid(user_id) : false;
+  const objectId = isValidId ? new mongoose.Types.ObjectId(user_id) : null;
+  let comments = await Comment.collection
+    .aggregate([
+      { $match: { video_id: new mongoose.Types.ObjectId(video_id) } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user_id",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          comment_content: {
+            $cond: {
+              if: "$deleted",
+              then: "(bình luận đã bị xóa)",
+              else: "$comment_content",
+            },
+          },
+        },
+      },
+      { $sort: { createdAt: -1 } },
+      {
+        $project: {
+          comment_content: 1,
+          createdAt: 1,
+          parent_comment_id: 1,
+          isEdited: 1,
+          deleted: 1,
+          user: {
+            _id: "$user._id",
+            user_name: "$user.user_name",
+            nickname: "$user.nickname",
+            avatar: "$user.avatar",
+          },
+        },
+      },
+    ])
+    .toArray();
+  let parentComments = comments.filter((c) => !c.parent_comment_id); // lọc bình luận gốc
+  let result = parentComments.map((comment) => ({
+    ...comment,
+    replyCount: comments.filter(
+      (c) => String(c.parent_comment_id) === String(comment._id)
+    ).length,
+  }));
+  return result;
+};
+
+const getReplyCommentsService = async (parentCommentId) => {
+  const replies = await Comment.find({ parent_comment_id: parentCommentId })
     .populate("user_id", "user_name email avatar nickname")
-    .sort({ createdAt: -1 });
-
-  // For each top-level comment, fetch its replies
-  const commentsWithReplies = await Promise.all(
-    comments.map(async (comment) => {
-      const replies = await Comment.find({ parent_comment_id: comment._id })
-        .populate("user_id", "user_name email avatar nickname")
-        .sort({ createdAt: 1 });
-      return { ...comment.toObject(), replies };
-    })
-  );
-
-  return commentsWithReplies;
+    .sort({ createdAt: 1 });
+  if (!replies) {
+    throw new AppError("Replies not found", 404);
+  }
+  return replies;
 };
 
 const updateCommentService = async (commentId, userId, data) => {
@@ -93,6 +140,7 @@ module.exports = {
   createCommentService,
   getCommentByIdService,
   getVideoCommentsService,
+  getReplyCommentsService,
   updateCommentService,
   deleteCommentService,
 };
