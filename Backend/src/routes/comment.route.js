@@ -8,9 +8,6 @@ router
   .get(commentController.getVideoComments) // GET /api/comments
   .post(commentController.createComment); // POST /api/comments
 
-// Khôi phục bình luận đã xóa mềm
-router.patch("/:id/restore", commentController.restoreComment); // PATCH /api/comments/:id/restore
-
 router
   .route("/:id")
   .get(commentController.getComment) // GET /api/comments/:id

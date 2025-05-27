@@ -6,15 +6,6 @@ const likeVideo = async (req, res, next) => {
   try {
     const { video_id, user_id } = req.body;
 
-    // Check if user has already disliked the video
-    const existingDislike =
-      await userDislikeVideoService.getVideoDislikeByUserService(user_id);
-    if (
-      existingDislike.some((dislike) => dislike._id.toString() === video_id)
-    ) {
-      throw new AppError("Cannot like a video that has been disliked", 400);
-    }
-
     const result = await userLikeVideoService.likeVideoService(
       user_id,
       video_id
@@ -86,10 +77,35 @@ const countLikeVideo = async (req, res, next) => {
   }
 };
 
+const getUserLikeStatus = async (req, res, next) => {
+  try {
+    const { user_id, video_id } = req.body;
+
+    if (!user_id || !video_id) {
+      return res.status(400).json({
+        status: "error",
+        message: "Missing user_id or video_id",
+      });
+    }
+
+    const result = await userLikeVideoService.getUserLikeStatusService(
+      user_id,
+      video_id
+    );
+    res.status(200).json({
+      status: "success",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   likeVideo,
   unlikeVideo,
   getVideoLikes,
   getUserLikedVideos,
   countLikeVideo,
+  getUserLikeStatus,
 };
