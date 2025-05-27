@@ -11,16 +11,7 @@ const {
   uploadVideo,
 } = require("../controllers/upload.controller");
 
-router.post(
-  "/image",
-  uploadImageMiddleware.single("image"),
-  validateImage,
-  uploadImage
-);
-router.post(
-  "/video",
-  uploadVideoMiddleware.single("video"), // Nhận file video từ form-data
-  uploadVideo
-);
+router.post("/image", uploadImageMiddleware.single("image"), uploadImage);
+router.post("/video", uploadVideoMiddleware.single("video"), uploadVideo);
 
 module.exports = router;

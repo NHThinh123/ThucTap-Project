@@ -8,15 +8,15 @@ const uploadVideoApi = async (file) => {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
-    // Kiểm tra cấu trúc response
     const data = response.data || response;
     const videoUrl = data.data?.video_url || data.video_url;
+    const thumbnail = data.data?.thumbnail || data.thumbnail; // Lấy thumbnail mặc định
     const duration = data.data?.duration || data.duration || 0;
 
     if (!videoUrl) {
       throw new Error("Không tìm thấy URL video trong phản hồi");
     }
-    return { videoUrl, duration };
+    return { videoUrl, thumbnail, duration };
   } catch (error) {
     console.error("Upload video error:", error);
     throw new Error(
@@ -33,7 +33,6 @@ const uploadThumbnailApi = async (file) => {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
-    // Kiểm tra cấu trúc response
     const data = response.data || response;
     const thumbnail = data.data?.img_url || data.img_url;
 
@@ -57,12 +56,12 @@ const createVideoApi = async (videoData) => {
       title: videoData.title,
       description: videoData.description,
       duration: videoData.duration,
-      thumbnail: videoData.thumbnail,
+      thumbnail: videoData.thumbnail, // Sử dụng thumbnail mặc định hoặc tùy chỉnh
     };
 
     const response = await axios.post("/api/video/create", payload);
 
-    return response.data || response; // Đảm bảo trả về data
+    return response.data || response;
   } catch (error) {
     console.error("Lỗi từ backend:", error);
     throw new Error(
