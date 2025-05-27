@@ -18,7 +18,7 @@ const VideoWatchPage = () => {
       <Col span={15} style={{ padding: "0px 8px 0px 24px" }}>
         <VideoWatch video={video} isLoading={isLoading} />
         <VideoInformation video={video} isLoading={isLoading} />
-        <VideoComment />
+        <VideoComment video={video} isLoading={isLoading} />
       </Col>
       <Col span={7}>
         <VideoSuggestGrid videos={videoList} />
