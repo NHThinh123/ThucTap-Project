@@ -11,5 +11,14 @@ const getUserStats = ({ userId, period, startDate, endDate }) => {
     },
   });
 };
+const getChannelOverview = ({ userId }) => {
+  const URL_API = `/api/stats/overview/${userId}`;
+  return axios.get(URL_API);
+};
 
-export { getUserStats };
+const getNewestVideoAnalysis = ({ userId }) => {
+  const URL_API = `/api/stats/newest/${userId}`;
+  return axios.get(URL_API);
+};
+
+export { getUserStats, getChannelOverview, getNewestVideoAnalysis };

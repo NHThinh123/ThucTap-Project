@@ -19,7 +19,7 @@ const createVideoService = async (videoData, userId) => {
       description_video: videoData.description || null,
       video_url: videoData.video_url,
       thumbnail_video: videoData.thumbnail || "",
-      duration: videoData.duration || 0,
+      duration: videoData.duration ? Math.round(Number(videoData.duration)) : 0,
       views: 0,
     });
 

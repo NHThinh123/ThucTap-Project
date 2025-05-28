@@ -1,9 +1,57 @@
-import React from "react";
+import {
+  Button,
+  Col,
+  Divider,
+  Flex,
+  Row,
+  Space,
+  Typography,
+  Spin,
+  Alert,
+} from "antd";
+import {
+  ChartNoAxesColumn,
+  CircleArrowDown,
+  CircleArrowUp,
+  ThumbsDown,
+  ThumbsUp,
+} from "lucide-react";
 import BoxCustom from "../../../../components/atoms/BoxCustom";
-import { Button, Col, Divider, Row, Space, Typography } from "antd";
-import { ChartNoAxesColumn, ThumbsDown, ThumbsUp } from "lucide-react";
+import { useNewestVideoAnalysis } from "../../hooks/useNewestVideoAnalysis";
 
-const NewestVideoAnalysis = () => {
+const NewestVideoAnalysis = ({ userId }) => {
+  const { data, isLoading, error } = useNewestVideoAnalysis({ userId });
+
+  if (isLoading) return <Spin />;
+  if (error) return <Alert message={error.message} type="error" />;
+  if (!data?.data?.video)
+    return <Alert message="Bạn chưa đăng video nào" type="warning" />;
+
+  const { video, stats } = data.data;
+  // Lấy trends từ tuần hiện tại (index cuối cùng)
+  const latestTrends = stats?.length > 1 ? stats[stats.length - 1].trends : {};
+
+  // Hàm định dạng số
+  const formatNumber = (num) => {
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+    return num;
+  };
+
+  // Hàm hiển thị trend với icon
+  const renderTrend = (value, isPositiveGood = true) => {
+    if (!value) return <Typography.Text>0</Typography.Text>;
+    const isPositive = value >= 0;
+    const color = isPositive === isPositiveGood ? "#22bb33" : "#bb2124";
+    const Icon = isPositive ? CircleArrowUp : CircleArrowDown;
+    return (
+      <Typography.Text>
+        {Math.abs(value)}{" "}
+        <Icon size={16} color={color} style={{ marginBottom: -2 }} />
+      </Typography.Text>
+    );
+  };
+
   return (
     <BoxCustom>
       <Typography.Title level={5}>
@@ -11,11 +59,11 @@ const NewestVideoAnalysis = () => {
       </Typography.Title>
       <Divider style={{ marginTop: 5 }} />
       <img
-        alt={"video mới nhất"}
-        src={"https://pbs.twimg.com/media/F_vO2geW0AE1mmW.jpg"}
+        alt={video.title}
+        src={video.thumbnail}
         style={{
           width: "100%",
-          aspectRatio: "5/ 3",
+          aspectRatio: "5/3",
           borderRadius: "8px",
           objectFit: "cover",
         }}
@@ -30,9 +78,7 @@ const NewestVideoAnalysis = () => {
           textOverflow: "ellipsis",
         }}
       >
-        Anime Youtube Thumbnails designs, themes, templates and downloadable
-        graphic elements on Dribbble. Your resource to discover and connect with
-        designers worldwide.
+        {video.title}
       </h4>
       <Row style={{ marginTop: 8 }} align={"middle"}>
         <Col span={6}>
@@ -42,28 +88,44 @@ const NewestVideoAnalysis = () => {
               size={20}
               style={{ marginTop: 2 }}
             />
-            <p>600 N</p>
+            <p>{formatNumber(video.totalViews)}</p>
           </Space>
         </Col>
         <Col span={4}>
           <Space>
             <ThumbsUp strokeWidth={1.5} size={20} style={{ marginTop: 2 }} />
-            <p>3</p>
+            <p>{video.totalLikes}</p>
           </Space>
         </Col>
         <Col span={4}>
           <Space>
             <ThumbsDown strokeWidth={1.5} size={20} style={{ marginTop: 2 }} />
-            <p>3</p>
+            <p>{video.totalDislikes}</p>
           </Space>
         </Col>
       </Row>
+      <Divider style={{ marginTop: 5, marginBottom: 5 }} />
+      <Typography.Text type="secondary">Trong tuần này</Typography.Text>
+      <Col span={24} style={{ padding: "0px ", marginTop: 8 }}>
+        <Flex justify="space-between" align="center">
+          <Typography.Text>Lượt xem:</Typography.Text>
+          {renderTrend(latestTrends.views || 0)}
+        </Flex>
+        <Flex justify="space-between" align="center">
+          <Typography.Text>Lượt thích:</Typography.Text>
+          {renderTrend(latestTrends.likes || 0)}
+        </Flex>
+        <Flex justify="space-between" align="center">
+          <Typography.Text>Lượt không thích:</Typography.Text>
+          {renderTrend(latestTrends.dislikes || 0, false)}
+        </Flex>
+      </Col>
       <Divider style={{ marginTop: "10px" }} />
       <Button style={{ marginBottom: 8 }} color="primary" variant="outlined">
         Xem số liệu phân tích video
       </Button>
       <Button color="primary" variant="outlined">
-        Xem bình luận (2)
+        Xem bình luận ({video.totalComments})
       </Button>
     </BoxCustom>
   );

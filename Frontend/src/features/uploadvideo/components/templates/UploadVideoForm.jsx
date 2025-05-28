@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useContext, useEffect, useRef } from "react";
-import { Form, Input, Button, Upload, Steps, App } from "antd";
+import React, { useState, useContext, useEffect } from "react";
+import { Form, Input, Button, Upload, Steps, App, Space, Progress } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { useVideoUpload } from "../../hooks/useVideoUpload";
 import { useModal } from "../../../../contexts/modal.context";
@@ -14,8 +14,10 @@ const VideoUploadForm = ({ onSuccess }) => {
   const [videoFileList, setVideoFileList] = useState([]);
   const [thumbnailFileList, setThumbnailFileList] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
-  const [videoThumbnail, setVideoThumbnail] = useState(null);
-  const videoRef = useRef(null);
+  const [previewVideo, setPreviewVideo] = useState(null);
+  const [previewThumbnail, setPreviewThumbnail] = useState(null);
+  const [videoProgress, setVideoProgress] = useState(0);
+  const [thumbnailProgress, setThumbnailProgress] = useState(0);
   const {
     uploadVideo,
     isUploading,
@@ -28,104 +30,76 @@ const VideoUploadForm = ({ onSuccess }) => {
     thumbnail,
     duration,
   } = useVideoUpload();
+
   const { openModal, closeModal } = useModal();
   const { auth } = useContext(AuthContext);
 
   // Cập nhật duration trong form
   useEffect(() => {
-    if (duration && currentStep === 2) {
-      form.setFieldsValue({ duration });
-    }
-  }, [duration, currentStep, form]);
+    return () => {
+      if (previewVideo) {
+        URL.revokeObjectURL(previewVideo);
+      }
+      if (previewThumbnail) {
+        URL.revokeObjectURL(previewThumbnail);
+      }
+    };
+  }, [previewVideo, previewThumbnail]);
 
-  // Tạo thumbnail từ video
-  const generateThumbnail = (videoElement) => {
-    return new Promise((resolve, reject) => {
-      const canvas = document.createElement("canvas");
-      const context = canvas.getContext("2d");
-
-      // Di chuyển đến giây thứ 1 hoặc khung hình đầu tiên
-      videoElement.currentTime = Math.min(1, videoElement.duration || 1);
-
-      videoElement.onseeked = () => {
-        canvas.width = videoElement.videoWidth;
-        canvas.height = videoElement.videoHeight;
-        context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-        const thumbnailDataUrl = canvas.toDataURL("image/jpeg", 0.8); // JPEG với chất lượng 80%
-        resolve(thumbnailDataUrl);
-      };
-
-      videoElement.onerror = () => {
-        reject(new Error("Không thể tạo thumbnail từ video"));
-      };
-    });
-  };
-
-  // Xử lý tải video và tạo thumbnail
-  const handleUploadVideo = async () => {
+  const handleUploadVideo = () => {
     if (videoFileList.length === 0) {
       message.error("Vui lòng chọn video!");
       return;
     }
 
-    try {
-      await uploadVideo(videoFileList[0], {
-        onSuccess: async ({ videoUrl }) => {
-          // Tạo thumbnail sau khi tải video
-          if (videoUrl && videoRef.current) {
-            videoRef.current.src = videoUrl;
-            try {
-              const thumbnailDataUrl = await generateThumbnail(
-                videoRef.current
-              );
-              setVideoThumbnail(thumbnailDataUrl);
-            } catch (error) {
-              console.error("Lỗi tạo thumbnail:", error);
-              message.warning("Không thể tạo thumbnail tự động từ video");
-            }
-          }
-          setCurrentStep(1);
-        },
-        onError: (error) => {
-          message.error("Tải video thất bại!");
-        },
-      });
-    } catch (error) {
-      message.error("Đã xảy ra lỗi khi tải video!");
-    }
+    setVideoProgress(0);
+    console.log("Starting video upload:", videoFileList[0].name);
+    uploadVideo(videoFileList[0], {
+      onSuccess: () => {
+        console.log("Video upload completed");
+        setPreviewVideo(null);
+        setVideoProgress(100);
+        setCurrentStep(1);
+      },
+      onError: (error) => {
+        console.error("Video upload failed:", error);
+        message.error("Đã xảy ra lỗi khi tải video!");
+        setVideoProgress(0);
+      },
+      onProgress: (percent) => {
+        console.log("Video upload progress:", percent);
+        setVideoProgress(Math.round(percent));
+      },
+    });
   };
 
-  // Chuyển base64 thành File để tải lên
-  const base64ToFile = (base64, filename) => {
-    const [header, data] = base64.split(",");
-    const mime = header.match(/:(.*?);/)?.[1];
-    const binary = atob(data);
-    const array = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-      array[i] = binary.charCodeAt(i);
-    }
-    return new File([array], filename, { type: mime });
-  };
-
-  const handleUploadThumbnail = async () => {
+  const handleUploadThumbnail = () => {
     if (thumbnailFileList.length === 0) {
       message.error("Vui lòng chọn ảnh thumbnail!");
       return;
     }
 
-    try {
-      await uploadThumbnail(thumbnailFileList[0], {
-        onSuccess: () => {
-          setCurrentStep(2);
-        },
-        onError: (error) => {
-          message.error("Tải ảnh thumbnail thất bại!");
-        },
-      });
-    } catch (error) {
-      message.error("Đã xảy ra lỗi khi tải ảnh thumbnail!");
-    }
+    setThumbnailProgress(0);
+    console.log("Starting thumbnail upload:", thumbnailFileList[0].name);
+    uploadThumbnail(thumbnailFileList[0], {
+      onSuccess: () => {
+        console.log("Thumbnail upload completed");
+        setPreviewThumbnail(null);
+        setThumbnailProgress(100);
+        setCurrentStep(2);
+      },
+      onError: (error) => {
+        console.error("Thumbnail upload failed:", error);
+        message.error("Đã xảy ra lỗi khi tải ảnh thumbnail!");
+        setThumbnailProgress(0);
+      },
+      onProgress: (percent) => {
+        console.log("Thumbnail upload progress:", percent);
+        setThumbnailProgress(Math.round(percent));
+      },
+    });
   };
+
 
   const handleSkipThumbnail = () => {
     if (videoThumbnail) {
@@ -148,66 +122,40 @@ const VideoUploadForm = ({ onSuccess }) => {
       message.error("Vui lòng tải video lên trước!");
       return;
     }
-    if (!thumbnail && !videoThumbnail) {
-      message.error(
-        "Vui lòng tải ảnh thumbnail hoặc sử dụng thumbnail từ video!"
-      );
-      return;
-    }
 
     try {
-      let finalThumbnail = thumbnail;
-      // Nếu không có thumbnail tùy chỉnh, tải thumbnail tự động lên
-      if (!thumbnail && videoThumbnail) {
-        const thumbnailFile = base64ToFile(
-          videoThumbnail,
-          "video_thumbnail.jpg"
-        );
-        await uploadThumbnail(thumbnailFile, {
-          onSuccess: (uploadedThumbnail) => {
-            finalThumbnail = uploadedThumbnail;
-          },
-          onError: (error) => {
-            throw new Error("Không thể tải thumbnail tự động lên!");
-          },
-        });
-      }
+      const videoDuration = duration || 0;
 
-      const videoDuration =
-        values.duration !== undefined
-          ? parseInt(values.duration)
-          : duration || 0;
+      console.log("Creating video with data:", {
+        user_id: auth.user.id,
+        title: values.title,
+        description: values.description,
+        video_url: videoUrl,
+        thumbnail: thumbnail || "",
+        duration: videoDuration,
+      });
 
-      await createVideo(
-        {
-          user_id: auth.user.id,
-          title: values.title,
-          description: values.description,
-          video_url: videoUrl,
-          thumbnail: finalThumbnail || videoThumbnail, // Sử dụng thumbnail đã tải hoặc base64
-          duration: videoDuration,
-        },
-        {
-          onSuccess: (data) => {
-            form.resetFields();
-            setVideoFileList([]);
-            setThumbnailFileList([]);
-            setVideoThumbnail(null);
-            reset();
-            setCurrentStep(0);
-            closeModal();
-            onSuccess && onSuccess(data);
-          },
-          onError: (error) => {
-            console.error("Lỗi từ createVideo:", error);
-            message.error(
-              "Tạo video thất bại! " + (error.message || "Bạn có thể thử lại.")
-            );
-          },
-        }
-      );
+      await createVideo({
+        user_id: auth.user.id,
+        title: values.title,
+        description: values.description,
+        video_url: videoUrl,
+        thumbnail: thumbnail || "",
+        duration: videoDuration,
+      });
+      form.resetFields();
+      setVideoFileList([]);
+      setThumbnailFileList([]);
+      setPreviewVideo(null);
+      setPreviewThumbnail(null);
+      setVideoProgress(0);
+      setThumbnailProgress(0);
+      reset();
+      setCurrentStep(0);
+      closeModal();
+      onSuccess && onSuccess();
     } catch (error) {
-      console.error("Lỗi không xác định:", error);
+      console.error("Create video catch error:", error);
       message.error("Đã xảy ra lỗi khi tạo video: " + (error.message || ""));
     }
   };
@@ -215,36 +163,48 @@ const VideoUploadForm = ({ onSuccess }) => {
   const videoUploadProps = {
     beforeUpload: (file) => {
       const isVideo = file.type.startsWith("video/");
-      const isLt100M = file.size / 1024 / 1024 < 100;
+      const isLt5G = file.size / 1024 / 1024 / 1024 < 5;
+
+      console.log("Video file selected:", file);
 
       if (!isVideo) {
         message.error("Vui lòng chọn file video!");
         return false;
       }
 
-      if (!isLt100M) {
-        message.error("Video phải nhỏ hơn 100MB!");
+      if (!isLt5G) {
+        message.error("Video phải nhỏ hơn 5GB!");
         return false;
       }
 
       setVideoFileList([file]);
+      if (previewVideo) {
+        URL.revokeObjectURL(previewVideo);
+      }
+      setPreviewVideo(URL.createObjectURL(file));
       return false;
     },
     fileList: videoFileList,
     onRemove: () => {
       setVideoFileList([]);
-      setVideoThumbnail(null);
+      setPreviewVideo(null);
+      setVideoProgress(0);
       reset();
     },
   };
 
   const thumbnailUploadProps = {
     beforeUpload: (file) => {
-      const isImage = file.type.startsWith("image/");
+      const isImage =
+        file.type && /image\/(png|jpeg|jpg|gif|bmp|webp)/i.test(file.type);
       const isLt10M = file.size / 1024 / 1024 < 10;
 
+      console.log("Thumbnail file selected:", file);
+
       if (!isImage) {
-        message.error("Vui lòng chọn file ảnh!");
+        message.error(
+          "Vui lòng chọn file ảnh (png, jpeg, jpg, gif, bmp, webp)!"
+        );
         return false;
       }
 
@@ -254,24 +214,44 @@ const VideoUploadForm = ({ onSuccess }) => {
       }
 
       setThumbnailFileList([file]);
+      if (previewThumbnail) {
+        URL.revokeObjectURL(previewThumbnail);
+      }
+      setPreviewThumbnail(URL.createObjectURL(file));
       return false;
     },
     fileList: thumbnailFileList,
     onRemove: () => {
       setThumbnailFileList([]);
-      reset();
+      setPreviewThumbnail(null);
+      setThumbnailProgress(0);
     },
   };
 
-  return (
-    <div style={{ maxWidth: 500, margin: "0 auto", padding: 24 }}>
-      {/* Video ẩn để tạo thumbnail */}
-      <video ref={videoRef} style={{ display: "none" }} />
+  // CSS để đảm bảo tỉ lệ 16:9 và overflow hidden
+  const mediaContainerStyle = {
+    position: "relative",
+    width: "100%",
+    aspectRatio: "16 / 9",
+    overflow: "hidden",
+    borderRadius: "8px",
+  };
 
+  const mediaStyle = {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    position: "absolute",
+    top: 0,
+    left: 0,
+  };
+
+  return (
+    <div style={{ maxWidth: 600, margin: "0 auto", padding: 24 }}>
       <Steps current={currentStep} style={{ marginBottom: 24 }}>
         <Step title="Tải video" />
         <Step title="Tải thumbnail" />
-        <Step title="Nhập thông tin" />
+        <Step title="Xác nhận thông tin" />
       </Steps>
 
       {currentStep === 0 && (
@@ -279,6 +259,28 @@ const VideoUploadForm = ({ onSuccess }) => {
           <Upload {...videoUploadProps} accept="video/*">
             <Button icon={<UploadOutlined />}>Chọn video</Button>
           </Upload>
+          {previewVideo && (
+            <div style={{ marginTop: 16 }}>
+              <h3>Xem trước video:</h3>
+              <div style={mediaContainerStyle}>
+                <video src={previewVideo} controls style={mediaStyle} />
+              </div>
+            </div>
+          )}
+          {isUploading && (
+            <div style={{ marginTop: 16 }}>
+              <Progress
+                percent={videoProgress}
+                status={
+                  videoProgress === 100
+                    ? "success"
+                    : isUploading
+                    ? "active"
+                    : "exception"
+                }
+              />
+            </div>
+          )}
           <Button
             type="primary"
             onClick={handleUploadVideo}
@@ -296,36 +298,71 @@ const VideoUploadForm = ({ onSuccess }) => {
         <div>
           {videoUrl && (
             <div style={{ marginBottom: 16 }}>
-              <video
-                src={videoUrl}
-                controls
-                style={{ width: "100%", maxHeight: 200 }}
-              />
-              {videoThumbnail && (
-                <div style={{ marginTop: 8 }}>
-                  <p>Thumbnail từ video:</p>
-                  <img
-                    src={videoThumbnail}
-                    alt="Video thumbnail"
-                    style={{ maxWidth: "100%", maxHeight: 100 }}
-                  />
-                </div>
-              )}
+              <h3>Xem trước video:</h3>
+              <div style={mediaContainerStyle}>
+                <video src={videoUrl} controls style={mediaStyle} />
+              </div>
+            </div>
+          )}
+          {thumbnail && !previewThumbnail && (
+            <div style={{ marginBottom: 16 }}>
+              <h3>Thumbnail mặc định:</h3>
+              <div style={{ ...mediaContainerStyle, maxWidth: 200 }}>
+                <img
+                  src={thumbnail}
+                  alt="Thumbnail mặc định"
+                  style={mediaStyle}
+                />
+              </div>
+            </div>
+          )}
+          {previewThumbnail && (
+            <div style={{ marginBottom: 16 }}>
+              <h3>Xem trước thumbnail:</h3>
+              <div style={{ ...mediaContainerStyle, maxWidth: 200 }}>
+                <img
+                  src={previewThumbnail}
+                  alt="Thumbnail tùy chỉnh"
+                  style={mediaStyle}
+                />
+              </div>
             </div>
           )}
           <Upload {...thumbnailUploadProps} accept="image/*">
-            <Button icon={<UploadOutlined />}>Chọn ảnh thumbnail</Button>
+            <Button icon={<UploadOutlined />}>Chọn ảnh thumbnail khác</Button>
           </Upload>
-          <Button
-            type="primary"
-            onClick={handleUploadThumbnail}
-            loading={isUploadingThumbnail}
-            disabled={isUploadingThumbnail || thumbnailFileList.length === 0}
-            style={{ marginTop: 16 }}
-            block
-          >
-            {isUploadingThumbnail ? "Đang tải lên..." : "Tải ảnh thumbnail lên"}
-          </Button>
+          {isUploadingThumbnail && (
+            <div style={{ marginTop: 16 }}>
+              <Progress
+                percent={thumbnailProgress}
+                status={
+                  thumbnailProgress === 100
+                    ? "success"
+                    : isUploadingThumbnail
+                    ? "active"
+                    : "exception"
+                }
+              />
+            </div>
+          )}
+          <Space style={{ marginTop: 16, width: "100%" }}>
+            <Button
+              type="primary"
+              onClick={handleUploadThumbnail}
+              loading={isUploadingThumbnail}
+              disabled={isUploadingThumbnail || thumbnailFileList.length === 0}
+              style={{ flex: 1 }}
+            >
+              {isUploadingThumbnail ? "Đang tải lên..." : "Tải thumbnail lên"}
+            </Button>
+            <Button
+              onClick={handleSkipThumbnail}
+              disabled={isUploadingThumbnail}
+              style={{ flex: 1 }}
+            >
+              Bỏ qua (dùng thumbnail mặc định)
+            </Button>
+          </Space>
           <Button
             type="default"
             onClick={handleSkipThumbnail}
@@ -341,6 +378,10 @@ const VideoUploadForm = ({ onSuccess }) => {
               setCurrentStep(0);
               setVideoThumbnail(null);
               reset();
+              setPreviewVideo(null);
+              setPreviewThumbnail(null);
+              setVideoProgress(0);
+              setThumbnailProgress(0);
             }}
             disabled={isUploadingThumbnail}
             block
@@ -351,64 +392,74 @@ const VideoUploadForm = ({ onSuccess }) => {
       )}
 
       {currentStep === 2 && (
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleCreate}
-          style={{ marginTop: 16 }}
-          initialValues={{ duration: duration || 0 }}
-        >
-          <Form.Item
-            label="Tiêu đề"
-            name="title"
-            rules={[{ required: true, message: "Vui lòng nhập tiêu đề!" }]}
+        <div>
+          <h3>Xem trước:</h3>
+          <div style={{ marginBottom: 16 }}>
+            <h4>Video:</h4>
+            <div style={mediaContainerStyle}>
+              <video
+                src={videoUrl}
+                poster={thumbnail}
+                controls
+                style={mediaStyle}
+              />
+            </div>
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <h4>Thumbnail:</h4>
+            <div style={{ ...mediaContainerStyle, maxWidth: 200 }}>
+              <img src={thumbnail} alt="Thumbnail" style={mediaStyle} />
+            </div>
+          </div>
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleCreate}
+            style={{ marginTop: 16 }}
           >
-            <Input placeholder="Nhập tiêu đề video" />
-          </Form.Item>
-          <Form.Item
-            label="Mô tả"
-            name="description"
-            rules={[{ required: true, message: "Vui lòng nhập mô tả!" }]}
-          >
-            <Input.TextArea rows={4} placeholder="Nhập mô tả video" />
-          </Form.Item>
-
-          <Form.Item label="Video">
-            <video
-              src={videoUrl}
-              controls
-              style={{ width: "100%", maxHeight: 200 }}
-            />
-          </Form.Item>
-          <Form.Item label="Thumbnail">
-            <img
-              src={thumbnail || videoThumbnail}
-              alt="Thumbnail"
-              style={{ maxWidth: "100%", maxHeight: 100 }}
-            />
-          </Form.Item>
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              block
-              loading={isCreating}
-              disabled={isCreating}
+            <Form.Item
+              label="Tiêu đề"
+              name="title"
+              rules={[{ required: true, message: "Vui lòng nhập tiêu đề!" }]}
             >
-              {isCreating ? "Đang tạo..." : "Tạo video"}
-            </Button>
-            <Button
-              style={{ marginTop: 8 }}
-              onClick={() => {
-                setCurrentStep(1);
-              }}
-              disabled={isCreating}
-              block
+              <Input placeholder="Nhập tiêu đề video" />
+            </Form.Item>
+            <Form.Item
+              label="Mô tả"
+              name="description"
+              rules={[{ required: true, message: "Vui lòng nhập mô tả!" }]}
             >
-              Quay lại
-            </Button>
-          </Form.Item>
-        </Form>
+              <Input.TextArea rows={4} placeholder="Nhập mô tả video" />
+            </Form.Item>
+            <Form.Item label="URL Video">
+              <Input value={videoUrl} disabled />
+            </Form.Item>
+            <Form.Item label="URL Thumbnail">
+              <Input value={thumbnail} disabled />
+            </Form.Item>
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                block
+                loading={isCreating}
+                disabled={isCreating}
+              >
+                {isCreating ? "Đang tạo..." : "Tạo video"}
+              </Button>
+              <Button
+                style={{ marginTop: 8 }}
+                onClick={() => {
+                  setCurrentStep(1);
+                }}
+                disabled={isCreating}
+                block
+              >
+                Quay lại
+              </Button>
+            </Form.Item>
+          </Form>
+        </div>
       )}
     </div>
   );

@@ -1,117 +1,75 @@
 import { Avatar, Button, Col, Input, List, Row } from "antd";
 import { ChartBarDecreasing } from "lucide-react";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import ReplyButton from "../organisms/ReplyButton";
 import DisplayCommentReply from "../organisms/DisplayCommentReply";
 import ShowHideReplyButton from "../organisms/ShowHideReplyButton";
+import useVideoComments from "../../hooks/useGetComment";
+import { AuthContext } from "../../../../contexts/auth.context";
+import useCreateComment from "../../hooks/useCreateComment";
+import { formatTime } from "../../../../constants/formatTime";
 
 const { TextArea } = Input;
 
-// Hàm tạo ID duy nhất
-const generateUniqueId = () => {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-};
+const VideoComment = ({ video, isLoading }) => {
+  const videoId = video?._id;
+  console.log("videoId in VideoComment: ", videoId);
 
-const VideoComment = () => {
-  const [comments, setComments] = useState([
-    {
-      id: generateUniqueId(),
-      author: "User1",
-      content: "Great video!",
-      avatar: "https://i.pravatar.cc/40?img=1",
-      replies: [],
-    },
-    {
-      id: generateUniqueId(),
-      author: "User2",
-      content:
-        "This is the video description. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.".repeat(
-          7
-        ),
-      avatar: "https://i.pravatar.cc/40?img=2",
-      replies: [
-        {
-          id: generateUniqueId(),
-          author: "Current User",
-          content: "Nice description!",
-          avatar: "https://i.pravatar.cc/40?img=3",
-          replies: [],
-        },
-      ],
-    },
-  ]);
+  const { auth } = useContext(AuthContext);
+  const user_id = auth.isAuthenticated ? auth.user.id : null;
+
   const [newComment, setNewComment] = useState("");
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [expandedComments, setExpandedComments] = useState({});
-  const [visibleReplies, setVisibleReplies] = useState({});
+  // const [visibleReplies, setVisibleReplies] = useState({});
   const charLimit = 300;
 
-  const avatarUrl =
-    Math.random() > 0.5
-      ? "https://i.pravatar.cc/40?img=3"
-      : "https://res.cloudinary.com/nienluan/image/upload/v1747707203/avaMacDinh_jxwsog.jpg";
+  const { data } = useVideoComments(videoId);
+  console.log("data in VideoComment: ", data);
+  const comments = data || [];
 
-  const handleAddComment = () => {
+  const createCommentMutation = useCreateComment();
+
+  // Thêm comment mới
+  const handleAddComment = async () => {
     if (newComment.trim()) {
-      setComments([
-        ...comments,
-        {
-          id: generateUniqueId(),
-          author: "Current User",
-          content: newComment,
-          avatar: "https://i.pravatar.cc/40?img=3",
-          replies: [],
-        },
-      ]);
-      setNewComment("");
-      setIsInputFocused(false);
+      try {
+        await createCommentMutation.mutateAsync({
+          comment_content: newComment,
+          user_id: user_id,
+          video_id: videoId,
+        });
+        setNewComment("");
+        setIsInputFocused(false);
+      } catch {
+        console.error("Không thể gửi bình luận");
+      }
     }
   };
+
+  // Thêm reply mới
+  // const handleAddReply = async (parentCommentId, replyContent) => {
+  //   if (replyContent.trim()) {
+  //     try {
+  //       await createCommentMutation.mutateAsync({
+  //         comment_content: replyContent,
+  //         user_id: user_id,
+  //         video_id: videoId,
+  //         parent_comment_id: parentCommentId,
+  //       });
+  //       setVisibleReplies((prev) => ({
+  //         ...prev,
+  //         [parentCommentId]: true,
+  //       }));
+  //     } catch {
+  //       console.error("Không thể gửi phản hồi");
+  //     }
+  //   }
+  // };
 
   const handleCancel = () => {
     setNewComment("");
     setIsInputFocused(false);
-  };
-
-  const handleAddReply = (commentId, content, parentComment = null) => {
-    if (content.trim()) {
-      const newReply = {
-        id: generateUniqueId(),
-        author: "Current User",
-        content: content,
-        avatar: "https://i.pravatar.cc/40?img=3",
-        replies: [],
-      };
-
-      const updateReplies = (items) => {
-        return items.map((item) => {
-          if (item.id === commentId) {
-            return { ...item, replies: [...item.replies, newReply] };
-          }
-          return { ...item, replies: updateReplies(item.replies) };
-        });
-      };
-
-      if (parentComment) {
-        setComments(updateReplies(comments));
-        setVisibleReplies((prev) => ({
-          ...prev,
-          [parentComment.id]: true,
-        }));
-      } else {
-        setComments(
-          comments.map((comment) =>
-            comment.id === commentId
-              ? { ...comment, replies: [...comment.replies, newReply] }
-              : comment
-          )
-        );
-        setVisibleReplies((prev) => ({
-          ...prev,
-          [commentId]: true,
-        }));
-      }
-    }
   };
 
   const toggleCommentExpansion = (commentId) => {
@@ -121,26 +79,26 @@ const VideoComment = () => {
     }));
   };
 
-  const toggleRepliesVisibility = (commentId) => {
-    setVisibleReplies((prev) => ({
-      ...prev,
-      [commentId]: !prev[commentId],
-    }));
-  };
+  // const toggleRepliesVisibility = (commentId) => {
+  //   setVisibleReplies((prev) => ({
+  //     ...prev,
+  //     [commentId]: !prev[commentId],
+  //   }));
+  // };
 
   const renderCommentContent = (comment) => {
-    const isExpanded = expandedComments[comment.id];
+    const isExpanded = expandedComments[comment._id];
     const truncatedContent =
-      comment.content.length > charLimit
-        ? comment.content.slice(0, charLimit) + "..."
-        : comment.content;
+      comment.comment_content.length > charLimit
+        ? comment.comment_content.slice(0, charLimit) + "..."
+        : comment.comment_content;
 
     return (
       <span>
         <span style={{ margin: "4px 0 0 0", display: "flex", width: "95%" }}>
-          {isExpanded ? comment.content : truncatedContent}
+          {isExpanded ? comment.comment_content : truncatedContent}
         </span>
-        {!isExpanded && comment.content.length > charLimit && (
+        {!isExpanded && comment.comment_content.length > charLimit && (
           <span
             style={{
               color: "#606060",
@@ -151,7 +109,7 @@ const VideoComment = () => {
               display: "block",
               width: "fit-content",
             }}
-            onClick={() => toggleCommentExpansion(comment.id)}
+            onClick={() => toggleCommentExpansion(comment._id)}
           >
             Đọc thêm
           </span>
@@ -175,6 +133,11 @@ const VideoComment = () => {
       </span>
     );
   };
+  isLoading && (
+    <div style={{ textAlign: "center", padding: "20px 0" }}>
+      <span>Loading comments...</span>
+    </div>
+  );
 
   return (
     <div style={{ marginTop: 16 }}>
@@ -191,7 +154,13 @@ const VideoComment = () => {
         </Button>
       </div>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-        <Avatar src={avatarUrl} size={45} />
+        <Avatar
+          src={
+            auth.user.avatar ||
+            "https://res.cloudinary.com/nienluan/image/upload/v1747194622/images/usbuebcqr4o02f1kwvq4.jpg"
+          }
+          size={45}
+        />
         <div style={{ flex: 1, position: "relative" }}>
           <TextArea
             value={newComment}
@@ -234,6 +203,7 @@ const VideoComment = () => {
         bordered={false}
         itemLayout="horizontal"
         dataSource={comments}
+        loading={isLoading}
         renderItem={(item) => (
           <List.Item style={{ borderBottom: "none", padding: "8px 0" }}>
             <Row
@@ -257,7 +227,7 @@ const VideoComment = () => {
                 }}
               >
                 <div style={{ flex: "0 0 auto" }}>
-                  <Avatar src={item.avatar} size={45} />
+                  <Avatar src={item.user.avatar} size={45} />
                 </div>
                 <div
                   style={{
@@ -271,7 +241,7 @@ const VideoComment = () => {
                     <span
                       style={{ fontWeight: "bold", margin: 0, fontSize: 14 }}
                     >
-                      {item.author}
+                      {item.user.nickname || "Ẩn danh"}
                     </span>
                     <span
                       style={{
@@ -280,24 +250,24 @@ const VideoComment = () => {
                         marginLeft: 8,
                       }}
                     >
-                      1 giờ trước
+                      {formatTime(item.createdAt)}
                     </span>
                   </div>
                   {renderCommentContent(item)}
-                  <ReplyButton
+                  {/* <ReplyButton
                     commentId={item.id}
                     currentUserAvatar="https://i.pravatar.cc/40?img=3"
                     onAddReply={handleAddReply}
                     onCancelReply={() => {}}
-                  />
-                  {item.replies.length > 0 && (
+                  /> */}
+                  {/* {item.replies.length > 0 && (
                     <ShowHideReplyButton
                       replyCount={item.replies.length}
                       onToggle={() => toggleRepliesVisibility(item.id)}
                       isExpanded={visibleReplies[item.id]}
                     />
-                  )}
-                  {visibleReplies[item.id] && (
+                  )} */}
+                  {/* {visibleReplies[item.id] && (
                     <DisplayCommentReply
                       replies={item.replies}
                       renderCommentContent={renderCommentContent}
@@ -305,7 +275,7 @@ const VideoComment = () => {
                       toggleCommentExpansion={toggleCommentExpansion}
                       expandedComments={expandedComments}
                     />
-                  )}
+                  )} */}
                 </div>
                 <div
                   style={{
@@ -325,20 +295,20 @@ const VideoComment = () => {
                       display: "flex",
                       cursor: "pointer",
                     }}
-                    onMouseEnter={() =>
-                      setComments(
-                        comments.map((c) =>
-                          c.id === item.id ? { ...c, isHovered: true } : c
-                        )
-                      )
-                    }
-                    onMouseLeave={() =>
-                      setComments(
-                        comments.map((c) =>
-                          c.id === item.id ? { ...c, isHovered: false } : c
-                        )
-                      )
-                    }
+                    // onMouseEnter={() =>
+                    //   setComments(
+                    //     comments.map((c) =>
+                    //       c.id === item.id ? { ...c, isHovered: true } : c
+                    //     )
+                    //   )
+                    // }
+                    // onMouseLeave={() =>
+                    //   setComments(
+                    //     comments.map((c) =>
+                    //       c.id === item.id ? { ...c, isHovered: false } : c
+                    //     )
+                    //   )
+                    // }
                     aria-label="More options"
                   >
                     <svg

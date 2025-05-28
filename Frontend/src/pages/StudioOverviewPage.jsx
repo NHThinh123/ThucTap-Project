@@ -18,16 +18,17 @@ import VideoPublish from "../features/studio/components/templates/VideoPublish";
 import SubcriberList from "../features/studio/components/templates/SubcriberList";
 
 const StudioOverviewPage = () => {
+  const userId = "681ccf3e684f3cb552b04bd6"; // Thay thế bằng userId thực tế
   return (
     <>
       <Typography.Title level={3}>Tổng quan của kênh</Typography.Title>
       <Row gutter={16}>
         <Col span={8}>
-          <OverviewAnalysis />
+          <OverviewAnalysis userId={userId} />
           <VideoPublish />
         </Col>
         <Col span={8}>
-          <NewestVideoAnalysis />
+          <NewestVideoAnalysis userId={userId} />
         </Col>
         <Col span={8}>
           <SubcriberList />

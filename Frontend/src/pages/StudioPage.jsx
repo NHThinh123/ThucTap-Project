@@ -24,7 +24,9 @@ import {
   YoutubeOutlined,
 } from "@ant-design/icons";
 import { ToastContainer } from "react-toastify";
-import { CircleUserRound, CircleUserRoundIcon } from "lucide-react";
+import { CircleUserRound, CircleUserRoundIcon, Upload } from "lucide-react";
+import { useModal } from "../contexts/modal.context";
+import UploadPage from "./UploadPage";
 const { Header, Content, Sider } = Layout;
 const StudioPage = () => {
   const navigate = useNavigate();
@@ -48,7 +50,7 @@ const StudioPage = () => {
       navigate("/");
     }, 2000);
   };
-
+  const { openModal } = useModal();
   const menuItems = [
     {
       key: "overview",
@@ -92,6 +94,9 @@ const StudioPage = () => {
   ];
 
   const userMenu = <Menu items={userMenuItems} />;
+  const handleUploadClick = () => {
+    openModal(<UploadPage />);
+  };
   return (
     <>
       <ToastContainer
@@ -158,8 +163,20 @@ const StudioPage = () => {
                 }
               />
             </Col>
+            <Col span={2} style={{ display: "flex", justifyContent: "center" }}>
+              <Button
+                type="text"
+                icon={<Upload />}
+                style={{
+                  fontSize: "24px",
+                  color: "#000",
+                  marginLeft: "16px",
+                }}
+                onClick={handleUploadClick}
+              ></Button>
+            </Col>
             <Col
-              span={6}
+              span={4}
               style={{ display: "flex", justifyContent: "flex-end" }}
             >
               {isUserLoggedIn ? (

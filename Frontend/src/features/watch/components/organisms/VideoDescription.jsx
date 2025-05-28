@@ -1,13 +1,33 @@
 import { useState } from "react";
+import { formatViews } from "../../../../constants/formatViews";
+import { formatTime } from "../../../../constants/formatTime";
 
-const VideoDescription = () => {
+const VideoDescription = ({ video, isLoading }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const description =
-    "This is the video description. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.This is the video description. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.This is the video description. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.This is the video description. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.This is the video description. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.This is the video description. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.This is the video description. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
+  if (isLoading || !video) {
+    return (
+      <div
+        style={{
+          borderRadius: 8,
+          backgroundColor: "#f5f5f5",
+          padding: 8,
+          marginTop: 16,
+          fontSize: 14,
+          color: "#999",
+        }}
+      >
+        Đang tải nội dung...
+      </div>
+    );
+  }
+  const description = video?.description_video;
+  // const description =
+  //   "This is the video description. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.This is the video description. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.This is the video description. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.This is the video description. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.This is the video";
   const charLimit = 150;
 
-  const views = 10034566;
-  const uploadDate = new Date("2024-12-16");
+  const views = video?.views;
+  const dateStr = video?.createdAt;
+  const uploadDate = new Date(dateStr);
 
   // Hàm định dạng số lượt xem chi tiết
   const formatDetailedViews = (num) => {
@@ -42,10 +62,10 @@ const VideoDescription = () => {
         <span>
           {isExpanded
             ? `${formatDetailedViews(views)} lượt xem`
-            : "10 Tr lượt xem"}
+            : `${formatViews(views)} lượt xem`}
         </span>
         <span style={{ marginLeft: 10 }}>
-          {isExpanded ? formatDetailedDate(uploadDate) : "5 tháng trước"}
+          {isExpanded ? formatDetailedDate(uploadDate) : formatTime(dateStr)}
         </span>
       </div>
       <div style={{ marginTop: 8, fontSize: 15, color: "#606060" }}>

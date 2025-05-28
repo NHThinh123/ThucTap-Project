@@ -52,8 +52,29 @@ const getUserStats = async (req, res, next) => {
     next(error);
   }
 };
+const getChannelOverview = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const result = await statsService.getChannelOverviewService(userId);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getNewestVideoAnalysis = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const result = await statsService.getNewestVideoAnalysisService(userId);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 
 module.exports = {
   getVideoStats,
   getUserStats,
+  getChannelOverview,
+  getNewestVideoAnalysis,
 };
