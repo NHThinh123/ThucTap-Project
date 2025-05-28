@@ -13,6 +13,7 @@ import {
   Avatar,
   Dropdown,
   Drawer,
+  Typography,
 } from "antd";
 import {
   SearchOutlined,
@@ -114,9 +115,15 @@ function App() {
       setCollapsed(!collapsed);
     }
   };
+
   const handleUploadClick = () => {
     navigate("/studio");
     openModal(<UploadPage />);
+  };
+
+  // Handle logo click to refresh and navigate to homepage
+  const handleLogoClick = () => {
+    window.location.href = "/";
   };
 
   return (
@@ -140,7 +147,6 @@ function App() {
             width: "100%",
             background: "#fff",
             padding: "0 24px",
-            //boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
           }}
         >
           <Row align="middle" justify="space-between">
@@ -155,11 +161,12 @@ function App() {
                 }}
               />
               <div
+                onClick={handleLogoClick}
                 style={{
                   display: "flex",
                   alignItems: "center",
-
                   flex: 1,
+                  cursor: "pointer",
                 }}
               >
                 <img
@@ -167,9 +174,11 @@ function App() {
                   style={{ height: "30px", width: "auto", marginRight: "8px" }}
                   alt="logo"
                 />
-                <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+                <Typography.Text
+                  style={{ fontSize: "18px", fontWeight: "bold" }}
+                >
                   CUSC Tube
-                </span>
+                </Typography.Text>
               </div>
             </Col>
             <Col

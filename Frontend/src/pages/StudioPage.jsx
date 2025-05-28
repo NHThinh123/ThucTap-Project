@@ -9,6 +9,7 @@ import {
   Menu,
   Row,
   Space,
+  Typography,
 } from "antd";
 import { useContext, useState } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
@@ -27,7 +28,9 @@ import { ToastContainer } from "react-toastify";
 import { CircleUserRound, CircleUserRoundIcon, Upload } from "lucide-react";
 import { useModal } from "../contexts/modal.context";
 import UploadPage from "./UploadPage";
+
 const { Header, Content, Sider } = Layout;
+
 const StudioPage = () => {
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
@@ -50,7 +53,9 @@ const StudioPage = () => {
       navigate("/");
     }, 2000);
   };
+
   const { openModal } = useModal();
+
   const menuItems = [
     {
       key: "overview",
@@ -94,9 +99,16 @@ const StudioPage = () => {
   ];
 
   const userMenu = <Menu items={userMenuItems} />;
+
   const handleUploadClick = () => {
     openModal(<UploadPage />);
   };
+
+  // Handle logo click to refresh and navigate to homepage
+  const handleLogoClick = () => {
+    window.location.href = "/";
+  };
+
   return (
     <>
       <ToastContainer
@@ -118,7 +130,6 @@ const StudioPage = () => {
             width: "100%",
             background: "#fff",
             padding: "0 24px",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
           }}
         >
           <Row align="middle" justify="space-between">
@@ -133,11 +144,12 @@ const StudioPage = () => {
                 }}
               />
               <div
+                onClick={handleLogoClick}
                 style={{
                   display: "flex",
                   alignItems: "center",
-
                   flex: 1,
+                  cursor: "pointer",
                 }}
               >
                 <img
@@ -145,9 +157,11 @@ const StudioPage = () => {
                   style={{ height: "30px", width: "auto", marginRight: "8px" }}
                   alt="logo"
                 />
-                <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+                <Typography.Text
+                  style={{ fontSize: "18px", fontWeight: "bold" }}
+                >
                   CUSC Tube
-                </span>
+                </Typography.Text>
               </div>
             </Col>
             <Col
@@ -231,7 +245,6 @@ const StudioPage = () => {
                   <div
                     style={{
                       fontSize: "14px",
-
                       color: "#6a6a6a",
                     }}
                   >
