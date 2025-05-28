@@ -22,6 +22,7 @@ import StudioOverviewPage from "./pages/StudioOverviewPage.jsx";
 import UploadPage from "./pages/UploadPage.jsx";
 import { ModalProvider } from "./contexts/modal.context.jsx";
 import SearchResultPage from "./pages/SearchResultPage.jsx";
+import PlayListPage from "./pages/PlayListPage.jsx";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,10 @@ const router = createBrowserRouter([
       {
         path: "video",
         element: <VideoDetailPage />,
+      },
+      {
+        path: "playlist",
+        element: <PlayListPage />,
       },
       {
         path: "channel",

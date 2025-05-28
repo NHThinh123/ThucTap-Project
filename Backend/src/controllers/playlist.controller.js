@@ -33,7 +33,7 @@ const getPlaylist = async (req, res, next) => {
 const getAllPlaylistOfUser = async (req, res, next) => {
   try {
     const { user_id } = req.body;
-    const playlists = await getUserPlaylistsService(user_id);
+    const playlists = await getAllPlaylistOfUserService(user_id);
     res.status(200).json({
       status: "success",
       results: playlists.length,

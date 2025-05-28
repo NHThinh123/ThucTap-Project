@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import { Form, Input, Button, Upload, Steps, App } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { useVideoUpload } from "../../hooks/useVideoUpload";
@@ -14,6 +14,8 @@ const VideoUploadForm = ({ onSuccess }) => {
   const [videoFileList, setVideoFileList] = useState([]);
   const [thumbnailFileList, setThumbnailFileList] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
+  const [videoThumbnail, setVideoThumbnail] = useState(null);
+  const videoRef = useRef(null);
   const {
     uploadVideo,
     isUploading,
@@ -29,13 +31,37 @@ const VideoUploadForm = ({ onSuccess }) => {
   const { openModal, closeModal } = useModal();
   const { auth } = useContext(AuthContext);
 
-  // Cập nhật duration trong form mỗi khi duration thay đổi
+  // Cập nhật duration trong form
   useEffect(() => {
     if (duration && currentStep === 2) {
       form.setFieldsValue({ duration });
     }
   }, [duration, currentStep, form]);
 
+  // Tạo thumbnail từ video
+  const generateThumbnail = (videoElement) => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+
+      // Di chuyển đến giây thứ 1 hoặc khung hình đầu tiên
+      videoElement.currentTime = Math.min(1, videoElement.duration || 1);
+
+      videoElement.onseeked = () => {
+        canvas.width = videoElement.videoWidth;
+        canvas.height = videoElement.videoHeight;
+        context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+        const thumbnailDataUrl = canvas.toDataURL("image/jpeg", 0.8); // JPEG với chất lượng 80%
+        resolve(thumbnailDataUrl);
+      };
+
+      videoElement.onerror = () => {
+        reject(new Error("Không thể tạo thumbnail từ video"));
+      };
+    });
+  };
+
+  // Xử lý tải video và tạo thumbnail
   const handleUploadVideo = async () => {
     if (videoFileList.length === 0) {
       message.error("Vui lòng chọn video!");
@@ -44,7 +70,20 @@ const VideoUploadForm = ({ onSuccess }) => {
 
     try {
       await uploadVideo(videoFileList[0], {
-        onSuccess: () => {
+        onSuccess: async ({ videoUrl }) => {
+          // Tạo thumbnail sau khi tải video
+          if (videoUrl && videoRef.current) {
+            videoRef.current.src = videoUrl;
+            try {
+              const thumbnailDataUrl = await generateThumbnail(
+                videoRef.current
+              );
+              setVideoThumbnail(thumbnailDataUrl);
+            } catch (error) {
+              console.error("Lỗi tạo thumbnail:", error);
+              message.warning("Không thể tạo thumbnail tự động từ video");
+            }
+          }
           setCurrentStep(1);
         },
         onError: (error) => {
@@ -54,6 +93,18 @@ const VideoUploadForm = ({ onSuccess }) => {
     } catch (error) {
       message.error("Đã xảy ra lỗi khi tải video!");
     }
+  };
+
+  // Chuyển base64 thành File để tải lên
+  const base64ToFile = (base64, filename) => {
+    const [header, data] = base64.split(",");
+    const mime = header.match(/:(.*?);/)?.[1];
+    const binary = atob(data);
+    const array = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      array[i] = binary.charCodeAt(i);
+    }
+    return new File([array], filename, { type: mime });
   };
 
   const handleUploadThumbnail = async () => {
@@ -76,6 +127,14 @@ const VideoUploadForm = ({ onSuccess }) => {
     }
   };
 
+  const handleSkipThumbnail = () => {
+    if (videoThumbnail) {
+      setCurrentStep(2);
+    } else {
+      message.error("Không có thumbnail video để sử dụng!");
+    }
+  };
+
   const handleCreate = async (values) => {
     if (!auth.isAuthenticated) {
       message.error("Vui lòng đăng nhập để tạo video!");
@@ -89,13 +148,31 @@ const VideoUploadForm = ({ onSuccess }) => {
       message.error("Vui lòng tải video lên trước!");
       return;
     }
-    if (!thumbnail) {
-      message.error("Vui lòng tải ảnh thumbnail lên trước!");
+    if (!thumbnail && !videoThumbnail) {
+      message.error(
+        "Vui lòng tải ảnh thumbnail hoặc sử dụng thumbnail từ video!"
+      );
       return;
     }
 
     try {
-      // Sử dụng duration từ form nếu có, nếu không thì lấy từ video đã upload
+      let finalThumbnail = thumbnail;
+      // Nếu không có thumbnail tùy chỉnh, tải thumbnail tự động lên
+      if (!thumbnail && videoThumbnail) {
+        const thumbnailFile = base64ToFile(
+          videoThumbnail,
+          "video_thumbnail.jpg"
+        );
+        await uploadThumbnail(thumbnailFile, {
+          onSuccess: (uploadedThumbnail) => {
+            finalThumbnail = uploadedThumbnail;
+          },
+          onError: (error) => {
+            throw new Error("Không thể tải thumbnail tự động lên!");
+          },
+        });
+      }
+
       const videoDuration =
         values.duration !== undefined
           ? parseInt(values.duration)
@@ -107,7 +184,7 @@ const VideoUploadForm = ({ onSuccess }) => {
           title: values.title,
           description: values.description,
           video_url: videoUrl,
-          thumbnail: thumbnail,
+          thumbnail: finalThumbnail || videoThumbnail, // Sử dụng thumbnail đã tải hoặc base64
           duration: videoDuration,
         },
         {
@@ -115,6 +192,7 @@ const VideoUploadForm = ({ onSuccess }) => {
             form.resetFields();
             setVideoFileList([]);
             setThumbnailFileList([]);
+            setVideoThumbnail(null);
             reset();
             setCurrentStep(0);
             closeModal();
@@ -155,6 +233,7 @@ const VideoUploadForm = ({ onSuccess }) => {
     fileList: videoFileList,
     onRemove: () => {
       setVideoFileList([]);
+      setVideoThumbnail(null);
       reset();
     },
   };
@@ -186,6 +265,9 @@ const VideoUploadForm = ({ onSuccess }) => {
 
   return (
     <div style={{ maxWidth: 500, margin: "0 auto", padding: 24 }}>
+      {/* Video ẩn để tạo thumbnail */}
+      <video ref={videoRef} style={{ display: "none" }} />
+
       <Steps current={currentStep} style={{ marginBottom: 24 }}>
         <Step title="Tải video" />
         <Step title="Tải thumbnail" />
@@ -212,6 +294,25 @@ const VideoUploadForm = ({ onSuccess }) => {
 
       {currentStep === 1 && (
         <div>
+          {videoUrl && (
+            <div style={{ marginBottom: 16 }}>
+              <video
+                src={videoUrl}
+                controls
+                style={{ width: "100%", maxHeight: 200 }}
+              />
+              {videoThumbnail && (
+                <div style={{ marginTop: 8 }}>
+                  <p>Thumbnail từ video:</p>
+                  <img
+                    src={videoThumbnail}
+                    alt="Video thumbnail"
+                    style={{ maxWidth: "100%", maxHeight: 100 }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
           <Upload {...thumbnailUploadProps} accept="image/*">
             <Button icon={<UploadOutlined />}>Chọn ảnh thumbnail</Button>
           </Upload>
@@ -226,9 +327,19 @@ const VideoUploadForm = ({ onSuccess }) => {
             {isUploadingThumbnail ? "Đang tải lên..." : "Tải ảnh thumbnail lên"}
           </Button>
           <Button
+            type="default"
+            onClick={handleSkipThumbnail}
+            disabled={isUploadingThumbnail || !videoThumbnail}
+            style={{ marginTop: 8 }}
+            block
+          >
+            Sử dụng thumbnail từ video
+          </Button>
+          <Button
             style={{ marginTop: 8 }}
             onClick={() => {
               setCurrentStep(0);
+              setVideoThumbnail(null);
               reset();
             }}
             disabled={isUploadingThumbnail}
@@ -261,18 +372,20 @@ const VideoUploadForm = ({ onSuccess }) => {
           >
             <Input.TextArea rows={4} placeholder="Nhập mô tả video" />
           </Form.Item>
-          <Form.Item
-            label="Thời lượng (giây)"
-            name="duration"
-            tooltip="Đã tự động lấy từ video. Bạn có thể điều chỉnh nếu cần."
-          >
-            <Input type="number" placeholder="Thời lượng video (giây)" />
+
+          <Form.Item label="Video">
+            <video
+              src={videoUrl}
+              controls
+              style={{ width: "100%", maxHeight: 200 }}
+            />
           </Form.Item>
-          <Form.Item label="URL Video">
-            <Input value={videoUrl} disabled />
-          </Form.Item>
-          <Form.Item label="URL Thumbnail">
-            <Input value={thumbnail} disabled />
+          <Form.Item label="Thumbnail">
+            <img
+              src={thumbnail || videoThumbnail}
+              alt="Thumbnail"
+              style={{ maxWidth: "100%", maxHeight: 100 }}
+            />
           </Form.Item>
           <Form.Item>
             <Button

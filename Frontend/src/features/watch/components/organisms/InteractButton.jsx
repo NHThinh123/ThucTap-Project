@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
 import {
   DislikeFilled,
   DislikeOutlined,
@@ -7,11 +9,25 @@ import {
 } from "@ant-design/icons";
 import { Button, Divider, Space } from "antd";
 import { Bookmark } from "lucide-react";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useModal } from "../../../../contexts/modal.context";
+import PlaylistModalContent from "../../../playlist/components/templates/PlaylistModalContent";
+import { AuthContext } from "../../../../contexts/auth.context";
 
-const InteractButton = () => {
+const InteractButton = ({ videoId, userId }) => {
+  const navigate = useNavigate();
+  const { auth, setAuth } = useContext(AuthContext);
+  const { openModal } = useModal();
   const [isClickedLike, setIsClickedLike] = useState(null);
   const [isClickedDislike, setIsClickedDislike] = useState(null);
+
+  if (!videoId) {
+    console.error("InteractButton: videoId is undefined");
+  }
+  if (!userId) {
+    console.error("InteractButton: userId is undefined");
+  }
 
   const handleClickLike = () => {
     setIsClickedLike(!isClickedLike);
@@ -19,20 +35,32 @@ const InteractButton = () => {
       setIsClickedDislike(false);
     }
   };
+
   const handleClickDislike = () => {
     setIsClickedDislike(!isClickedDislike);
     if (isClickedLike && !isClickedDislike) {
       setIsClickedLike(false);
     }
   };
+
+  const handleClickBookmark = () => {
+    if (!auth.isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+    if (!videoId || !userId) {
+      console.error(
+        "Không thể mở modal danh sách phát: videoId hoặc userId không hợp lệ",
+        { videoId, userId }
+      );
+      return;
+    }
+    openModal(<PlaylistModalContent video_id={videoId} user_id={userId} />);
+  };
+
   return (
     <Space style={{ float: "right" }}>
-      <div
-        style={{
-          border: "1px solid #d9d9d9",
-          borderRadius: 50,
-        }}
-      >
+      <div style={{ border: "1px solid #d9d9d9", borderRadius: 50 }}>
         <Button
           icon={!isClickedLike ? <LikeOutlined /> : <LikeFilled />}
           style={{
@@ -81,6 +109,7 @@ const InteractButton = () => {
             padding: "0 16px 0 16px",
           }}
           size="large"
+          onClick={handleClickBookmark}
         >
           <p style={{ fontSize: 16, fontWeight: 500 }}>Lưu</p>
         </Button>

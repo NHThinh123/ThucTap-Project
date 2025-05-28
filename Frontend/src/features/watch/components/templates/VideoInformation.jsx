@@ -1,10 +1,25 @@
-import { Typography } from "antd";
+import { Typography, Space } from "antd";
 import VideoDescription from "../organisms/VideoDescription";
 import ChannelInVideo from "../organisms/ChannelInVideo";
 import InteractButton from "../organisms/InteractButton";
+import { useContext } from "react";
+import { AuthContext } from "../../../../contexts/auth.context";
+
 const { Title } = Typography;
 
 const VideoInformation = ({ video }) => {
+  const { auth } = useContext(AuthContext);
+  console.log("VideoInformation: video prop", { video });
+  const videoId = video?._id;
+  const userId = auth?.user?.id;
+
+  if (!videoId) {
+    console.error("VideoInformation: videoId is undefined");
+  }
+  if (!userId) {
+    console.error("VideoInformation: userId is undefined");
+  }
+
   return (
     <>
       <div>
@@ -20,10 +35,10 @@ const VideoInformation = ({ video }) => {
             {video?.title}
           </Title>
         </Typography>
-        <div>
+        <Space>
           <ChannelInVideo />
-          <InteractButton />
-        </div>
+          <InteractButton videoId={videoId} userId={userId} />
+        </Space>
         <VideoDescription />
       </div>
     </>

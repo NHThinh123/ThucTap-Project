@@ -19,7 +19,8 @@ export const useVideoUpload = () => {
       message.error(error.message || "Lỗi khi tải video!");
     },
   });
-  //upload image
+
+  // Upload image
   const uploadThumbnailMutation = useMutation({
     mutationFn: uploadThumbnailApi,
     onSuccess: (thumbnail) => {
@@ -30,7 +31,7 @@ export const useVideoUpload = () => {
     },
   });
 
-  //create video
+  // Create video
   const createMutation = useMutation({
     mutationFn: createVideoApi,
     onSuccess: (data) => {
