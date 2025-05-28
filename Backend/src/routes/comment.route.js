@@ -8,6 +8,10 @@ router
   .get(commentController.getVideoComments) // GET /api/comments
   .post(commentController.createComment); // POST /api/comments
 
+router.route("/reply").get(commentController.getReplyComments); // GET /api/comments/reply
+
+router.get("/count", commentController.getVideoCommentsCount); // GET /api/comments/count
+
 router
   .route("/:id")
   .get(commentController.getComment) // GET /api/comments/:id
