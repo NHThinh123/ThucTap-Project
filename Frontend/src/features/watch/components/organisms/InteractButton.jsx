@@ -120,7 +120,7 @@ const InteractButton = () => {
   };
 
   return (
-    <Space style={{ float: "right" }}>
+    <Space style={{ float: "right", marginTop: 2 }}>
       <div
         style={{
           border: "1px solid #d9d9d9",

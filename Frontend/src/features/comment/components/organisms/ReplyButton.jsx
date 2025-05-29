@@ -1,5 +1,6 @@
 import { Avatar, Button, Input } from "antd";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { AuthContext } from "../../../../contexts/auth.context";
 
 const { TextArea } = Input;
 
@@ -9,8 +10,14 @@ const ReplyButton = ({
   onAddReply,
   onCancelReply,
 }) => {
+  const { auth } = useContext(AuthContext);
   const [replyContent, setReplyContent] = useState("");
   const [isReplying, setIsReplying] = useState(false);
+
+  // Không hiển thị nút reply nếu user chưa đăng nhập
+  if (!auth.isAuthenticated) {
+    return null;
+  }
 
   const handleAddReply = () => {
     if (replyContent.trim()) {
@@ -50,7 +57,14 @@ const ReplyButton = ({
             alignItems: "flex-start",
           }}
         >
-          <Avatar src={currentUserAvatar} size={32} />
+          <Avatar
+            src={
+              currentUserAvatar ||
+              auth.user?.avatar ||
+              "https://res.cloudinary.com/nienluan/image/upload/v1747707203/avaMacDinh_jxwsog.jpg"
+            }
+            size={32}
+          />
           <div style={{ flex: 1 }}>
             <TextArea
               autoSize={{ minRows: 1 }}

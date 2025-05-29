@@ -29,8 +29,8 @@ const VideoCard = ({ video }) => {
             <img
               className="video-card__avatar"
               src={
-                video.avatar ||
-                "https://pbs.twimg.com/media/F_vO2geW0AE1mmW.jpg"
+                video.user_id.avatar ||
+                "https://res.cloudinary.com/nienluan/image/upload/v1747707203/avaMacDinh_jxwsog.jpg"
               }
               alt="Channel avatar"
             />
@@ -102,7 +102,7 @@ const styles = `
   .video-card__cover {
     width: 100%;
     height: 250px;
-    object-fit: cover;
+    object-fit: over;
     border-radius: 10px;
   }
 
