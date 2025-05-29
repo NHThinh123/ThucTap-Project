@@ -14,7 +14,6 @@ const CommentRepliesSection = ({
   // Lấy danh sách replies cho comment này
   const { data: repliesData } = useVideoReplyComments(commentId);
   const replies = repliesData || [];
-  console.log("repliesData: ", repliesData);
 
   // Chỉ hiển thị nút Show/Hide nếu có replies
   if (replies.length === 0) {

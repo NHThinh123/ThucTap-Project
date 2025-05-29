@@ -200,124 +200,126 @@ const VideoComment = ({ video, isLoading }) => {
           )}
         </div>
       </div>
-      <List
-        bordered={false}
-        itemLayout="horizontal"
-        dataSource={comments}
-        loading={isLoading}
-        renderItem={(item) => (
-          <List.Item style={{ borderBottom: "none", padding: "8px 0" }}>
-            <Row
-              gutter={[0, 10]}
-              style={{
-                width: "100%",
-                height: "100%",
-                background: "#fff",
-                border: "none",
-                padding: 0,
-              }}
-            >
-              <Col
-                span={24}
+      {comments.length > 0 && (
+        <List
+          bordered={false}
+          itemLayout="horizontal"
+          dataSource={comments}
+          loading={isLoading}
+          renderItem={(item) => (
+            <List.Item style={{ borderBottom: "none", padding: "8px 0" }}>
+              <Row
+                gutter={[0, 10]}
                 style={{
-                  fontSize: 14,
-                  display: "flex",
-                  gap: 8,
                   width: "100%",
-                  position: "relative",
+                  height: "100%",
+                  background: "#fff",
+                  border: "none",
+                  padding: 0,
                 }}
               >
-                <div style={{ flex: "0 0 auto" }}>
-                  <Avatar src={item.user.avatar} size={45} />
-                </div>
-                <div
+                <Col
+                  span={24}
                   style={{
-                    flex: 1,
+                    fontSize: 14,
                     display: "flex",
-                    flexDirection: "column",
-                    marginLeft: 6,
+                    gap: 8,
+                    width: "100%",
+                    position: "relative",
                   }}
                 >
-                  <div>
-                    <span
-                      style={{ fontWeight: "bold", margin: 0, fontSize: 14 }}
-                    >
-                      {item.user.nickname || "Ẩn danh"}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: 12,
-                        color: "#606060",
-                        marginLeft: 8,
-                      }}
-                    >
-                      {formatTime(item.createdAt)}
-                    </span>
+                  <div style={{ flex: "0 0 auto" }}>
+                    <Avatar src={item.user.avatar} size={45} />
                   </div>
-                  {renderCommentContent(item)}
-                  <ReplyButton
-                    commentId={item._id}
-                    currentUserAvatar={auth.user?.avatar}
-                    onAddReply={handleAddReply}
-                    onCancelReply={() => {}}
-                  />
-                  <CommentRepliesSection
-                    commentId={item._id}
-                    onAddReply={handleAddReply}
-                    renderCommentContent={renderCommentContent}
-                    toggleCommentExpansion={toggleCommentExpansion}
-                    expandedComments={expandedComments}
-                    visibleReplies={visibleReplies}
-                    toggleRepliesVisibility={toggleRepliesVisibility}
-                  />
-                </div>
-                <div
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    right: 0,
-                  }}
-                >
-                  <button
+                  <div
                     style={{
-                      background: item.isHovered
-                        ? "rgb(196, 196, 196)"
-                        : "none",
-                      border: item.isHovered ? "1px solid black" : "none",
-                      borderRadius: item.isHovered ? "50%" : "none",
-                      padding: 4,
+                      flex: 1,
                       display: "flex",
-                      cursor: "pointer",
+                      flexDirection: "column",
+                      marginLeft: 6,
                     }}
-                    onMouseEnter={(e) => {
-                      e.target.style.background = "rgb(196, 196, 196)";
-                      e.target.style.border = "1px solid black";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.background = "none";
-                      e.target.style.border = "none";
-                    }}
-                    aria-label="More options"
                   >
-                    <svg
-                      style={{ width: 20, height: 20 }}
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
+                    <div>
+                      <span
+                        style={{ fontWeight: "bold", margin: 0, fontSize: 14 }}
+                      >
+                        {item.user.nickname || "Ẩn danh"}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          color: "#606060",
+                          marginLeft: 8,
+                        }}
+                      >
+                        {formatTime(item.createdAt)}
+                      </span>
+                    </div>
+                    {renderCommentContent(item)}
+                    <ReplyButton
+                      commentId={item._id}
+                      currentUserAvatar={auth.user?.avatar}
+                      onAddReply={handleAddReply}
+                      onCancelReply={() => {}}
+                    />
+                    <CommentRepliesSection
+                      commentId={item._id}
+                      onAddReply={handleAddReply}
+                      renderCommentContent={renderCommentContent}
+                      toggleCommentExpansion={toggleCommentExpansion}
+                      expandedComments={expandedComments}
+                      visibleReplies={visibleReplies}
+                      toggleRepliesVisibility={toggleRepliesVisibility}
+                    />
+                  </div>
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      right: 0,
+                    }}
+                  >
+                    <button
+                      style={{
+                        background: item.isHovered
+                          ? "rgb(196, 196, 196)"
+                          : "none",
+                        border: item.isHovered ? "1px solid black" : "none",
+                        borderRadius: item.isHovered ? "50%" : "none",
+                        padding: 4,
+                        display: "flex",
+                        cursor: "pointer",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.background = "rgb(196, 196, 196)";
+                        e.target.style.border = "1px solid black";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background = "none";
+                        e.target.style.border = "none";
+                      }}
+                      aria-label="More options"
                     >
-                      <path
-                        d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </Col>
-            </Row>
-          </List.Item>
-        )}
-        style={{ marginTop: 16 }}
-      />
+                      <svg
+                        style={{ width: 20, height: 20 }}
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
+                          fill="currentColor"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </Col>
+              </Row>
+            </List.Item>
+          )}
+          style={{ marginTop: 16 }}
+        />
+      )}
     </div>
   );
 };
