@@ -22,25 +22,17 @@ const aggregateStatsForDay = async (targetDate) => {
     const endOfDay = new Date(utcDate);
     endOfDay.setUTCDate(endOfDay.getUTCDate() + 1);
 
-    // Tính ngày trước đó
-    const previousDay = new Date(startOfDay);
-    previousDay.setUTCDate(previousDay.getUTCDate() - 1);
-
     const videos = await Video.find({});
 
     for (const video of videos) {
-      // Lấy số lượt view hiện tại từ Video
-      const currentViews = video.views || 0;
-
-      // Lấy số lượt view của ngày trước từ VideoStats
-      const previousStats = await VideoStats.findOne({
+      // Lấy số lượt view của ngày hiện tại từ VideoStats
+      const currentStats = await VideoStats.findOne({
         video_id: video._id,
-        date: previousDay,
+        date: startOfDay,
       });
 
-      // Tính số lượt view của ngày hiện tại
-      const previousViews = previousStats ? previousStats.views : 0;
-      const dailyViews = Math.max(0, currentViews - previousViews); // Đảm bảo không âm
+      // Nếu không có stats cho ngày hiện tại, lượt view sẽ là 0
+      const dailyViews = currentStats ? currentStats.views : 0;
 
       const comments = await Comment.countDocuments({
         video_id: video._id,
@@ -71,7 +63,7 @@ const aggregateStatsForDay = async (targetDate) => {
         { video_id: video._id, date: startOfDay },
         {
           $set: {
-            views: dailyViews, // Lưu số lượt view hàng ngày
+            views: dailyViews, // Lưu số lượt view từ VideoStats
             comments,
             reviews: reviewCount,
             average_rating,

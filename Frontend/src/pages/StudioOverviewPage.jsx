@@ -16,9 +16,12 @@ import NewestVideoAnalysis from "../features/studio/components/templates/NewestV
 import OverviewAnalysis from "../features/studio/components/templates/OverviewAnalysis";
 import VideoPublish from "../features/studio/components/templates/VideoPublish";
 import SubcriberList from "../features/studio/components/templates/SubcriberList";
+import { useContext } from "react";
+import { AuthContext } from "../contexts/auth.context";
 
 const StudioOverviewPage = () => {
-  const userId = "681ccf3e684f3cb552b04bd6"; // Thay thế bằng userId thực tế
+  const { auth, setAuth } = useContext(AuthContext);
+  const userId = auth.user.id; // Thay thế bằng userId thực tế
   return (
     <>
       <Typography.Title level={3}>Tổng quan của kênh</Typography.Title>

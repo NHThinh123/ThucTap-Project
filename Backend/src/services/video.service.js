@@ -36,7 +36,7 @@ const createVideoService = async (videoData, userId) => {
 
 const getVideosService = async (query) => {
   try {
-    const { page = 1, limit = 10, user_id } = query;
+    const { page = 1, limit = 99, user_id } = query;
     const filter = user_id ? { user_id } : {};
 
     const videos = await Video.find(filter)

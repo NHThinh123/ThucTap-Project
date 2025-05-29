@@ -44,6 +44,62 @@ function App() {
   const isUserLoggedIn = auth?.isAuthenticated;
   const isVideoWatchPage = location.pathname.startsWith("/watch/");
 
+  // Định nghĩa menu items
+  const menuItems = [
+    {
+      key: "home",
+      icon: <HomeOutlined />,
+      label: <Link to="/">Home</Link>,
+      path: "/",
+    },
+    {
+      key: "video",
+      icon: <YoutubeOutlined />,
+      label: <Link to="/video">Video</Link>,
+      path: "/video",
+    },
+    {
+      key: "channel",
+      icon: <UserOutlined />,
+      label: <Link to="/channel">Channel</Link>,
+      path: "/channel",
+    },
+    {
+      key: "search",
+      icon: <SearchOutlined />,
+      label: <Link to="/search">Search</Link>,
+      path: "/search",
+    },
+    {
+      key: "studio",
+      icon: <AppstoreOutlined />,
+      label: <Link to="/studio">Studio</Link>,
+      path: "/studio",
+    },
+  ];
+
+  // Xác định key được chọn dựa trên đường dẫn hiện tại
+  const getSelectedKey = () => {
+    // Tìm menu item khớp với đường dẫn hiện tại
+    const currentItem = menuItems.find(
+      (item) =>
+        location.pathname === item.path ||
+        location.pathname.startsWith(`${item.path}/`)
+    );
+    // Nếu là trang watch, chọn "video" hoặc key phù hợp
+    if (isVideoWatchPage) {
+      return "video";
+    }
+    return currentItem ? currentItem.key : "home"; // Mặc định là "home" nếu không khớp
+  };
+
+  const [selectedKey, setSelectedKey] = useState(getSelectedKey());
+
+  // Cập nhật selectedKey khi location.pathname thay đổi
+  useEffect(() => {
+    setSelectedKey(getSelectedKey());
+  }, [location.pathname]);
+
   useEffect(() => {
     if (isVideoWatchPage) {
       setDrawerVisible(false);
@@ -64,30 +120,6 @@ function App() {
       navigate("/");
     }, 2000);
   };
-
-  const menuItems = [
-    { key: "home", icon: <HomeOutlined />, label: <Link to="/">Home</Link> },
-    {
-      key: "video",
-      icon: <YoutubeOutlined />,
-      label: <Link to="/video">Video</Link>,
-    },
-    {
-      key: "channel",
-      icon: <UserOutlined />,
-      label: <Link to="/channel">Channel</Link>,
-    },
-    {
-      key: "search",
-      icon: <SearchOutlined />,
-      label: <Link to="/search">Search</Link>,
-    },
-    {
-      key: "studio",
-      icon: <AppstoreOutlined />,
-      label: <Link to="/studio">Studio</Link>,
-    },
-  ];
 
   const userMenuItems = [
     {
@@ -250,7 +282,7 @@ function App() {
             >
               <Menu
                 mode="inline"
-                defaultSelectedKeys={["home"]}
+                selectedKeys={[selectedKey]} // Sử dụng selectedKeys động
                 items={menuItems}
                 style={{ height: "100%", borderRight: 0 }}
               />
@@ -295,7 +327,7 @@ function App() {
             >
               <Menu
                 mode="inline"
-                defaultSelectedKeys={["watch"]}
+                selectedKeys={[selectedKey]} // Sử dụng selectedKeys động
                 items={menuItems}
                 style={{ borderRight: 0 }}
               />

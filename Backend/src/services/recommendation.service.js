@@ -14,11 +14,10 @@ const getRecommendationsService = async (userId) => {
     if (!interactionData || interactionData.length === 0) {
       console.warn("No interaction data available");
       const popularVideos = await Video.find()
-        .sort({ views: -1 })
-        .limit(5)
+        .sort({ views: -1 }) // Sắp xếp theo lượt xem giảm dần
         .populate("user_id", "user_name email");
       return {
-        message: "No interaction data, returning popular videos",
+        message: "No interaction data, returning all videos sorted by views",
         data: {
           videos: popularVideos,
           total: popularVideos.length,
@@ -30,7 +29,6 @@ const getRecommendationsService = async (userId) => {
 
     // Chuẩn bị dữ liệu để gửi sang Python
     const data = JSON.stringify(interactionData);
-    // Cấu hình PythonShell
     const options = {
       mode: "text",
       pythonPath: process.env.PYTHON_PATH,
@@ -43,21 +41,20 @@ const getRecommendationsService = async (userId) => {
     const result = await new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error("Python script timed out"));
-      }, 30000); // 30 giây
+      }, 30000);
 
       PythonShell.run("recommend.py", options, (err, results) => {
         clearTimeout(timeout);
         if (err) {
           console.error("Python script error:", err);
-          // Fallback: Trả về video phổ biến
+          // Fallback: Trả về tất cả video phổ biến
           Video.find()
-            .sort({ views: -1 })
-            .limit(5)
+            .sort({ views: -1 }) // Sắp xếp theo lượt xem giảm dần
             .populate("user_id", "user_name email")
             .then((popularVideos) => {
               resolve({
                 message:
-                  "Error in recommendation engine, returning popular videos",
+                  "Error in recommendation engine, returning all videos sorted by views",
                 data: {
                   videos: popularVideos,
                   total: popularVideos.length,
@@ -82,16 +79,16 @@ const getRecommendationsService = async (userId) => {
             try {
               parsedResults = JSON.parse(result);
               if (Array.isArray(parsedResults)) {
-                break; // Tìm thấy JSON hợp lệ
+                break;
               }
             } catch (e) {
-              continue; // Bỏ qua dòng không phải JSON
+              continue;
             }
           }
           if (!parsedResults || !Array.isArray(parsedResults)) {
             throw new Error("Python script did not return a valid JSON array");
           }
-          // Truy vấn chi tiết video
+          // Truy vấn chi tiết tất cả video
           const videoIds = parsedResults.map((rec) => rec.video_id);
           Video.find({ _id: { $in: videoIds } })
             .populate("user_id", "user_name email")
@@ -109,7 +106,8 @@ const getRecommendationsService = async (userId) => {
                       }
                     : null;
                 })
-                .filter((v) => v);
+                .filter((v) => v)
+                .sort((a, b) => b.predicted_rating - a.predicted_rating); // Sắp xếp theo predicted_rating giảm dần
               resolve({
                 message: "Videos retrieved successfully",
                 data: {
@@ -125,15 +123,14 @@ const getRecommendationsService = async (userId) => {
             });
         } catch (parseErr) {
           console.error("JSON parse error:", parseErr);
-          // Fallback: Trả về video phổ biến
+          // Fallback: Trả về tất cả video phổ biến
           Video.find()
-            .sort({ views: -1 })
-            .limit(5)
+            .sort({ views: -1 }) // Sắp xếp theo lượt xem giảm dần
             .populate("user_id", "user_name email")
             .then((popularVideos) => {
               resolve({
                 message:
-                  "Error parsing recommendation results, returning popular videos",
+                  "Error parsing recommendation results, returning all videos sorted by views",
                 data: {
                   videos: popularVideos,
                   total: popularVideos.length,
@@ -153,11 +150,11 @@ const getRecommendationsService = async (userId) => {
   } catch (error) {
     console.error("Recommendation service error:", error);
     const popularVideos = await Video.find()
-      .sort({ views: -1 })
-      .limit(5)
+      .sort({ views: -1 }) // Sắp xếp theo lượt xem giảm dần
       .populate("user_id", "user_name email");
     return {
-      message: "Error in recommendation service, returning popular videos",
+      message:
+        "Error in recommendation service, returning all videos sorted by views",
       data: {
         videos: popularVideos,
         total: popularVideos.length,
