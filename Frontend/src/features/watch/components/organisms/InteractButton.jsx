@@ -29,7 +29,6 @@ const InteractButton = () => {
   const { auth } = useContext(AuthContext);
   const user_id = auth.isAuthenticated ? auth.user.id : null;
   const { data } = useCountLikeVideo(video_id);
-  console.log("data", data);
   const [isClickedLike, setIsClickedLike] = useState(false);
   const [isClickedDislike, setIsClickedDislike] = useState(false);
   const [likeCount, setLikeCount] = useState(0);

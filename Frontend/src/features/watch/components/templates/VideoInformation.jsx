@@ -21,7 +21,7 @@ const VideoInformation = ({ video, isLoading }) => {
         </Title>
       </Typography>
       <div>
-        <ChannelInVideo />
+        <ChannelInVideo channelId={video.user_id._id} />
         <InteractButton />
       </div>
       <ReviewSpace />

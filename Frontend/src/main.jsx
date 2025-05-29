@@ -7,7 +7,6 @@ import "./styles/global.css";
 import App from "./App.jsx";
 import { AuthWrapper } from "./contexts/auth.context";
 import HomePage from "./pages/HomePage.jsx";
-import VideoDetailPage from "./pages/VideoDetailPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import SignupPage from "./pages/SignupPage.jsx";
 import ChannelPage from "./pages/ChannelPage.jsx";
@@ -33,10 +32,6 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <HomePage />,
-      },
-      {
-        path: "video",
-        element: <VideoDetailPage />,
       },
       {
         path: "channel",
