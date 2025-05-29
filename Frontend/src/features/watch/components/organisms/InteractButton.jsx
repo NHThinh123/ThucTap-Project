@@ -1,5 +1,4 @@
 /* eslint-disable no-undef */
-/* eslint-disable no-unused-vars */
 import { useContext, useEffect, useState } from "react";
 import {
   likeVideoApi,
@@ -12,20 +11,33 @@ import {
   undislikeVideoApi,
 } from "../../services/user_dislike_videoApi";
 import { AuthContext } from "../../../../contexts/auth.context";
-import { useParams } from "react-router-dom";
+import { useModal } from "../../../../contexts/modal.context"; // Import useModal
+import { useParams, useNavigate } from "react-router-dom";
 import useCountLikeVideo from "../../hooks/useCountLikeVideo";
 import { formatLikes } from "../../../../constants/formatLikes";
+import { Button, Divider, Space } from "antd";
+import {
+  LikeOutlined,
+  LikeFilled,
+  DislikeOutlined,
+  DislikeFilled,
+  ShareAltOutlined,
+} from "@ant-design/icons";
+import { Bookmark } from "lucide-react";
+import PlaylistModalContent from "../../../playlist/components/templates/PlaylistModalContent";
 
 const InteractButton = () => {
   const { id } = useParams();
   const video_id = id;
   const { auth } = useContext(AuthContext);
+  const { openModal } = useModal(); // Use useModal to get openModal
   const user_id = auth.isAuthenticated ? auth.user.id : null;
   const { data } = useCountLikeVideo(video_id);
   console.log("data", data);
   const [isClickedLike, setIsClickedLike] = useState(false);
   const [isClickedDislike, setIsClickedDislike] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const navigate = useNavigate();
 
   // Cập nhật likeCount khi data từ API thay đổi
   useEffect(() => {
@@ -36,9 +48,8 @@ const InteractButton = () => {
 
   // Fetch initial like count
   useEffect(() => {
-    // Lấy trạng thái thích của người dùng
     const fetchUserLikeStatus = async () => {
-      if (!user_id) return; // Bỏ qua nếu người dùng chưa đăng nhập
+      if (!user_id) return;
       try {
         const response = await getUserLikeStatusApi({ user_id, video_id });
         setIsClickedLike(response.data || false);
@@ -47,9 +58,8 @@ const InteractButton = () => {
       }
     };
 
-    // Lấy trạng thái không thích của người dùng
     const fetchUserDislikeStatus = async () => {
-      if (!user_id) return; // Bỏ qua nếu người dùng chưa đăng nhập
+      if (!user_id) return;
       try {
         const response = await getUserDislikeStatusApi({ user_id, video_id });
         setIsClickedDislike(response.data || false);
@@ -68,18 +78,15 @@ const InteractButton = () => {
     }
     try {
       if (isClickedLike) {
-        // Nếu đã nhấn like và nhấn lại, gọi unlike
         await unlikeVideoApi({ user_id, video_id });
         setLikeCount((prev) => prev - 1);
         setIsClickedLike(false);
       } else {
-        // Nếu chưa nhấn like, gọi like
         await likeVideoApi({ user_id, video_id });
         setLikeCount((prev) => prev + 1);
         setIsClickedLike(true);
-        // Nếu đã nhấn dislike trước đó, chỉ cần cập nhật trạng thái dislike
         if (isClickedDislike) {
-          setIsClickedDislike(false); // Không gọi undislikeVideoApi
+          setIsClickedDislike(false);
         }
       }
     } catch (error) {
@@ -94,14 +101,11 @@ const InteractButton = () => {
     }
     try {
       if (isClickedDislike) {
-        // Nếu đã nhấn dislike và nhấn lại, gọi undislike
         await undislikeVideoApi({ user_id, video_id });
         setIsClickedDislike(false);
       } else {
-        // Nếu chưa nhấn dislike, gọi dislike
         await dislikeVideoApi({ user_id, video_id });
         setIsClickedDislike(true);
-        // Nếu đã nhấn like trước đó, chỉ cần cập nhật trạng thái like
         if (isClickedLike) {
           setLikeCount((prev) => prev - 1);
           setIsClickedLike(false);
@@ -111,20 +115,24 @@ const InteractButton = () => {
       console.error("Hành động không thích thất bại:", error);
     }
   };
-const handleClickBookmark = () => {
+
+  const handleClickBookmark = () => {
+    console.log("Bookmark button clicked");
     if (!auth.isAuthenticated) {
       navigate("/login");
       return;
     }
-    if (!videoId || !userId) {
+    if (!video_id || !user_id) {
       console.error(
         "Không thể mở modal danh sách phát: videoId hoặc userId không hợp lệ",
-        { videoId, userId }
+        { video_id, user_id }
       );
       return;
     }
-    openModal(<PlaylistModalContent video_id={videoId} user_id={userId} />);
+    console.log("Opening modal with PlaylistModalContent");
+    openModal(<PlaylistModalContent video_id={video_id} user_id={user_id} />);
   };
+
   return (
     <Space style={{ float: "right" }}>
       <div style={{ border: "1px solid #d9d9d9", borderRadius: 50 }}>

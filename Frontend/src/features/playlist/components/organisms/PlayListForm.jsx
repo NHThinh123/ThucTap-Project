@@ -9,13 +9,13 @@ import { useModal } from "../../../../contexts/modal.context";
 import { useContext } from "react";
 import { AuthContext } from "../../../../contexts/auth.context";
 
-const PlaylistForm = ({ user_id, videoId }) => {
+const PlaylistForm = ({ user_id, video_id }) => {
   const [form] = Form.useForm();
   const { mutate: createPlaylist, isPending } = useCreatePlaylist();
   const { mutate: addVideo } = useAddVideoToPlaylist();
   const { closeModal } = useModal();
   const { auth } = useContext(AuthContext);
-  if (!videoId) {
+  if (!video_id) {
     console.error(
       "PlaylistForm: videoId is undefined. Please provide a valid videoId."
     );
@@ -31,15 +31,15 @@ const PlaylistForm = ({ user_id, videoId }) => {
       },
       {
         onSuccess: (newPlaylist) => {
-          if (!newPlaylist?._id || !videoId) {
+          if (!newPlaylist?._id || !video_id) {
             console.error("Missing playlistId or videoId", {
               newPlaylist,
-              videoId,
+              video_id,
             });
             return;
           }
           addVideo(
-            { playlistId: newPlaylist._id, videoId },
+            { playlistId: newPlaylist._id, video_id },
             { onSuccess: closeModal }
           );
           form.resetFields();

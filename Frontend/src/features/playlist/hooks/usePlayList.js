@@ -11,6 +11,14 @@ export const useUserPlaylists = (user_id) => {
     queryKey: ["playlists", user_id],
     queryFn: () => getUserPlaylists(user_id),
     enabled: !!user_id,
+    select: (data) => {
+      // Handle cả trường hợp data là array hoặc object với structure mới
+      if (Array.isArray(data)) {
+        return data;
+      }
+      // Nếu data có structure từ API response
+      return data?.playlists || [];
+    },
   });
 };
 
@@ -19,11 +27,14 @@ export const useCreatePlaylist = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createPlaylist,
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries(["playlists"]);
       message.success("Playlist created successfully");
+      // Return the created playlist data
+      return data;
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Create playlist error:", error);
       message.error("Failed to create playlist");
     },
   });
@@ -38,7 +49,8 @@ export const useAddVideoToPlaylist = () => {
       queryClient.invalidateQueries(["playlists"]);
       message.success("Video added to playlist");
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Add video error:", error);
       message.error("Failed to add video to playlist");
     },
   });

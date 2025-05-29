@@ -34,7 +34,6 @@ const VideoUploadForm = ({ onSuccess }) => {
   const { openModal, closeModal } = useModal();
   const { auth } = useContext(AuthContext);
 
-  // Cập nhật duration trong form
   useEffect(() => {
     return () => {
       if (previewVideo) {
@@ -100,13 +99,11 @@ const VideoUploadForm = ({ onSuccess }) => {
     });
   };
 
-
   const handleSkipThumbnail = () => {
-    if (videoThumbnail) {
-      setCurrentStep(2);
-    } else {
-      message.error("Không có thumbnail video để sử dụng!");
-    }
+    setPreviewThumbnail(null);
+    setThumbnailFileList([]);
+    setThumbnailProgress(0);
+    setCurrentStep(2);
   };
 
   const handleCreate = async (values) => {
@@ -364,19 +361,9 @@ const VideoUploadForm = ({ onSuccess }) => {
             </Button>
           </Space>
           <Button
-            type="default"
-            onClick={handleSkipThumbnail}
-            disabled={isUploadingThumbnail || !videoThumbnail}
-            style={{ marginTop: 8 }}
-            block
-          >
-            Sử dụng thumbnail từ video
-          </Button>
-          <Button
             style={{ marginTop: 8 }}
             onClick={() => {
               setCurrentStep(0);
-              setVideoThumbnail(null);
               reset();
               setPreviewVideo(null);
               setPreviewThumbnail(null);

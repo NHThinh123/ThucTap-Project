@@ -26,6 +26,8 @@ const playlistSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+playlistSchema.index({ user_id: 1 });
+
 const Playlist = mongoose.model("Playlist", playlistSchema);
 
 module.exports = Playlist;
