@@ -68,11 +68,6 @@ function App() {
   const menuItems = [
     { key: "home", icon: <HomeOutlined />, label: <Link to="/">Home</Link> },
     {
-      key: "video",
-      icon: <YoutubeOutlined />,
-      label: <Link to="/video">Video</Link>,
-    },
-    {
       key: "channel",
       icon: <UserOutlined />,
       label: <Link to="/channel">Channel</Link>,
