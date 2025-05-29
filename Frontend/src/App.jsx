@@ -53,12 +53,6 @@ function App() {
       path: "/",
     },
     {
-      key: "video",
-      icon: <YoutubeOutlined />,
-      label: <Link to="/video">Video</Link>,
-      path: "/video",
-    },
-    {
       key: "channel",
       icon: <UserOutlined />,
       label: <Link to="/channel">Channel</Link>,

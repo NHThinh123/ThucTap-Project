@@ -3,6 +3,55 @@ const UserSubscription = require("../models/user_subscription.model");
 const Video = require("../models/video.model");
 const VideoStats = require("../models/video_stats.model");
 
+// Kiểm tra xem người dùng có đăng ký channel hay không
+const checkSubscription = async (userId, channelId) => {
+  // Kiểm tra xem user và channel có tồn tại
+  const user = await User.findById(userId);
+  const targetUser = await User.findById(channelId);
+
+  if (!user || !targetUser) {
+    throw new Error("Người dùng không tồn tại");
+  }
+
+  // Tìm bản ghi đăng ký
+  const subscription = await UserSubscription.findOne({
+    user_id: userId,
+    channel_id: channelId,
+  });
+
+  return {
+    userId,
+    channelId,
+    isSubscribed: !!subscription, // Trả về true nếu đã đăng ký, false nếu chưa
+  };
+};
+
+// Lấy thông tin chi tiết của channel
+const getChannelInfo = async (channelId) => {
+  // Tìm user theo channelId
+  const targetUser = await User.findById(channelId).select(
+    "_id email user_name nickname avatar"
+  );
+
+  if (!targetUser) {
+    throw new Error("Channel không tồn tại");
+  }
+
+  // Đếm số lượng người đăng ký
+  const subscriptionCount = await UserSubscription.countDocuments({
+    channel_id: channelId,
+  });
+
+  return {
+    channelId: targetUser._id,
+    email: targetUser.email,
+    userName: targetUser.user_name,
+    nickName: targetUser.nickname,
+    avatar: targetUser.avatar,
+    subscriptionCount,
+  };
+};
+
 const subscribe = async (userId, channelId) => {
   // Find users by their MongoDB _id
   const user = await User.findById(userId);
@@ -63,7 +112,6 @@ const getSubscriptionCount = async (channelId) => {
   });
   return {
     userId: channelId,
-    userName: targetUser.user_name,
     subscriptionCount: count,
   };
 };
@@ -76,14 +124,22 @@ const getSubscribers = async (channelId) => {
 
   const subscriptions = await UserSubscription.find({
     channel_id: channelId,
-  }).populate("user_id", "_id user_name");
+  }).populate("user_id", "_id user_name nickname avatar");
 
   const subscribers = subscriptions.map((sub) => ({
     userId: sub.user_id._id,
     userName: sub.user_id.user_name,
+    nickName: sub.user_id.nickname,
+    avatar: sub.user_id.avatar,
   }));
 
-  return { userId: channelId, userName: targetUser.user_name, subscribers };
+  return {
+    userId: channelId,
+    userName: targetUser.user_name,
+    nickName: targetUser.nickname,
+    avatar: targetUser.avatar,
+    subscribers,
+  };
 };
 const getUserSubscriptions = async (userId) => {
   const targetUser = await User.findById(userId);
@@ -93,16 +149,20 @@ const getUserSubscriptions = async (userId) => {
 
   const subscriptions = await UserSubscription.find({
     user_id: userId,
-  }).populate("channel_id", "_id user_name");
+  }).populate("channel_id", "_id user_name nickname avatar");
 
   const channels = subscriptions.map((sub) => ({
     channelId: sub.channel_id._id,
     channelName: sub.channel_id.user_name,
+    channelNickname: sub.channel_id.nickname,
+    channelAvatar: sub.channel_id.avatar,
   }));
 
   return {
     userId,
     userName: targetUser.user_name,
+    nickName: targetUser.nickname,
+    avatar: targetUser.avatar,
     channels,
   };
 };
@@ -113,4 +173,6 @@ module.exports = {
   getSubscriptionCount,
   getSubscribers,
   getUserSubscriptions,
+  checkSubscription,
+  getChannelInfo,
 };
