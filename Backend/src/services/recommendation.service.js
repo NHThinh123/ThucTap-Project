@@ -5,17 +5,22 @@ const Video = require("../models/video.model");
 
 const getRecommendationsService = async (userId) => {
   try {
-    // Lấy dữ liệu tương tác
     console.time("Fetch interaction data");
     const interactionData = await getInteractionDataService();
     console.timeEnd("Fetch interaction data");
     console.log(`Interaction data size: ${interactionData.length}`);
+    console.log(
+      `Unique video IDs in interaction data: ${
+        [...new Set(interactionData.map((item) => item.video_id))].length
+      }`
+    );
 
     if (!interactionData || interactionData.length === 0) {
       console.warn("No interaction data available");
       const popularVideos = await Video.find()
-        .sort({ views: -1 }) // Sắp xếp theo lượt xem giảm dần
+        .sort({ views: -1 })
         .populate("user_id", "user_name email");
+      console.log(`Total videos in fallback: ${popularVideos.length}`);
       return {
         message: "No interaction data, returning all videos sorted by views",
         data: {
@@ -27,17 +32,18 @@ const getRecommendationsService = async (userId) => {
       };
     }
 
-    // Chuẩn bị dữ liệu để gửi sang Python
+    const allVideoIds = await Video.find().distinct("_id");
+    console.log(`Total video IDs in database: ${allVideoIds.length}`);
+    console.log(`All video IDs: ${allVideoIds}`);
     const data = JSON.stringify(interactionData);
     const options = {
       mode: "text",
       pythonPath: process.env.PYTHON_PATH,
       pythonOptions: ["-u"],
       scriptPath: "./recommendation",
-      args: [userId, data],
+      args: [userId, data, JSON.stringify(allVideoIds)],
     };
 
-    // Chạy Python script với timeout
     const result = await new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error("Python script timed out"));
@@ -47,11 +53,13 @@ const getRecommendationsService = async (userId) => {
         clearTimeout(timeout);
         if (err) {
           console.error("Python script error:", err);
-          // Fallback: Trả về tất cả video phổ biến
           Video.find()
-            .sort({ views: -1 }) // Sắp xếp theo lượt xem giảm dần
+            .sort({ views: -1 })
             .populate("user_id", "user_name email")
             .then((popularVideos) => {
+              console.log(
+                `Total videos in error fallback: ${popularVideos.length}`
+              );
               resolve({
                 message:
                   "Error in recommendation engine, returning all videos sorted by views",
@@ -69,11 +77,9 @@ const getRecommendationsService = async (userId) => {
           return;
         }
         try {
-          // Kiểm tra results hợp lệ
           if (!results || results.length === 0) {
             throw new Error("No results returned from Python script");
           }
-          // Tìm dòng JSON hợp lệ
           let parsedResults = null;
           for (const result of results) {
             try {
@@ -88,12 +94,19 @@ const getRecommendationsService = async (userId) => {
           if (!parsedResults || !Array.isArray(parsedResults)) {
             throw new Error("Python script did not return a valid JSON array");
           }
-          // Truy vấn chi tiết tất cả video
+          console.log(
+            `Number of video IDs from Python: ${parsedResults.length}`
+          );
+          console.log(
+            `Video IDs from Python: ${JSON.stringify(
+              parsedResults.map((rec) => rec.video_id)
+            )}`
+          );
           const videoIds = parsedResults.map((rec) => rec.video_id);
           Video.find({ _id: { $in: videoIds } })
             .populate("user_id", "user_name email")
             .then((videos) => {
-              // Sắp xếp video theo thứ tự gợi ý
+              console.log(`Found videos: ${videos.length}`);
               const sortedVideos = parsedResults
                 .map((rec) => {
                   const video = videos.find(
@@ -106,8 +119,14 @@ const getRecommendationsService = async (userId) => {
                       }
                     : null;
                 })
-                .filter((v) => v)
-                .sort((a, b) => b.predicted_rating - a.predicted_rating); // Sắp xếp theo predicted_rating giảm dần
+                .filter((v) => v);
+              console.log(`Final sorted videos: ${sortedVideos.length}`);
+              console.log(
+                sortedVideos.map((v) => ({
+                  video_id: v._id,
+                  predicted_rating: v.predicted_rating,
+                }))
+              );
               resolve({
                 message: "Videos retrieved successfully",
                 data: {
@@ -123,11 +142,13 @@ const getRecommendationsService = async (userId) => {
             });
         } catch (parseErr) {
           console.error("JSON parse error:", parseErr);
-          // Fallback: Trả về tất cả video phổ biến
           Video.find()
-            .sort({ views: -1 }) // Sắp xếp theo lượt xem giảm dần
+            .sort({ views: -1 })
             .populate("user_id", "user_name email")
             .then((popularVideos) => {
+              console.log(
+                `Total videos in parse error fallback: ${popularVideos.length}`
+              );
               resolve({
                 message:
                   "Error parsing recommendation results, returning all videos sorted by views",
@@ -150,8 +171,9 @@ const getRecommendationsService = async (userId) => {
   } catch (error) {
     console.error("Recommendation service error:", error);
     const popularVideos = await Video.find()
-      .sort({ views: -1 }) // Sắp xếp theo lượt xem giảm dần
+      .sort({ views: -1 })
       .populate("user_id", "user_name email");
+    console.log(`Total videos in catch fallback: ${popularVideos.length}`);
     return {
       message:
         "Error in recommendation service, returning all videos sorted by views",
