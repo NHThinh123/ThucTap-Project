@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useContext, useEffect } from "react";
-import { Form, Input, Button, Upload, Steps, App, Space, Progress } from "antd";
+import { Form, Input, Button, Upload, Steps, App, Space } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { useVideoUpload } from "../../hooks/useVideoUpload";
 import { useModal } from "../../../../contexts/modal.context";
@@ -16,8 +16,6 @@ const VideoUploadForm = ({ onSuccess }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [previewVideo, setPreviewVideo] = useState(null);
   const [previewThumbnail, setPreviewThumbnail] = useState(null);
-  const [videoProgress, setVideoProgress] = useState(0);
-  const [thumbnailProgress, setThumbnailProgress] = useState(0);
   const {
     uploadVideo,
     isUploading,
@@ -51,23 +49,19 @@ const VideoUploadForm = ({ onSuccess }) => {
       return;
     }
 
-    setVideoProgress(0);
     console.log("Starting video upload:", videoFileList[0].name);
     uploadVideo(videoFileList[0], {
       onSuccess: () => {
         console.log("Video upload completed");
         setPreviewVideo(null);
-        setVideoProgress(100);
         setCurrentStep(1);
       },
       onError: (error) => {
         console.error("Video upload failed:", error);
         message.error("Đã xảy ra lỗi khi tải video!");
-        setVideoProgress(0);
       },
       onProgress: (percent) => {
         console.log("Video upload progress:", percent);
-        setVideoProgress(Math.round(percent));
       },
     });
   };
@@ -78,23 +72,19 @@ const VideoUploadForm = ({ onSuccess }) => {
       return;
     }
 
-    setThumbnailProgress(0);
     console.log("Starting thumbnail upload:", thumbnailFileList[0].name);
     uploadThumbnail(thumbnailFileList[0], {
       onSuccess: () => {
         console.log("Thumbnail upload completed");
         setPreviewThumbnail(null);
-        setThumbnailProgress(100);
         setCurrentStep(2);
       },
       onError: (error) => {
         console.error("Thumbnail upload failed:", error);
         message.error("Đã xảy ra lỗi khi tải ảnh thumbnail!");
-        setThumbnailProgress(0);
       },
       onProgress: (percent) => {
         console.log("Thumbnail upload progress:", percent);
-        setThumbnailProgress(Math.round(percent));
       },
     });
   };
@@ -102,7 +92,6 @@ const VideoUploadForm = ({ onSuccess }) => {
   const handleSkipThumbnail = () => {
     setPreviewThumbnail(null);
     setThumbnailFileList([]);
-    setThumbnailProgress(0);
     setCurrentStep(2);
   };
 
@@ -145,8 +134,6 @@ const VideoUploadForm = ({ onSuccess }) => {
       setThumbnailFileList([]);
       setPreviewVideo(null);
       setPreviewThumbnail(null);
-      setVideoProgress(0);
-      setThumbnailProgress(0);
       reset();
       setCurrentStep(0);
       closeModal();
@@ -185,7 +172,6 @@ const VideoUploadForm = ({ onSuccess }) => {
     onRemove: () => {
       setVideoFileList([]);
       setPreviewVideo(null);
-      setVideoProgress(0);
       reset();
     },
   };
@@ -221,11 +207,9 @@ const VideoUploadForm = ({ onSuccess }) => {
     onRemove: () => {
       setThumbnailFileList([]);
       setPreviewThumbnail(null);
-      setThumbnailProgress(0);
     },
   };
 
-  // CSS để đảm bảo tỉ lệ 16:9 và overflow hidden
   const mediaContainerStyle = {
     position: "relative",
     width: "100%",
@@ -262,20 +246,6 @@ const VideoUploadForm = ({ onSuccess }) => {
               <div style={mediaContainerStyle}>
                 <video src={previewVideo} controls style={mediaStyle} />
               </div>
-            </div>
-          )}
-          {isUploading && (
-            <div style={{ marginTop: 16 }}>
-              <Progress
-                percent={videoProgress}
-                status={
-                  videoProgress === 100
-                    ? "success"
-                    : isUploading
-                    ? "active"
-                    : "exception"
-                }
-              />
             </div>
           )}
           <Button
@@ -328,20 +298,6 @@ const VideoUploadForm = ({ onSuccess }) => {
           <Upload {...thumbnailUploadProps} accept="image/*">
             <Button icon={<UploadOutlined />}>Chọn ảnh thumbnail khác</Button>
           </Upload>
-          {isUploadingThumbnail && (
-            <div style={{ marginTop: 16 }}>
-              <Progress
-                percent={thumbnailProgress}
-                status={
-                  thumbnailProgress === 100
-                    ? "success"
-                    : isUploadingThumbnail
-                    ? "active"
-                    : "exception"
-                }
-              />
-            </div>
-          )}
           <Space style={{ marginTop: 16, width: "100%" }}>
             <Button
               type="primary"
@@ -367,8 +323,6 @@ const VideoUploadForm = ({ onSuccess }) => {
               reset();
               setPreviewVideo(null);
               setPreviewThumbnail(null);
-              setVideoProgress(0);
-              setThumbnailProgress(0);
             }}
             disabled={isUploadingThumbnail}
             block
