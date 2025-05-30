@@ -6,7 +6,8 @@ import { ModalProvider } from "../../../../contexts/modal.context";
 
 const { Title } = Typography;
 
-const VideoInformation = ({ video }) => {
+const VideoInformation = ({ video, isLoading }) => {
+  const channelId = video?.user_id._id;
   return (
     <>
       <Typography>
@@ -36,7 +37,7 @@ const VideoInformation = ({ video }) => {
         </Typography>
         <Space>
           <ModalProvider>
-            <ChannelInVideo channelId={video.user_id._id} />
+            <ChannelInVideo channelId={channelId} />
             <InteractButton />
           </ModalProvider>
         </Space>

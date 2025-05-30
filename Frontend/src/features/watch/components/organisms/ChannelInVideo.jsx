@@ -74,12 +74,14 @@ const ChannelInVideo = ({ channelId }) => {
             : "0 người đăng ký"}
         </p>
       </div>
-      <SubscribeButton
-        channelId={channelId}
-        userId={userId}
-        isSubscribed={isSubscribed}
-        setSubscriptionCount={setSubscriptionCount}
-      />
+      {channelId !== userId && (
+        <SubscribeButton
+          channelId={channelId}
+          userId={userId}
+          isSubscribed={isSubscribed}
+          setSubscriptionCount={setSubscriptionCount}
+        />
+      )}
     </Space>
   );
 };
