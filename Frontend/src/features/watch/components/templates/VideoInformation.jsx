@@ -6,6 +6,7 @@ import ReviewSpace from "../../../review/components/templates/ReviewSpace";
 const { Title } = Typography;
 
 const VideoInformation = ({ video, isLoading }) => {
+  const channelId = video?.user_id._id;
   return (
     <>
       <Typography>
@@ -21,7 +22,7 @@ const VideoInformation = ({ video, isLoading }) => {
         </Title>
       </Typography>
       <div>
-        <ChannelInVideo channelId={video.user_id._id} />
+        <ChannelInVideo channelId={channelId} />
         <InteractButton />
       </div>
       <ReviewSpace />
