@@ -34,10 +34,7 @@ const router = createBrowserRouter([
         index: true,
         element: <HomePage />,
       },
-      {
-        path: "video",
-        element: <VideoDetailPage />,
-      },
+
       {
         path: "playlist",
         element: <PlayListPage />,
