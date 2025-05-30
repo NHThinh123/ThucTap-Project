@@ -1,11 +1,12 @@
-import { Row, Typography } from "antd";
+import { Typography, Space } from "antd";
 import VideoDescription from "../organisms/VideoDescription";
 import ChannelInVideo from "../organisms/ChannelInVideo";
 import InteractButton from "../organisms/InteractButton";
-import ReviewSpace from "../../../review/components/templates/ReviewSpace";
+import { ModalProvider } from "../../../../contexts/modal.context";
+
 const { Title } = Typography;
 
-const VideoInformation = ({ video, isLoading }) => {
+const VideoInformation = ({ video }) => {
   return (
     <>
       <Typography>
@@ -21,8 +22,25 @@ const VideoInformation = ({ video, isLoading }) => {
         </Title>
       </Typography>
       <div>
-        <ChannelInVideo channelId={video.user_id._id} />
-        <InteractButton />
+        <Typography>
+          <Title
+            style={{
+              margin: 0,
+              fontWeight: 600,
+              fontSize: 25,
+              padding: "16px 0",
+            }}
+          >
+            {video?.title}
+          </Title>
+        </Typography>
+        <Space>
+          <ModalProvider>
+            <ChannelInVideo channelId={video.user_id._id} />
+            <InteractButton />
+          </ModalProvider>
+        </Space>
+        <VideoDescription />
       </div>
       <ReviewSpace />
       <VideoDescription video={video} isLoading={isLoading} />

@@ -23,7 +23,7 @@ export const ModalProvider = ({ children }) => {
     <ModalContext.Provider value={{ openModal, closeModal, modalState }}>
       {children}
       <Modal
-        title="Đăng tải video"
+        title={modalState.title}
         open={modalState.isOpen}
         onCancel={closeModal}
         footer={null}

@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
-import { CircleUserRound, Upload } from "lucide-react";
+import { CircleUserRound, ListVideo, Upload } from "lucide-react";
 import {
   Layout,
   Menu,
@@ -57,6 +57,11 @@ function App() {
       icon: <UserOutlined />,
       label: <Link to="/channel">Channel</Link>,
       path: "/channel",
+    },
+    {
+      key: "playlist",
+      icon: <ListVideo size={18} />,
+      label: <Link to="/playlist">PlayList</Link>,
     },
     {
       key: "search",
