@@ -12,14 +12,32 @@ const createPlaylist = async (data) => {
   return response?.data?.playlists;
 };
 
-const addVideoToPlaylist = async ({ playlistId, video_id }) => {
+const addVideoToPlaylist = async ({ playlistId, videoId }) => {
   const URL_API = `/api/playlist-video/`;
   const response = await axios.post(URL_API, {
     playlist_id: playlistId,
-    video_id,
+    video_id: videoId,
   });
-
   return response.data;
 };
 
-export { getUserPlaylists, createPlaylist, addVideoToPlaylist };
+const getVideosInPlaylist = async (playlistId) => {
+  const URL_API = `/api/playlist-video/${playlistId}`;
+  const response = await axios.get(URL_API);
+  return response?.data?.videos || [];
+};
+
+// Sửa lại hàm này để return data thay vì response
+const getVideoByIdApi = async (id) => {
+  const URL_API = `/api/video/${id}`;
+  const response = await axios.get(URL_API);
+  return response?.data || {}; // Return data thay vì response
+};
+
+export {
+  getUserPlaylists,
+  createPlaylist,
+  addVideoToPlaylist,
+  getVideosInPlaylist,
+  getVideoByIdApi,
+};

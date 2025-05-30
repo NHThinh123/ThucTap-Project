@@ -3,6 +3,7 @@ import {
   getUserPlaylists,
   createPlaylist,
   addVideoToPlaylist,
+  getVideosInPlaylist,
 } from "../services/playListApi";
 import { App } from "antd";
 
@@ -12,11 +13,9 @@ export const useUserPlaylists = (user_id) => {
     queryFn: () => getUserPlaylists(user_id),
     enabled: !!user_id,
     select: (data) => {
-      // Handle cả trường hợp data là array hoặc object với structure mới
       if (Array.isArray(data)) {
         return data;
       }
-      // Nếu data có structure từ API response
       return data?.playlists || [];
     },
   });
@@ -30,12 +29,21 @@ export const useCreatePlaylist = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries(["playlists"]);
       message.success("Playlist created successfully");
-      // Return the created playlist data
       return data;
     },
     onError: (error) => {
       console.error("Create playlist error:", error);
       message.error("Failed to create playlist");
+    },
+  });
+};
+export const useVideosInPlaylist = (playlistId) => {
+  return useQuery({
+    queryKey: ["playlistVideos", playlistId],
+    queryFn: () => getVideosInPlaylist(playlistId),
+    enabled: !!playlistId,
+    select: (data) => {
+      return Array.isArray(data) ? data : data?.videos || [];
     },
   });
 };
@@ -47,11 +55,18 @@ export const useAddVideoToPlaylist = () => {
     mutationFn: addVideoToPlaylist,
     onSuccess: () => {
       queryClient.invalidateQueries(["playlists"]);
-      message.success("Video added to playlist");
+      message.success("Video được thêm vào danh sách phát");
     },
     onError: (error) => {
       console.error("Add video error:", error);
-      message.error("Failed to add video to playlist");
+      if (
+        error.response?.status === 400 &&
+        error.response?.message === "Video already exists in playlist"
+      ) {
+        message.warning("Video đã tồn tại trong danh sách phát");
+      } else {
+        message.error("Đã có lỗi xảy ra");
+      }
     },
   });
 };

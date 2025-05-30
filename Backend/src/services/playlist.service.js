@@ -14,31 +14,19 @@ const createPlaylistService = async (data) => {
 };
 
 const getPlaylistByIdService = async (playlist_id, user_id) => {
-  console.log("🔍 Searching for playlist ID:", playlist_id);
-
   // Tạm thời bỏ populate để test
   const playlist = await Playlist.findById(playlist_id);
-
-  console.log("📋 Found playlist:", playlist);
-
   if (!playlist) {
-    console.log("❌ Playlist not found in database");
     throw new AppError("Playlist not found", 404);
   }
-
-  console.log("✅ Playlist found successfully");
-
   // Check authorization
   if (
     !playlist.isPublic &&
     user_id &&
     playlist.user_id.toString() !== user_id.toString()
   ) {
-    console.log("🚫 Authorization failed");
     throw new AppError("You are not authorized to view this playlist", 403);
   }
-
-  console.log("✅ Authorization passed");
 
   return playlist;
 };

@@ -15,6 +15,7 @@ const PlaylistForm = ({ user_id, video_id }) => {
   const { mutate: addVideo } = useAddVideoToPlaylist();
   const { closeModal } = useModal();
   const { auth } = useContext(AuthContext);
+
   if (!video_id) {
     console.error(
       "PlaylistForm: videoId is undefined. Please provide a valid videoId."
@@ -32,15 +33,23 @@ const PlaylistForm = ({ user_id, video_id }) => {
       {
         onSuccess: (newPlaylist) => {
           if (!newPlaylist?._id || !video_id) {
-            console.error("Missing playlistId or videoId", {
-              newPlaylist,
-              video_id,
-            });
             return;
           }
+
+          const validPlaylistId = String(newPlaylist._id).trim();
+          const validVideoId = String(video_id).trim();
+
           addVideo(
-            { playlistId: newPlaylist._id, video_id },
-            { onSuccess: closeModal }
+            {
+              playlistId: validPlaylistId,
+              video_id: validVideoId,
+            },
+            {
+              onSuccess: closeModal,
+              onError: (error) => {
+                console.error("Add video to new playlist error:", error);
+              },
+            }
           );
           form.resetFields();
         },
@@ -50,25 +59,29 @@ const PlaylistForm = ({ user_id, video_id }) => {
 
   return (
     <>
-      <Divider>Create New Playlist</Divider>
+      <Divider>Tạo danh sách phát</Divider>
       <Form form={form} onFinish={handleSubmit} layout="vertical">
         <Form.Item
           name="title"
-          label="Playlist Title"
-          rules={[{ required: true, message: "Please enter a playlist title" }]}
+          label="Tiêu đề danh sách phát"
+          rules={[{ required: true, message: "Hãy nhập tiêu đề" }]}
         >
           <Input />
         </Form.Item>
-        <Form.Item name="description" label="Description">
+        <Form.Item name="description" label="Mô tả">
           <Input.TextArea />
         </Form.Item>
         <Form.Item name="isPublic" valuePropName="checked">
-          <Checkbox>Public Playlist</Checkbox>
+          <Checkbox>Công khai</Checkbox>
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit" loading={isPending}>
-            Create and Add Video
-          </Button>
+          <div
+            style={{ display: "flex", justifyContent: "center", marginTop: 16 }}
+          >
+            <Button type="primary" htmlType="submit" loading={isPending}>
+              Tạo
+            </Button>
+          </div>
         </Form.Item>
       </Form>
     </>

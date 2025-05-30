@@ -1,6 +1,7 @@
 const {
   addVideoToPlaylistService,
   removeVideoFromPlaylistService,
+  getVideosInPlaylistService,
 } = require("../services/playlist_video.service");
 const mongoose = require("mongoose");
 const AppError = require("../utils/AppError");
@@ -46,8 +47,22 @@ const removeVideoFromPlaylist = async (req, res, next) => {
     next(error);
   }
 };
+const getVideoInPlaylist = async (req, res, next) => {
+  try {
+    const { playlist_id } = req.params;
+    validateObjectId(playlist_id, "Playlist ID");
+    const videos = await getVideosInPlaylistService(playlist_id);
+    res.status(200).json({
+      status: "success",
+      data: { videos },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 module.exports = {
   addVideoToPlaylist,
   removeVideoFromPlaylist,
+  getVideoInPlaylist,
 };
