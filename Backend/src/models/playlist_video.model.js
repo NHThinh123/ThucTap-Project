@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const playlist_videoSchema = new mongoose.Schema(
+const playlistVideoSchema = new mongoose.Schema(
   {
     playlist_id: {
       type: mongoose.Schema.Types.ObjectId,
@@ -12,12 +12,16 @@ const playlist_videoSchema = new mongoose.Schema(
       ref: "Video",
       required: true,
     },
+    order: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );
 
-playlist_videoSchema.index({ playlist_id: 1, video_id: 1 });
+playlistVideoSchema.index({ playlist_id: 1, video_id: 1 });
 
-const Playlist_Video = mongoose.model("Playlist_Video", playlist_videoSchema);
+const PlaylistVideo = mongoose.model("PlaylistVideo", playlistVideoSchema);
 
-module.exports = Playlist_Video;
+module.exports = PlaylistVideo;

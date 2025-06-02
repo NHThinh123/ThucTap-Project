@@ -19,7 +19,7 @@ const getRecommendationsService = async (userId) => {
       console.warn("No interaction data available");
       const popularVideos = await Video.find()
         .sort({ views: -1 })
-        .populate("user_id", "user_name email");
+        .populate("user_id");
       console.log(`Total videos in fallback: ${popularVideos.length}`);
       return {
         message: "No interaction data, returning all videos sorted by views",
@@ -55,7 +55,7 @@ const getRecommendationsService = async (userId) => {
           console.error("Python script error:", err);
           Video.find()
             .sort({ views: -1 })
-            .populate("user_id", "user_name email")
+            .populate("user_id")
             .then((popularVideos) => {
               console.log(
                 `Total videos in error fallback: ${popularVideos.length}`
@@ -104,7 +104,7 @@ const getRecommendationsService = async (userId) => {
           );
           const videoIds = parsedResults.map((rec) => rec.video_id);
           Video.find({ _id: { $in: videoIds } })
-            .populate("user_id", "user_name email")
+            .populate("user_id")
             .then((videos) => {
               console.log(`Found videos: ${videos.length}`);
               const sortedVideos = parsedResults
@@ -144,7 +144,7 @@ const getRecommendationsService = async (userId) => {
           console.error("JSON parse error:", parseErr);
           Video.find()
             .sort({ views: -1 })
-            .populate("user_id", "user_name email")
+            .populate("user_id")
             .then((popularVideos) => {
               console.log(
                 `Total videos in parse error fallback: ${popularVideos.length}`
@@ -172,7 +172,7 @@ const getRecommendationsService = async (userId) => {
     console.error("Recommendation service error:", error);
     const popularVideos = await Video.find()
       .sort({ views: -1 })
-      .populate("user_id", "user_name email");
+      .populate("user_id");
     console.log(`Total videos in catch fallback: ${popularVideos.length}`);
     return {
       message:

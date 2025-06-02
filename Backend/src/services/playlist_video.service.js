@@ -1,26 +1,44 @@
-const Playlist_Video = require("../models/playlist_video.model");
+const PlaylistVideo = require("../models/playlist_video.model");
 const AppError = require("../utils/AppError");
 
 const addVideoToPlaylistService = async (playlistId, videoId) => {
-  const playlist_video = await Playlist_Video.create({
+  const existing = await PlaylistVideo.findOne({
     playlist_id: playlistId,
     video_id: videoId,
+  });
+  if (existing) {
+    throw new AppError("Video already exists in playlist", 400);
+  }
+  const count = await PlaylistVideo.countDocuments({ playlist_id: playlistId });
+  const playlist_video = await PlaylistVideo.create({
+    playlist_id: playlistId,
+    video_id: videoId,
+    order: count + 1,
   });
   return playlist_video;
 };
 
 const removeVideoFromPlaylistService = async (playlistId, videoId) => {
-  const playlist_video = await Playlist_Video.findOneAndDelete({
+  const playlist_video = await PlaylistVideo.findOneAndDelete({
     playlist_id: playlistId,
     video_id: videoId,
   });
   if (!playlist_video) {
-    throw new AppError("Playlist not found or you are not authorized", 404);
+    throw new AppError("Video not found in playlist", 404);
   }
   return playlist_video;
 };
-
+const getVideosInPlaylistService = async (playlistId) => {
+  const videos = await PlaylistVideo.find({ playlist_id: playlistId })
+    .populate("video_id", "title thumbnailUrl")
+    .sort({ order: 1 });
+  if (!videos.length) {
+    throw new AppError("No videos found in this playlist", 403);
+  }
+  return videos;
+};
 module.exports = {
   addVideoToPlaylistService,
   removeVideoFromPlaylistService,
+  getVideosInPlaylistService,
 };

@@ -112,7 +112,7 @@ const DisplayCommentReply = ({
                 />
               </div>
 
-              <div
+              {/* <div
                 style={{
                   position: "absolute",
                   top: 0,
@@ -127,14 +127,15 @@ const DisplayCommentReply = ({
                     padding: 4,
                     display: "flex",
                     cursor: "pointer",
+                    transition: "background 0.2s, border 0.2s", // Thêm transition để hiệu ứng mượt mà
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.background = "rgb(196, 196, 196)";
-                    e.target.style.border = "1px solid black";
+                    e.currentTarget.style.background = "rgb(196, 196, 196)";
+                    e.currentTarget.style.border = "1px solid black";
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.background = "none";
-                    e.target.style.border = "none";
+                    e.currentTarget.style.background = "none";
+                    e.currentTarget.style.border = "none";
                   }}
                   aria-label="More options"
                 >
@@ -150,7 +151,7 @@ const DisplayCommentReply = ({
                     />
                   </svg>
                 </button>
-              </div>
+              </div> */}
             </Col>
           </Row>
         );
