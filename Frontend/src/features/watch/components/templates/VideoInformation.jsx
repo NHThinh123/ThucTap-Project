@@ -33,7 +33,6 @@ const VideoInformation = ({ video, isLoading }) => {
             <InteractButton />
           </ModalProvider>
         </Space>
-        <VideoDescription />
       </div>
       <ReviewSpace />
       <VideoDescription video={video} isLoading={isLoading} />

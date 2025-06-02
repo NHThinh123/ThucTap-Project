@@ -52,13 +52,15 @@ const PlayList_Video = () => {
     setIsModalVisible(false);
     setSelectedPlaylistId(null);
   };
-
+  if (videoDetails?.length) {
+    return <Spin tip="Đang tải danh sách phát..." />;
+  }
   return (
     <div style={{ padding: "20px" }}>
       <h2>Danh sách phát của bạn</h2>
       {isPlaylistsLoading ? (
         <Spin tip="Đang tải danh sách phát..." />
-      ) : safePlaylists.length === 0 ? (
+      ) : safePlaylists?.length === 0 ? (
         <div>
           Không tìm thấy danh sách phát. Hãy tạo danh sách phát đầu tiên!
         </div>
@@ -102,7 +104,7 @@ const PlayList_Video = () => {
       >
         {isVideosLoading ? (
           <Spin tip="Đang tải video..." />
-        ) : videoDetails.length === 0 ? (
+        ) : videoDetails?.length === 0 ? (
           <div>Không có video trong danh sách phát này.</div>
         ) : (
           <List
