@@ -65,12 +65,6 @@ function App() {
       label: <Link to="/playlist">PlayList</Link>,
     },
     {
-      key: "search",
-      icon: <SearchOutlined />,
-      label: <Link to="/search">Search</Link>,
-      path: "/search",
-    },
-    {
       key: "studio",
       icon: <AppstoreOutlined />,
       label: <Link to="/studio">Studio</Link>,
