@@ -30,6 +30,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useModal } from "./contexts/modal.context";
 import UploadPage from "./pages/UploadPage";
+import SearchBar from "./components/templates/SearchBar";
 
 const { Header, Content, Sider } = Layout;
 
@@ -216,14 +217,7 @@ function App() {
               span={12}
               style={{ display: "flex", justifyContent: "center" }}
             >
-              <Input.Search
-                size="large"
-                placeholder="Search..."
-                style={{ width: "100%", maxWidth: "600px" }}
-                enterButton={
-                  <Button type="primary" icon={<SearchOutlined />} />
-                }
-              />
+              <SearchBar />
             </Col>
             <Col span={2} style={{ display: "flex", justifyContent: "center" }}>
               <Button

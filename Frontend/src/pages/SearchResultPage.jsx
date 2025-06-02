@@ -1,4 +1,4 @@
-import VideoSearchGrid from "../features/video/components/templates/VideoSearchGrid";
+import VideoSearchGrid from "../features/search/components/templates/VideoSearchGrid";
 import useVideo from "../features/video/hooks/useVideo";
 
 const SearchResultPage = () => {
