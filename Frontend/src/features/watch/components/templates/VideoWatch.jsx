@@ -44,12 +44,23 @@ const VideoWatch = ({ video }) => {
     console.log("Lịch sử xem đã được lưu:", historyItem);
   };
 
-  // Định dạng thời gian thành mm:ss
   const formatTime = (time) => {
     if (!isFinite(time)) return "0:00";
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+    if (time < 60) {
+      const seconds = Math.floor(time);
+      return `0:${seconds < 10 ? "0" : ""}${seconds}`;
+    } else if (time < 3600) {
+      const minutes = Math.floor(time / 60);
+      const seconds = Math.floor(time % 60);
+      return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+    } else {
+      const hours = Math.floor(time / 3600);
+      const minutes = Math.floor((time % 3600) / 60);
+      const seconds = Math.floor(time % 60);
+      return `${hours}:${minutes < 10 ? "0" : ""}${minutes}:${
+        seconds < 10 ? "0" : ""
+      }${seconds}`;
+    }
   };
 
   // Xử lý phát/tạm dừng video
