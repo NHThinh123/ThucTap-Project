@@ -262,6 +262,69 @@ const getInteractionDataService = async () => {
   }
 };
 
+const searchVideosService = async (query) => {
+  try {
+    const { q } = query;
+
+    if (!q || typeof q !== "string" || q.trim() === "") {
+      throw new Error(
+        "Search query is required and must be a non-empty string"
+      );
+    }
+
+    // Tìm kiếm văn bản sử dụng text index
+    const regexQuery = { $regex: q, $options: "i" }; // Tìm kiếm không phân biệt hoa thường
+    const videos = await Video.find({
+      $or: [{ title: regexQuery }],
+    })
+      .populate("user_id", "user_name email avatar nickname")
+      .sort({ createdAt: -1 });
+
+    const total = await Video.countDocuments({
+      $or: [{ title: regexQuery }],
+    });
+
+    return {
+      message: "Videos retrieved successfully",
+      data: {
+        videos,
+        total,
+      },
+    };
+  } catch (error) {
+    throw new Error(`Error searching videos: ${error.message}`);
+  }
+};
+
+// Dịch vụ gợi ý tìm kiếm
+const getSearchSuggestionsService = async (query) => {
+  try {
+    const { q } = query;
+
+    if (!q || typeof q !== "string" || q.trim() === "") {
+      return {
+        message: "No suggestions available",
+        suggestions: [],
+      };
+    }
+
+    const regexQuery = { $regex: q, $options: "i" };
+    const videos = await Video.find({ title: regexQuery }, { title: 1 })
+      .limit(5) // Giới hạn số gợi ý
+      .sort({ createdAt: -1 });
+
+    // Lấy danh sách tiêu đề làm gợi ý
+    const suggestions = videos.map((video) => video.title);
+
+    return {
+      message: "Suggestions retrieved successfully",
+      suggestions,
+    };
+  } catch (error) {
+    throw new Error(`Error retrieving search suggestions: ${error.message}`);
+  }
+};
+
 module.exports = {
   createVideoService,
   getVideosService,
@@ -270,4 +333,6 @@ module.exports = {
   deleteVideoService,
   getInteractionDataService,
   incrementViewService,
+  searchVideosService,
+  getSearchSuggestionsService,
 };

@@ -13,7 +13,7 @@ const videoSchema = new mongoose.Schema(
     },
     description_video: {
       type: String,
-      default: null,
+      default: "",
     },
     video_url: {
       type: String,

@@ -5,6 +5,8 @@ const {
   updateVideoService,
   deleteVideoService,
   incrementViewService,
+  searchVideosService,
+  getSearchSuggestionsService,
 } = require("../services/video.service");
 
 const createVideo = async (req, res, next) => {
@@ -106,6 +108,24 @@ const deleteVideo = async (req, res, next) => {
   }
 };
 
+const searchVideos = async (req, res) => {
+  try {
+    const result = await searchVideosService(req.query);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getSearchSuggestions = async (req, res) => {
+  try {
+    const result = await getSearchSuggestionsService(req.query);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createVideo,
   getVideos,
@@ -113,4 +133,6 @@ module.exports = {
   updateVideo,
   incrementView,
   deleteVideo,
+  searchVideos,
+  getSearchSuggestions,
 };

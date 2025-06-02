@@ -182,7 +182,7 @@ function App() {
           }}
         >
           <Row align="middle" justify="space-between">
-            <Col span={6} style={{ display: "flex", alignItems: "center" }}>
+            <Col span={1}>
               <Button
                 icon={<MenuOutlined />}
                 onClick={toggleMenu}
@@ -192,14 +192,17 @@ function App() {
                   marginRight: "16px",
                 }}
               />
+            </Col>
+            <Col span={5}>
               <div
-                onClick={handleLogoClick}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   flex: 1,
                   cursor: "pointer",
+                  width: "fit-content",
                 }}
+                onClick={handleLogoClick}
               >
                 <img
                   src={logo}

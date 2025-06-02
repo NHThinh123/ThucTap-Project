@@ -7,12 +7,16 @@ const {
   updateVideo,
   deleteVideo,
   incrementView,
+  searchVideos,
+  getSearchSuggestions,
 } = require("../controllers/video.controller");
 const {
   getRecommendations,
 } = require("../controllers/recommendation.controller");
 
 router.post("/create", createVideo);
+router.get("/search", searchVideos);
+router.get("/suggestions", getSearchSuggestions);
 router.get("/", getVideos);
 router.get("/:id", getVideoById);
 router.put("/:id", updateVideo);
