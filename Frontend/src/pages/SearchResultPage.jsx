@@ -1,7 +1,7 @@
 import { useLocation } from "react-router-dom";
 import VideoSearchGrid from "../features/search/components/templates/VideoSearchGrid";
 import useSearch from "../features/search/hooks/useSeach";
-import { Spin } from "antd";
+import { Spin, Typography } from "antd";
 // import useVideo from "../features/video/hooks/useVideo";
 
 const SearchResultPage = () => {
@@ -10,8 +10,6 @@ const SearchResultPage = () => {
 
   const { searchResults, isSearchLoading, isSearchError, searchError } =
     useSearch(query);
-
-  console.log("video search: ", searchResults);
 
   if (!query) {
     return <p>Vui lòng nhập từ khóa tìm kiếm</p>;
@@ -26,6 +24,15 @@ const SearchResultPage = () => {
   if (isSearchError) {
     return <p>Đã có lỗi xảy ra: {searchError.message}</p>;
   }
+  if (searchResults?.data.videos.length === 0)
+    return (
+      <Typography.Text
+        type="secondary"
+        style={{ display: "flex", justifyContent: "center" }}
+      >
+        Không tìm thấy video phù hợp
+      </Typography.Text>
+    );
   // const { videoList } = useVideo();
   return <VideoSearchGrid videos={searchResults.data.videos || []} />;
 };
