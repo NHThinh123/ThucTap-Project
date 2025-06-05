@@ -11,8 +11,7 @@ const useVideosByUserId = (userId) => {
     queryKey: ["videosByUserId", userId],
     queryFn: async () => {
       const response = await getVideosByUserIdApi(userId);
-      // Trích xuất mảng videos từ response.data.data.videos
-      return response.data?.data?.videos || [];
+      return response.data?.videos || [];
     },
     onError: (err) => {
       console.error(`Error fetching videos for user ${userId}:`, err);

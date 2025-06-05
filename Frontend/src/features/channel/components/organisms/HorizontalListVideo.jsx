@@ -3,21 +3,24 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { Typography } from "antd";
+import { formatTime } from "../../../../constants/formatTime";
+import { formatViews } from "../../../../constants/formatViews";
+import { Link } from "react-router-dom";
 
-// Thêm CSS tùy chỉnh cho mũi tên
-const arrowStyles = `
+// CSS tùy chỉnh cho mũi tên và căn trái video
+const arrowStyles = (videoCount) => `
   .slick-prev, .slick-next {
     width: 40px;
     height: 40px;
     background: #fff;
     border-radius: 50%;
     z-index: 100;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Đổ bóng */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
-    top: 50% !important; /* Căn giữa theo chiều dọc */
-    transform: translateY(-100%); /* Căn giữa tuyệt đối */
+    top: 50% !important;
+    transform: translateY(-100%);
   }
 
   .slick-prev:hover, .slick-next:hover {
@@ -36,29 +39,48 @@ const arrowStyles = `
     font-size: 24px;
     color: #000;
   }
+
+  .video-grid {
+    display: flex;
+    justify-content: flex-start;
+    gap: 16px;
+    flex-wrap: nowrap;
+  }
+
+  /* Căn trái các slide */
+  .slick-track {
+    display: flex !important;
+    justify-content: flex-start !important;
+  }
+
+  /* Đặt kích thước cho slide dựa trên số lượng video */
+  .slick-slide > div {
+    width: ${videoCount >= 5 ? "100%" : "240px"} !important;
+    margin-right: ${videoCount >= 5 ? "0" : "16px"};
+  }
 `;
 
 const { Title, Text } = Typography;
 
-const HorizontalListVideo = () => {
+const HorizontalListVideo = ({ videos = [] }) => {
   const settings = {
     dots: false,
     infinite: false,
     speed: 500,
-    slidesToShow: 5,
+    slidesToShow: Math.min(videos.length, 5), // Không vượt quá số video thực tế
     slidesToScroll: 2,
     arrows: true,
     responsive: [
       {
         breakpoint: 1024,
         settings: {
-          slidesToShow: 3,
+          slidesToShow: Math.min(videos.length, 3),
         },
       },
       {
         breakpoint: 768,
         settings: {
-          slidesToShow: 2,
+          slidesToShow: Math.min(videos.length, 2),
         },
       },
       {
@@ -70,51 +92,71 @@ const HorizontalListVideo = () => {
     ],
   };
 
-  const videos = Array.from({ length: 10 }, (_, index) => ({
-    id: index,
-    title: `Video Title ${index + 1}`,
-    views: "100 N lượt xem",
-    time: "1 tháng trước",
-    thumbnail:
-      "https://cdn.dribbble.com/userupload/12205471/file/original-6e438536dab71e35649e6c5ab9111f7e.png?format=webp&resize=400x300&vertical=center",
-  }));
-
   return (
     <>
-      {/* Chèn CSS tùy chỉnh */}
-      <style>{arrowStyles}</style>
+      {/* Chèn CSS tùy chỉnh dựa trên số lượng video */}
+      <style>{arrowStyles(videos.length)}</style>
       <div
         className="slider-container"
         style={{
-          padding: "0 8px",
-          maxWidth: "100%", // Ngăn tràn container
-          overflow: "hidden", // Ẩn nội dung tràn ra ngoài
+          padding: videos.length >= 5 ? "0 8px" : 0,
+          maxWidth: "100%",
+          overflow: "hidden",
         }}
       >
-        <Slider {...settings}>
-          {videos.map((video) => (
-            <div key={video.id} style={{ padding: "0 16px" }}>
-              <img
-                src={video.thumbnail}
-                alt="Thumbnail"
-                style={{
-                  width: "95%",
-                  height: "150px",
-                  borderRadius: "8px",
-                  objectFit: "cover", // Đảm bảo hình ảnh tỷ lệ đúng
-                }}
-              />
-              <div style={{ marginTop: "8px" }}>
-                <Title level={5} style={{ margin: 0 }}>
-                  {video.title}
-                </Title>
-                <Text type="secondary" style={{ fontSize: "14px" }}>
-                  {video.views} • {video.time}
-                </Text>
+        {videos.length === 0 ? (
+          <Text>Không có video nào để hiển thị.</Text>
+        ) : (
+          <Slider {...settings}>
+            {videos.map((video) => (
+              <div key={video._id}>
+                <div style={{ marginRight: 16 }}>
+                  <Link to={`/watch/${video._id}`}>
+                    <img
+                      src={video.thumbnail_video}
+                      alt={video.title}
+                      style={{
+                        width: videos.length >= 5 ? "100%" : "220px", // Width động
+                        height: "120px",
+                        borderRadius: "8px",
+                        objectFit: "cover",
+                      }}
+                    />
+                  </Link>
+                  <div
+                    style={{
+                      marginTop: "8px",
+                      width: videos.length >= 5 ? "100%" : "220px",
+                    }}
+                  >
+                    <Link to={`/watch/${video._id}`}>
+                      <p
+                        style={{
+                          fontFamily: "sans-serif",
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          margin: 0,
+                          fontWeight: "700",
+                          color: "#0f0f0f",
+                          fontSize: 14,
+                        }}
+                      >
+                        {video.title}
+                      </p>
+                    </Link>
+                    <p style={{ fontSize: "13px", marginTop: 5 }}>
+                      {formatViews(video.views)} lượt xem •{" "}
+                      {formatTime(video.createdAt)}
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
-        </Slider>
+            ))}
+          </Slider>
+        )}
       </div>
     </>
   );

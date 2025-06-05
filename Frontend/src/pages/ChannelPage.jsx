@@ -11,12 +11,12 @@ const ChannelPage = () => {
     {
       key: "1",
       label: "Trang chủ",
-      children: <MainChannel />,
+      children: <MainChannel channelId={id} />,
     },
     {
       key: "2",
       label: "Video",
-      children: <VideoChannel />, // Replace with actual content
+      children: <VideoChannel channelId={id} />, // Replace with actual content
     },
     {
       key: "3",
@@ -25,14 +25,18 @@ const ChannelPage = () => {
     },
   ];
   return (
-    <>
-      <ChannelInformation channelId={id} />
-      <Row style={{ marginTop: "16px", width: "100%" }}>
-        <Col span={24}>
-          <Tabs defaultActiveKey="1" items={tabs} />
-        </Col>
-      </Row>
-    </>
+    <Row>
+      <Col span={2}></Col>
+      <Col span={20}>
+        <ChannelInformation channelId={id} />
+        <Row style={{ marginTop: "16px", width: "100%" }}>
+          <Col span={24}>
+            <Tabs defaultActiveKey="1" items={tabs} />
+          </Col>
+        </Row>
+      </Col>
+      <Col span={2}></Col>
+    </Row>
   );
 };
 

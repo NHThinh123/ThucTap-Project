@@ -54,12 +54,6 @@ function App() {
       path: "/",
     },
     {
-      key: "channel",
-      icon: <UserOutlined />,
-      label: <Link to="/channel">Channel</Link>,
-      path: "/channel",
-    },
-    {
       key: "playlist",
       icon: <ListVideo size={18} />,
       label: <Link to="/playlist">PlayList</Link>,
