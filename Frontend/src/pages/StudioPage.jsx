@@ -20,6 +20,7 @@ import {
   ArrowLeftOutlined,
   HomeOutlined,
   MenuOutlined,
+  PlusOutlined,
   SearchOutlined,
   UserOutlined,
   YoutubeOutlined,
@@ -163,30 +164,22 @@ const StudioPage = () => {
             <Col
               span={12}
               style={{ display: "flex", justifyContent: "center" }}
-            >
-              <Input.Search
-                size="large"
-                placeholder="Tìm kiếm trên kênh"
-                style={{ width: "100%", maxWidth: "600px" }}
-                enterButton={
-                  <Button type="primary" icon={<SearchOutlined />} />
-                }
-              />
-            </Col>
-            <Col span={2} style={{ display: "flex", justifyContent: "center" }}>
+            ></Col>
+            <Col span={3} style={{ display: "flex", justifyContent: "end" }}>
               <Button
-                type="text"
-                icon={<Upload />}
+                type="default"
                 style={{
-                  fontSize: "24px",
-                  color: "#000",
+                  fontSize: "16px",
+
                   marginLeft: "16px",
                 }}
                 onClick={handleUploadClick}
-              ></Button>
+              >
+                <PlusOutlined /> Đăng tải
+              </Button>
             </Col>
             <Col
-              span={4}
+              span={3}
               style={{ display: "flex", justifyContent: "flex-end" }}
             >
               {isUserLoggedIn ? (
