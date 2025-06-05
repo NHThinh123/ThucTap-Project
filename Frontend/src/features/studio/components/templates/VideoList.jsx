@@ -21,31 +21,35 @@ import {
   Trash,
 } from "lucide-react";
 import React, { useState } from "react";
-
-import { formatDate } from "../../../../constants/formatDate";
-import { formatViews } from "../../../../constants/formatViews";
 import { useVideoManagement } from "../../hooks/useVideoManagement";
 import { useUserVideos } from "../../hooks/useUserVideos";
+import { useVideoUpload } from "../../../uploadvideo/hooks/useVideoUpload";
+import { formatDate } from "../../../../constants/formatDate";
+import { formatViews } from "../../../../constants/formatViews";
 import { UploadOutlined } from "@ant-design/icons";
 
 const VideoList = ({ userId }) => {
+  const [messageApi, contextHolder] = message.useMessage();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
+  const [thumbnailUrl, setThumbnailUrl] = useState(null);
   const [form] = Form.useForm();
   const { editVideo, isEditing, deleteVideo, isDeleting } =
     useVideoManagement(userId);
   const { data: videos, isLoading, error } = useUserVideos(userId);
+  const { uploadThumbnail, isUploadingThumbnail } = useVideoUpload();
 
   const showEditModal = (video) => {
     setSelectedVideo(video);
-    setThumbnailPreview(video.thumbnail || null);
+    setThumbnailPreview(video.thumbnail_video || null);
+    setThumbnailUrl(video.thumbnail_video || null);
     form.setFieldsValue({
       title: video.title,
-      description: video.description,
-      thumbnail: video.thumbnail
-        ? [{ url: video.thumbnail, status: "done", name: "thumbnail" }]
+      description: video.description_video,
+      thumbnail: video.thumbnail_video
+        ? [{ url: video.thumbnail_video, status: "done", name: "thumbnail" }]
         : [],
     });
     setIsEditModalVisible(true);
@@ -56,26 +60,44 @@ const VideoList = ({ userId }) => {
     setIsDeleteModalVisible(true);
   };
 
+  const handleThumbnailChange = ({ fileList }) => {
+    if (fileList.length > 0 && fileList[0].originFileObj) {
+      const file = fileList[0].originFileObj;
+      const newThumbnailUrl = URL.createObjectURL(file);
+      setThumbnailPreview(newThumbnailUrl);
+
+      // Gọi API upload thumbnail
+      uploadThumbnail(file, {
+        onSuccess: (data) => {
+          setThumbnailUrl(data); // Lưu URL từ API
+        },
+        onProgress: (percent) => {
+          console.log(`Upload progress: ${percent}%`);
+        },
+      });
+    } else {
+      setThumbnailPreview(selectedVideo?.thumbnail_video || null);
+      setThumbnailUrl(selectedVideo?.thumbnail_video || null);
+    }
+    form.setFieldsValue({ thumbnail: fileList });
+  };
+
   const handleEditOk = () => {
     form
       .validateFields()
       .then((values) => {
-        const thumbnailFile =
-          values.thumbnail && values.thumbnail[0]?.originFileObj;
         editVideo(selectedVideo._id, {
           title: values.title,
           description: values.description,
-          thumbnail: thumbnailFile,
+          thumbnail: thumbnailUrl, // Sử dụng URL đã upload
         });
         setIsEditModalVisible(false);
         form.resetFields();
         setThumbnailPreview(null);
+        setThumbnailUrl(null);
       })
       .catch(() => {
-        message.open({
-          type: "error",
-          content: "Vui lòng kiểm tra lại thông tin!",
-        });
+        messageApi.error("Vui lòng kiểm tra lại thông tin!");
       });
   };
 
@@ -83,6 +105,7 @@ const VideoList = ({ userId }) => {
     setIsEditModalVisible(false);
     form.resetFields();
     setThumbnailPreview(null);
+    setThumbnailUrl(null);
   };
 
   const handleDeleteOk = () => {
@@ -101,28 +124,19 @@ const VideoList = ({ userId }) => {
     return e && e.fileList;
   };
 
-  const handleThumbnailChange = ({ fileList }) => {
-    if (fileList.length > 0 && fileList[0].originFileObj) {
-      const newThumbnailUrl = URL.createObjectURL(fileList[0].originFileObj);
-      setThumbnailPreview(newThumbnailUrl);
-    } else {
-      setThumbnailPreview(selectedVideo?.thumbnail || null);
-    }
-    form.setFieldsValue({ thumbnail: fileList });
-  };
-
   const data =
     videos?.map((video, index) => ({
       key: video._id || index,
       video: {
         ...video,
         id: video._id,
-        thumbnailUrl: video.thumbnail,
-        createdAt: video.created_at,
-        views: video.view_count,
-        commentCount: video.comment_count,
-        likeCount: video.like_count,
-        dislikeCount: video.dislike_count,
+        thumbnailUrl: video.thumbnail_video,
+        description: video.description_video,
+        createdAt: video.createdAt,
+        views: video.views,
+        commentCount: video.comments,
+        likeCount: video.likes,
+        dislikeCount: video.dislikes,
       },
     })) || [];
 
@@ -243,15 +257,13 @@ const VideoList = ({ userId }) => {
   }
 
   if (error) {
-    message.open({
-      type: "error",
-      content: error.message || "Lỗi khi tải danh sách video!",
-    });
+    messageApi.error(error.message || "Lỗi khi tải danh sách video!");
     return <p>Không thể tải danh sách video.</p>;
   }
 
   return (
     <>
+      {contextHolder}
       <Table columns={columns} dataSource={data} />
       <Modal
         title="Chỉnh sửa video"
@@ -261,7 +273,7 @@ const VideoList = ({ userId }) => {
         okText="Lưu"
         cancelText="Hủy"
         centered
-        confirmLoading={isEditing}
+        confirmLoading={isEditing || isUploadingThumbnail}
       >
         <Form form={form} layout="vertical">
           <Form.Item
@@ -290,8 +302,11 @@ const VideoList = ({ userId }) => {
               maxCount={1}
               beforeUpload={() => false}
               onChange={handleThumbnailChange}
+              disabled={isUploadingThumbnail}
             >
-              <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
+              <Button icon={<UploadOutlined />} loading={isUploadingThumbnail}>
+                Chọn ảnh
+              </Button>
             </Upload>
           </Form.Item>
           <Form.Item

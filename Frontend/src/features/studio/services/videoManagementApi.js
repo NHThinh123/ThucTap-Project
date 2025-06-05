@@ -2,18 +2,15 @@ import axios from "../../../services/axios.customize";
 
 export const editVideoApi = async (videoId, data) => {
   try {
-    const formData = new FormData();
-    if (data.thumbnail) {
-      formData.append("image", data.thumbnail);
-    }
-    formData.append("title", data.title);
-    formData.append("description", data.description);
-    formData.append("user_id", data.user_id);
+    const payload = {
+      title: data.title,
+      description: data.description,
+      thumbnail: data.thumbnail || null,
+      user_id: data.user_id,
+    };
 
-    console.log("Sending edit video request:", { videoId, data });
-    const response = await axios.put(`/api/video/${videoId}`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    console.log("Sending edit video request:", { videoId, payload });
+    const response = await axios.put(`/api/video/${videoId}`, payload);
 
     console.log("Edit video response:", response.data);
     return response.data || response;

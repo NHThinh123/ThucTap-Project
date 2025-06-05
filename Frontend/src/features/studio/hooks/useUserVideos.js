@@ -6,13 +6,11 @@ const fetchUserVideos = async (userId) => {
     console.log("Fetching videos for user:", userId);
     const response = await axios.get(`/api/video/user/${userId}`);
     console.log("User videos response:", response.data);
-    return response.data.data || response.data || [];
+    return response.data.videos || [];
   } catch (error) {
     console.error("Fetch user videos error:", error);
     throw new Error(
-      error.response?.data?.message ||
-        error.message ||
-        "Lỗi khi lấy danh sách video"
+      error.response?.message || error.message || "Lỗi khi lấy danh sách video"
     );
   }
 };

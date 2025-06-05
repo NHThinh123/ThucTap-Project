@@ -219,7 +219,8 @@ function App() {
             </Col>
             <Col span={3} style={{ display: "flex", justifyContent: "end" }}>
               <Button
-                type="default"
+                color="primary"
+                variant="outlined"
                 style={{
                   fontSize: "16px",
 
