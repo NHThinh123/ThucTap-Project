@@ -123,10 +123,6 @@ const OverviewAnalysis = ({ userId }) => {
           </List.Item>
         )}
       />
-      <Divider style={{ marginTop: 5 }} />
-      <Button color="primary" variant="outlined">
-        Xem số liệu phân tích video
-      </Button>
     </BoxCustom>
   );
 };

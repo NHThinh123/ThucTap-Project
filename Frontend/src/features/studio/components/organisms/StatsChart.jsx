@@ -16,7 +16,7 @@ const StatsChart = ({ userId }) => {
 
   // Tính startDate và endDate dựa trên timeRange
   const getDateRange = () => {
-    const today = new Date("2025-05-20"); // Ngày hiện tại
+    const today = new Date(); // Ngày hiện tại
     if (timeRange === "7days") {
       return {
         startDate: format(subDays(today, 7), "yyyy-MM-dd"),

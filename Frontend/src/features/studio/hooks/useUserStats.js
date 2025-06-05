@@ -16,6 +16,5 @@ export const useUserStats = ({ userId, period, startDate, endDate }) => {
     },
     staleTime: 5 * 60 * 1000, // Cache 5 phút
     retry: 1,
-    refetchOnWindowFocus: false,
   });
 };
