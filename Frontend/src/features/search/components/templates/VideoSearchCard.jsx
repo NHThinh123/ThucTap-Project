@@ -13,6 +13,10 @@ const VideoSearchCard = ({ video }) => {
     navigate(`/watch/${video._id}`); // Navigate to the video page
     window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll to top
   };
+
+  const handleLinkClick = (e) => {
+    e.stopPropagation(); // Prevent parent onClick from firing
+  };
   return (
     <div
       style={{
@@ -108,13 +112,20 @@ const VideoSearchCard = ({ video }) => {
               <span>{formatTime(video.createdAt) || "None date"}</span>
             </div>
             <div style={{ padding: "16px 0" }}>
-              <Link to="/channel">
+              <Link
+                to={`/channel/${video?.user_id._id}`}
+                onClick={handleLinkClick}
+              >
                 <Avatar
                   src="https://pbs.twimg.com/media/F_vO2geW0AE1mmW.jpg"
                   size={30}
                 />
               </Link>
-              <Link to="/channel" style={{ textDecoration: "none" }}>
+              <Link
+                to={`/channel/${video?.user_id._id}`}
+                style={{ textDecoration: "none" }}
+                onClick={handleLinkClick}
+              >
                 <span
                   style={{
                     fontWeight: 400,
