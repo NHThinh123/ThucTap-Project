@@ -30,8 +30,10 @@ const removeVideoFromPlaylistService = async (playlistId, videoId) => {
 };
 const getVideosInPlaylistService = async (playlistId) => {
   const videos = await PlaylistVideo.find({ playlist_id: playlistId })
-    .populate("video_id", "title thumbnailUrl")
-    .sort({ order: 1 });
+    .sort({
+      order: 1,
+    })
+    .lean();
   if (!videos.length) {
     throw new AppError("No videos found in this playlist", 403);
   }

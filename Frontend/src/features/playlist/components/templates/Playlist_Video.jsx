@@ -1,47 +1,66 @@
-import React, { useState, useContext, useMemo } from "react";
-import { List, Button, Spin, Modal } from "antd";
-import { useUserPlaylists, useVideosInPlaylist } from "../../hooks/usePlayList";
-import useVideoById from "../../hooks/useVideoById";
+import React, { useState, useContext } from "react";
+import { List, Button, Spin, Modal, Card, Avatar, Popconfirm } from "antd";
+import {
+  PlayCircleOutlined,
+  ClockCircleOutlined,
+  DeleteOutlined,
+} from "@ant-design/icons";
+import {
+  useUserPlaylists,
+  useVideosInPlaylist,
+  useDeletePlaylist,
+  useRemoveVideoFromPlaylist,
+} from "../../hooks/usePlayList";
+import { useQueries } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../../../contexts/auth.context";
+import { getVideoByIdApi } from "../../services/playListApi";
 
 const PlayList_Video = () => {
   const { auth } = useContext(AuthContext);
   const user_id = auth?.user?.id;
+  const navigate = useNavigate();
   const [selectedPlaylistId, setSelectedPlaylistId] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   // Lấy danh sách phát
-  const { data: playlists, isLoading: isPlaylistsLoading } =
-    useUserPlaylists(user_id);
+  const {
+    data: playlists,
+    isLoading: isPlaylistsLoading,
+    refetch: refetchPlaylists,
+  } = useUserPlaylists(user_id);
   const safePlaylists = Array.isArray(playlists) ? playlists : [];
 
   // Lấy video trong danh sách phát được chọn
-  const { data: playlistVideos, isLoading: isVideosLoading } =
-    useVideosInPlaylist(selectedPlaylistId);
+  const {
+    data: playlistVideos,
+    isLoading: isVideosLoading,
+    refetch: refetchVideos,
+  } = useVideosInPlaylist(selectedPlaylistId);
+  const safePlaylistVideos = Array.isArray(playlistVideos)
+    ? playlistVideos
+    : [];
 
-  // Sử dụng useMemo để đảm bảo videoIds ổn định
-  const videoIds = useMemo(
-    () => (playlistVideos ? playlistVideos.map((video) => video.video_id) : []),
-    [playlistVideos]
-  );
+  // Hooks cho các thao tác xóa
+  const { mutate: deletePlaylist } = useDeletePlaylist();
+  const { mutate: removeVideo } = useRemoveVideoFromPlaylist();
 
-  // Gọi useVideoById cho từng videoId
-  const videoQueries = useMemo(
-    () => videoIds.map((videoId) => useVideoById(videoId)),
-    [videoIds]
-  );
+  // Fetch chi tiết video
+  const videoQueries = useQueries({
+    queries: safePlaylistVideos.map((video) => ({
+      queryKey: ["videos", video.video_id],
+      queryFn: () => getVideoByIdApi(video.video_id),
+      enabled: !!video.video_id && !!selectedPlaylistId,
+    })),
+  });
 
   // Kết hợp video danh sách phát với chi tiết video
-  const videoDetails = useMemo(
-    () =>
-      playlistVideos?.map((video, index) => ({
-        ...video,
-        videoData: videoQueries[index]?.videoData,
-        isLoading: videoQueries[index]?.isLoading,
-        isError: videoQueries[index]?.isError,
-      })) || [],
-    [playlistVideos, videoQueries]
-  );
+  const videoDetails = safePlaylistVideos.map((video, index) => ({
+    ...video,
+    videoData: videoQueries[index]?.data,
+    isLoading: videoQueries[index]?.isLoading,
+    isError: videoQueries[index]?.isError,
+  }));
 
   const handleSelectPlaylist = (playlistId) => {
     setSelectedPlaylistId(playlistId);
@@ -55,6 +74,199 @@ const PlayList_Video = () => {
   if (videoDetails?.length) {
     return <Spin tip="Đang tải danh sách phát..." />;
   }
+
+  const handleDeletePlaylist = (playlistId) => {
+    deletePlaylist(playlistId, {
+      onSuccess: () => {
+        refetchPlaylists();
+        if (selectedPlaylistId === playlistId) {
+          handleCloseModal();
+        }
+      },
+    });
+  };
+
+  const handleRemoveVideo = (playlistId, videoId) => {
+    removeVideo(
+      { playlistId, videoId },
+      {
+        onSuccess: () => {
+          refetchVideos();
+        },
+      }
+    );
+  };
+
+  // Hàm chuyển đến trang phát video
+  const handlePlayVideo = (videoId) => {
+    navigate(`/watch/${videoId}`);
+  };
+
+  // Component hiển thị video item
+  const VideoItem = ({ video }) => {
+    if (video.isLoading) {
+      return (
+        <List.Item>
+          <Spin tip="Đang tải video..." />
+        </List.Item>
+      );
+    }
+
+    if (video.isError) {
+      return (
+        <List.Item>
+          <Card>
+            <div style={{ color: "red" }}>
+              Lỗi khi tải video {video.video_id}
+            </div>
+          </Card>
+        </List.Item>
+      );
+    }
+
+    const videoData = video.videoData;
+
+    return (
+      <List.Item
+        actions={[
+          <Popconfirm
+            title="Bạn có chắc muốn xóa video này khỏi danh sách phát?"
+            onConfirm={() =>
+              handleRemoveVideo(selectedPlaylistId, video.video_id)
+            }
+            okText="Có"
+            cancelText="Không"
+          >
+            <Button danger icon={<DeleteOutlined />} />
+          </Popconfirm>,
+        ]}
+      >
+        <Card
+          hoverable
+          style={{ width: "100%", marginBottom: 8 }}
+          onClick={() => handlePlayVideo(video.video_id)}
+        >
+          <div style={{ display: "flex", gap: 16 }}>
+            {/* Thumbnail */}
+            <div style={{ minWidth: 160, height: 90, position: "relative" }}>
+              {videoData?.thumbnail_video ? (
+                <img
+                  src={videoData.thumbnail_video}
+                  alt={videoData.title}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: 4,
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    backgroundColor: "#f0f0f0",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: 4,
+                  }}
+                >
+                  <PlayCircleOutlined style={{ fontSize: 24, color: "#999" }} />
+                </div>
+              )}
+
+              {/* Play overlay */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  backgroundColor: "rgba(0,0,0,0.7)",
+                  borderRadius: "50%",
+                  padding: 8,
+                  cursor: "pointer",
+                }}
+              >
+                <PlayCircleOutlined style={{ fontSize: 20, color: "white" }} />
+              </div>
+
+              {/* Duration */}
+              {videoData?.duration && (
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: 4,
+                    right: 4,
+                    backgroundColor: "rgba(0,0,0,0.8)",
+                    color: "white",
+                    padding: "2px 6px",
+                    borderRadius: 2,
+                    fontSize: 12,
+                  }}
+                >
+                  {videoData.duration}
+                </div>
+              )}
+            </div>
+
+            {/* Video Info */}
+            <div style={{ flex: 1 }}>
+              <h4
+                style={{
+                  margin: "0 0 8px 0",
+                  fontSize: 16,
+                  fontWeight: 500,
+                  lineHeight: 1.3,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
+              >
+                {videoData?.title || `Video ${video.video_id}`}
+              </h4>
+
+              <div
+                style={{
+                  color: "#999",
+                  fontSize: 12,
+                  display: "flex",
+                  gap: 12,
+                }}
+              >
+                {videoData?.views && <span>{videoData.views} lượt xem</span>}
+                {videoData?.uploadDate && (
+                  <span>
+                    <ClockCircleOutlined style={{ marginRight: 4 }} />
+                    {videoData.uploadDate}
+                  </span>
+                )}
+              </div>
+
+              {videoData?.description && (
+                <div
+                  style={{
+                    color: "#666",
+                    fontSize: 13,
+                    marginTop: 8,
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  {videoData.description}
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
+      </List.Item>
+    );
+  };
+
   return (
     <div style={{ padding: "20px" }}>
       <h2>Danh sách phát của bạn</h2>
@@ -78,6 +290,14 @@ const PlayList_Video = () => {
                 >
                   Xem
                 </Button>,
+                <Popconfirm
+                  title="Bạn có chắc muốn xóa danh sách phát này?"
+                  onConfirm={() => handleDeletePlaylist(playlist._id)}
+                  okText="Có"
+                  cancelText="Không"
+                >
+                  <Button danger icon={<DeleteOutlined />} />
+                </Popconfirm>,
               ]}
             >
               <List.Item.Meta
@@ -91,8 +311,11 @@ const PlayList_Video = () => {
 
       <Modal
         title={
-          safePlaylists.find((p) => p._id === selectedPlaylistId)
-            ?.title_playlist || "Video trong danh sách phát"
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <PlayCircleOutlined />
+            {safePlaylists.find((p) => p._id === selectedPlaylistId)
+              ?.title_playlist || "Video trong danh sách phát"}
+          </div>
         }
         open={isModalVisible}
         onCancel={handleCloseModal}
@@ -101,32 +324,22 @@ const PlayList_Video = () => {
             Đóng
           </Button>,
         ]}
+        width={800}
+        style={{ top: 20 }}
       >
         {isVideosLoading ? (
-          <Spin tip="Đang tải video..." />
-        ) : videoDetails?.length === 0 ? (
-          <div>Không có video trong danh sách phát này.</div>
+          <div style={{ textAlign: "center", padding: 40 }}>
+            <Spin size="large" tip="Đang tải danh sách video..." />
+          </div>
+        ) : videoDetails.length === 0 ? (
+          <div style={{ textAlign: "center", padding: 40, color: "#999" }}>
+            Không có video trong danh sách phát này.
+          </div>
         ) : (
           <List
             dataSource={videoDetails}
-            renderItem={(video) => (
-              <List.Item>
-                {video.isLoading ? (
-                  <Spin tip="Đang tải video..." />
-                ) : video.isError ? (
-                  <div>Lỗi khi tải video {video.video_id}</div>
-                ) : (
-                  <List.Item.Meta
-                    title={video.videoData?.title || `Video ${video.video_id}`}
-                    description={`Thứ tự: ${video.order}${
-                      video.videoData?.description
-                        ? ` | ${video.videoData.description}`
-                        : ""
-                    }`}
-                  />
-                )}
-              </List.Item>
-            )}
+            renderItem={(video) => <VideoItem video={video} />}
+            style={{ maxHeight: 500, overflowY: "auto" }}
           />
         )}
       </Modal>
