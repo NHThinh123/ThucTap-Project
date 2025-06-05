@@ -4,6 +4,8 @@ import {
   createPlaylist,
   addVideoToPlaylist,
   getVideosInPlaylist,
+  deletePlaylist,
+  removeVideoFromPlaylist,
 } from "../services/playListApi";
 import { App } from "antd";
 
@@ -28,15 +30,16 @@ export const useCreatePlaylist = () => {
     mutationFn: createPlaylist,
     onSuccess: (data) => {
       queryClient.invalidateQueries(["playlists"]);
-      message.success("Playlist created successfully");
+      message.success("Danh sách phát được tạo thành công");
       return data;
     },
     onError: (error) => {
-      console.error("Create playlist error:", error);
-      message.error("Failed to create playlist");
+      console.error("Lỗi tạo danh sách phát:", error);
+      message.error("Không thể tạo danh sách phát");
     },
   });
 };
+
 export const useVideosInPlaylist = (playlistId) => {
   return useQuery({
     queryKey: ["playlistVideos", playlistId],
@@ -58,7 +61,7 @@ export const useAddVideoToPlaylist = () => {
       message.success("Video được thêm vào danh sách phát");
     },
     onError: (error) => {
-      console.error("Add video error:", error);
+      console.error("Lỗi thêm video:", error);
       if (
         error.response?.status === 400 &&
         error.response?.message === "Video already exists in playlist"
@@ -67,6 +70,38 @@ export const useAddVideoToPlaylist = () => {
       } else {
         message.error("Đã có lỗi xảy ra");
       }
+    },
+  });
+};
+
+export const useDeletePlaylist = () => {
+  const { message } = App.useApp();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deletePlaylist,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["playlists"]);
+      message.success("Danh sách phát đã được xóa");
+    },
+    onError: (error) => {
+      console.error("Lỗi xóa danh sách phát:", error);
+      message.error("Không thể xóa danh sách phát");
+    },
+  });
+};
+
+export const useRemoveVideoFromPlaylist = () => {
+  const { message } = App.useApp();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: removeVideoFromPlaylist,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["playlistVideos"]);
+      message.success("Video đã được xóa khỏi danh sách phát");
+    },
+    onError: (error) => {
+      console.error("Lỗi xóa video:", error);
+      message.error("Không thể xóa video khỏi danh sách phát");
     },
   });
 };

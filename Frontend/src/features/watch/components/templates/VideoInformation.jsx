@@ -3,10 +3,15 @@ import VideoDescription from "../organisms/VideoDescription";
 import ChannelInVideo from "../organisms/ChannelInVideo";
 import InteractButton from "../organisms/InteractButton";
 import { ModalProvider } from "../../../../contexts/modal.context";
+import ReviewSpace from "../../../review/components/templates/ReviewSpace";
 
 const { Title } = Typography;
 
 const VideoInformation = ({ video }) => {
+  const isLoading = !video;
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
   return (
     <>
       <Typography>
