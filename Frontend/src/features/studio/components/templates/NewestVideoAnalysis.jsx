@@ -120,13 +120,6 @@ const NewestVideoAnalysis = ({ userId }) => {
           {renderTrend(latestTrends.dislikes || 0, false)}
         </Flex>
       </Col>
-      <Divider style={{ marginTop: "10px" }} />
-      <Button style={{ marginBottom: 8 }} color="primary" variant="outlined">
-        Xem số liệu phân tích video
-      </Button>
-      <Button color="primary" variant="outlined">
-        Xem bình luận ({video.totalComments})
-      </Button>
     </BoxCustom>
   );
 };

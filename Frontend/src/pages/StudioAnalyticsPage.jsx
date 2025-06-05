@@ -1,10 +1,14 @@
 import React from "react";
 import StatsChart from "../features/studio/components/organisms/StatsChart";
+import { useContext } from "react";
+import { AuthContext } from "../contexts/auth.context";
 
 const StudioAnalyticsPage = () => {
+  // eslint-disable-next-line no-unused-vars
+  const { auth, setAuth } = useContext(AuthContext);
   return (
     <>
-      <StatsChart userId={"681ccf3e684f3cb552b04bd6"} />
+      <StatsChart userId={auth?.user?.id} />
     </>
   );
 };

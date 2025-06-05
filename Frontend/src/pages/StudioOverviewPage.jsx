@@ -16,7 +16,7 @@ import { ChartNoAxesColumn, ThumbsDown, ThumbsUp } from "lucide-react";
 import NewestVideoAnalysis from "../features/studio/components/templates/NewestVideoAnalysis";
 import OverviewAnalysis from "../features/studio/components/templates/OverviewAnalysis";
 import VideoPublish from "../features/studio/components/templates/VideoPublish";
-import SubcriberList from "../features/studio/components/templates/SubcriberList";
+import SubscriberList from "../features/studio/components/templates/SubscriberList";
 import { useContext } from "react";
 import { AuthContext } from "../contexts/auth.context";
 
@@ -35,7 +35,7 @@ const StudioOverviewPage = () => {
           <NewestVideoAnalysis userId={userId} />
         </Col>
         <Col span={8}>
-          <SubcriberList />
+          <SubscriberList />
         </Col>
       </Row>
     </>

@@ -34,7 +34,7 @@ const getRecommendationsService = async (userId) => {
 
     const allVideoIds = await Video.find().distinct("_id");
     console.log(`Total video IDs in database: ${allVideoIds.length}`);
-    console.log(`All video IDs: ${allVideoIds}`);
+
     const data = JSON.stringify(interactionData);
     const options = {
       mode: "text",

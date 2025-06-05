@@ -60,27 +60,23 @@ const StudioPage = () => {
     {
       key: "overview",
       icon: <AppstoreOutlined />,
-      label: <Link to="/studio/overview">Tổng quan</Link>,
+      label: <Link to="/studio">Tổng quan</Link>,
     },
     {
       key: "content",
       icon: <HomeOutlined />,
-      label: <Link to="/studio">Nội dung</Link>,
+      label: <Link to="/studio/content">Nội dung</Link>,
     },
     {
       key: "analytics",
       icon: <YoutubeOutlined />,
       label: <Link to="/studio/analytics">Thống kê</Link>,
     },
+
     {
-      key: "edit",
-      icon: <UserOutlined />,
-      label: <Link to="/studio/edit">Tùy chỉnh kênh</Link>,
-    },
-    {
-      key: "subcribers",
+      key: "subscribers",
       icon: <YoutubeOutlined />,
-      label: <Link to="/studio/subcribers">Người đăng ký</Link>,
+      label: <Link to="/studio/subscribers">Người đăng ký</Link>,
     },
     {
       key: "back",
@@ -255,7 +251,7 @@ const StudioPage = () => {
             </div>
             <Menu
               mode="inline"
-              defaultSelectedKeys={["content"]}
+              defaultSelectedKeys={["overview"]}
               items={menuItems}
               style={{ height: "100%", borderRight: 0 }}
             />

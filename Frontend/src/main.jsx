@@ -76,7 +76,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <StudioContentPage />,
+        element: <StudioOverviewPage />,
       },
       {
         path: "analytics",
@@ -87,12 +87,12 @@ const router = createBrowserRouter([
         element: <StudioEditPage />,
       },
       {
-        path: "subcribers",
+        path: "subscribers",
         element: <StudioSubcribersPage />,
       },
       {
-        path: "overview",
-        element: <StudioOverviewPage />,
+        path: "content",
+        element: <StudioContentPage />,
       },
       {
         path: "uploadvideo",

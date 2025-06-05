@@ -2,16 +2,20 @@ import React from "react";
 import BoxCustom from "../../../../components/atoms/BoxCustom";
 import { Avatar, Button, Col, Divider, List, Row, Typography } from "antd";
 
-const SubcriberList = () => {
-  const data = Array(3).fill({
-    thumbnail: "https://pbs.twimg.com/media/F_vO2geW0AE1mmW.jpg",
-    name: "KAFF Gaming",
-    subcriber: "61",
-  });
+import { useSubscribers } from "../../hooks/useSubscribers";
+import { useContext } from "react";
+import { AuthContext } from "../../../../contexts/auth.context";
+
+const SubscriberList = () => {
+  // eslint-disable-next-line no-unused-vars
+  const { auth, setAuth } = useContext(AuthContext);
+  const userId = auth?.user.id; // Lấy userId từ context hoặc props nếu cần
+  const { data } = useSubscribers({ userId });
+  const subscriberData = data?.subscribers?.slice(0, 5) || [];
   return (
     <BoxCustom>
       <Typography.Title level={5}>Danh sách người đăng ký</Typography.Title>
-      <Typography.Text type="secondary"> 90 ngày qua</Typography.Text>
+
       <Divider style={{ marginTop: 5 }} />
       <List
         style={{ marginTop: 8 }}
@@ -20,12 +24,12 @@ const SubcriberList = () => {
           gutter: 8,
           column: 1,
         }}
-        dataSource={data}
+        dataSource={subscriberData}
         renderItem={(item) => (
           <List.Item style={{ padding: 4 }}>
             <Row gutter={16} align={"middle"}>
               <Col span={4}>
-                <Avatar src={item.thumbnail} size={50} />
+                <Avatar src={item.avatar} size={50} />
               </Col>
               <Col span={20}>
                 <p
@@ -39,22 +43,19 @@ const SubcriberList = () => {
                     fontWeight: "700",
                   }}
                 >
-                  {item.name}
+                  {item.nickName}
                 </p>
-                <Typography.Text type="secondary" style={{ fontSize: 14 }}>
-                  {item.subcriber} người đăng ký
-                </Typography.Text>
               </Col>
             </Row>
           </List.Item>
         )}
       />
       <Divider style={{ marginTop: 5 }} />
-      <Button color="primary" variant="outlined">
+      <Button color="primary" variant="outlined" href="/studio/subscribers">
         Xem tất cả
       </Button>
     </BoxCustom>
   );
 };
 
-export default SubcriberList;
+export default SubscriberList;
