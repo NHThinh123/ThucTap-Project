@@ -77,7 +77,6 @@ const SubscribeButton = ({
           color: "#fff",
           background: isSubscribed ? "#000" : "#FF0000",
           border: "none",
-          marginLeft: 20,
           fontSize: 16,
           fontWeight: 500,
           padding: isSubscribed ? "0 20px 0 20px" : "0 20px",

@@ -8,9 +8,6 @@ const useChannelInfo = (channelId) => {
       const response = getChannelInfoApi(channelId);
       return response;
     },
-    enabled: !!channelId,
-    staleTime: 30000, // Cache trong 30 giây
-    refetchOnWindowFocus: false,
   });
 };
 

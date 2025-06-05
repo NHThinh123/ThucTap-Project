@@ -17,13 +17,13 @@ const incrementViewApi = ({ user_id, video_id }) => {
 
 // Lấy danh sách video theo userId
 const getVideosByUserIdApi = (userId) => {
-  const URL_API = `/api/videos/user/${userId}`;
+  const URL_API = `/api/video/user/${userId}`;
   return axios.get(URL_API);
 };
 
 // Đếm số lượng video của userId
 const countVideoOfUserIdApi = (userId) => {
-  const URL_API = `/api/videos/user/${userId}/count`;
+  const URL_API = `/api/video/user/${userId}/count`;
   return axios.get(URL_API);
 };
 

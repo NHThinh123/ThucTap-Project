@@ -2,7 +2,6 @@ import { Col, Divider, Row, Typography } from "antd";
 import React from "react";
 import HorizontalListVideo from "../organisms/HorizontalListVideo";
 
-
 const { Title, Text } = Typography;
 
 const MainChannel = () => {

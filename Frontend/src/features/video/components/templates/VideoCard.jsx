@@ -10,6 +10,10 @@ const VideoCard = ({ video }) => {
     navigate(`/watch/${video._id}`); // Navigate to the video page
     window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll to top
   };
+
+  const handleLinkClick = (e) => {
+    e.stopPropagation(); // Prevent parent onClick from firing
+  };
   return (
     <>
       <style>{styles}</style>
@@ -25,7 +29,11 @@ const VideoCard = ({ video }) => {
           </div>
         </div>
         <div className="video-card__content">
-          <Link to="/channel" className="video-card__avatar-link">
+          <Link
+            to={`/channel/${video?.user_id._id}`}
+            className="video-card__avatar-link"
+            onClick={handleLinkClick}
+          >
             <img
               className="video-card__avatar"
               src={
@@ -55,7 +63,11 @@ const VideoCard = ({ video }) => {
                 </svg>
               </button>
             </div>
-            <Link to="/channel" className="video-card__channel-link">
+            <Link
+              to={`/channel/${video?.user_id._id}`}
+              className="video-card__channel-link"
+              onClick={handleLinkClick}
+            >
               <span className="video-card__channel">
                 {video.user_id.nickname || "Channel Name"}
               </span>
@@ -169,10 +181,11 @@ const styles = `
   .video-card__channel {
   font-family: 'Roboto', Arial, sans-serif;
   font-weight: 400;
-    font-size: 14px;
-    color: #606060;
-    display: block;
-  }
+  font-size: 14px;
+  color: #606060;
+  display: inline-block; /* Thay từ display: block */
+  white-space: nowrap; /* Ngăn ngắt dòng để chiều dài đúng với nội dung */
+}
 
   .video-card__meta {
   font-family: 'Roboto', Arial, sans-serif;

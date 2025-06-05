@@ -41,7 +41,7 @@ const ChannelInVideo = ({ channelId }) => {
   }
   return (
     <Space>
-      <Link to="/channel">
+      <Link to={`/channel/${channelId}`}>
         <Avatar
           src={
             channelInfo.avatar ||
@@ -50,8 +50,8 @@ const ChannelInVideo = ({ channelId }) => {
           size={45}
         />
       </Link>
-      <div style={{ marginLeft: 5, fontSize: 14 }}>
-        <Link to="/channel">
+      <div style={{ marginLeft: 5, fontSize: 14, paddingRight: 20 }}>
+        <Link to={`/channel/${channelId}`}>
           <p
             style={{
               fontWeight: "bold",

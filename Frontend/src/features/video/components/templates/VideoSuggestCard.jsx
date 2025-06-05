@@ -10,6 +10,10 @@ const VideoSuggestCard = ({ video }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
 
+  const handleLinkClick = (e) => {
+    e.stopPropagation(); // Prevent parent onClick from firing
+  };
+
   const handleRowClick = () => {
     navigate(`/watch/${video._id}`); // Navigate to the video page
     window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll to top
@@ -122,7 +126,11 @@ const VideoSuggestCard = ({ video }) => {
                 {video.title}
               </div>
             </div>
-            <Link to="/channel" style={{ textDecoration: "none" }}>
+            <Link
+              to={`/channel/${video?.user_id._id}`}
+              style={{ textDecoration: "none" }}
+              onClick={handleLinkClick}
+            >
               <span
                 style={{
                   fontWeight: 400,
