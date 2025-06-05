@@ -69,7 +69,8 @@ const LikesDislikesChart = ({ data, labels, period }) => {
       },
       y: {
         title: { display: false, text: "Value" },
-        beginAtZero: true,
+        beginAtZero: true, // Bắt đầu trục Y từ 0
+        suggestedMin: 5, // Gợi ý giá trị tối thiểu là 5
       },
     },
   };

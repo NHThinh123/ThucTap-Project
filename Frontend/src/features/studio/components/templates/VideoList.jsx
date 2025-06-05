@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import {
   Button,
   Col,
@@ -9,6 +10,7 @@ import {
   Space,
   Table,
   Upload,
+  Spin,
   message,
 } from "antd";
 import {
@@ -20,27 +22,30 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 
-import { mockVideos } from "../../../../data/mockVideos";
 import { formatDate } from "../../../../constants/formatDate";
 import { formatViews } from "../../../../constants/formatViews";
+import { useVideoManagement } from "../../hooks/useVideoManagement";
+import { useUserVideos } from "../../hooks/useUserVideos";
 import { UploadOutlined } from "@ant-design/icons";
 
-const VideoList = () => {
-  const [messageApi, contextHolder] = message.useMessage();
+const VideoList = ({ userId }) => {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [form] = Form.useForm();
+  const { editVideo, isEditing, deleteVideo, isDeleting } =
+    useVideoManagement(userId);
+  const { data: videos, isLoading, error } = useUserVideos(userId);
 
   const showEditModal = (video) => {
     setSelectedVideo(video);
-    setThumbnailPreview(video.thumbnailUrl || null);
+    setThumbnailPreview(video.thumbnail || null);
     form.setFieldsValue({
       title: video.title,
       description: video.description,
-      thumbnail: video.thumbnailUrl
-        ? [{ url: video.thumbnailUrl, status: "done" }]
+      thumbnail: video.thumbnail
+        ? [{ url: video.thumbnail, status: "done", name: "thumbnail" }]
         : [],
     });
     setIsEditModalVisible(true);
@@ -51,41 +56,26 @@ const VideoList = () => {
     setIsDeleteModalVisible(true);
   };
 
-  const handleUploadThumbnail = async (file) => {
-    // Placeholder cho API upload thumbnail
-    try {
-      // const response = await api.uploadThumbnail(file, selectedVideo.id);
-      // Giả lập URL trả về từ API
-      const newThumbnailUrl = URL.createObjectURL(file); // Tạm dùng để preview
-      setThumbnailPreview(newThumbnailUrl);
-      messageApi.success("Tải thumbnail lên thành công!");
-      return true;
-    } catch (error) {
-      messageApi.error("Tải thumbnail thất bại!");
-      return false;
-    }
-  };
-
   const handleEditOk = () => {
     form
       .validateFields()
-      .then(async (values) => {
-        try {
-          // API call cho tiêu đề và mô tả
-          // const response = await api.updateVideoDetails(selectedVideo.id, {
-          //   title: values.title,
-          //   description: values.description,
-          // });
-          messageApi.success("Cập nhật video thành công!");
-          setIsEditModalVisible(false);
-          form.resetFields();
-          setThumbnailPreview(null);
-        } catch (error) {
-          messageApi.error("Cập nhật video thất bại!");
-        }
+      .then((values) => {
+        const thumbnailFile =
+          values.thumbnail && values.thumbnail[0]?.originFileObj;
+        editVideo(selectedVideo._id, {
+          title: values.title,
+          description: values.description,
+          thumbnail: thumbnailFile,
+        });
+        setIsEditModalVisible(false);
+        form.resetFields();
+        setThumbnailPreview(null);
       })
       .catch(() => {
-        messageApi.error("Vui lòng kiểm tra lại thông tin!");
+        message.open({
+          type: "error",
+          content: "Vui lòng kiểm tra lại thông tin!",
+        });
       });
   };
 
@@ -96,14 +86,8 @@ const VideoList = () => {
   };
 
   const handleDeleteOk = () => {
-    // Placeholder cho API xóa
-    try {
-      // const response = await api.deleteVideo(selectedVideo.id);
-      messageApi.success("Xóa video thành công!");
-      setIsDeleteModalVisible(false);
-    } catch (error) {
-      messageApi.error("Xóa video thất bại!");
-    }
+    deleteVideo(selectedVideo._id);
+    setIsDeleteModalVisible(false);
   };
 
   const handleDeleteCancel = () => {
@@ -117,10 +101,30 @@ const VideoList = () => {
     return e && e.fileList;
   };
 
-  const data = mockVideos.map((video, index) => ({
-    key: video.id || index,
-    video: video,
-  }));
+  const handleThumbnailChange = ({ fileList }) => {
+    if (fileList.length > 0 && fileList[0].originFileObj) {
+      const newThumbnailUrl = URL.createObjectURL(fileList[0].originFileObj);
+      setThumbnailPreview(newThumbnailUrl);
+    } else {
+      setThumbnailPreview(selectedVideo?.thumbnail || null);
+    }
+    form.setFieldsValue({ thumbnail: fileList });
+  };
+
+  const data =
+    videos?.map((video, index) => ({
+      key: video._id || index,
+      video: {
+        ...video,
+        id: video._id,
+        thumbnailUrl: video.thumbnail,
+        createdAt: video.created_at,
+        views: video.view_count,
+        commentCount: video.comment_count,
+        likeCount: video.like_count,
+        dislikeCount: video.dislike_count,
+      },
+    })) || [];
 
   const columns = [
     {
@@ -232,9 +236,22 @@ const VideoList = () => {
     },
   ];
 
+  if (isLoading) {
+    return (
+      <Spin size="large" style={{ display: "block", margin: "50px auto" }} />
+    );
+  }
+
+  if (error) {
+    message.open({
+      type: "error",
+      content: error.message || "Lỗi khi tải danh sách video!",
+    });
+    return <p>Không thể tải danh sách video.</p>;
+  }
+
   return (
     <>
-      {contextHolder}
       <Table columns={columns} dataSource={data} />
       <Modal
         title="Chỉnh sửa video"
@@ -244,9 +261,14 @@ const VideoList = () => {
         okText="Lưu"
         cancelText="Hủy"
         centered
+        confirmLoading={isEditing}
       >
         <Form form={form} layout="vertical">
-          <Form.Item name="thumbnail">
+          <Form.Item
+            name="thumbnail"
+            valuePropName="fileList"
+            getValueFromEvent={normFile}
+          >
             <div style={{ marginBottom: 16 }}>
               {thumbnailPreview ? (
                 <img
@@ -266,13 +288,8 @@ const VideoList = () => {
             <Upload
               listType="text"
               maxCount={1}
-              beforeUpload={(file) => {
-                handleUploadThumbnail(file);
-                return false; // Ngăn tự động upload
-              }}
-              onChange={({ fileList }) => {
-                form.setFieldsValue({ thumbnail: fileList });
-              }}
+              beforeUpload={() => false}
+              onChange={handleThumbnailChange}
             >
               <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
             </Upload>
@@ -301,6 +318,7 @@ const VideoList = () => {
         okText="Xóa"
         cancelText="Hủy"
         okButtonProps={{ danger: true }}
+        confirmLoading={isDeleting}
       >
         <p>
           Bạn có chắc chắn muốn xóa video "
