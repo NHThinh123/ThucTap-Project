@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import { List, Button, Spin, Modal, Card, Avatar, Popconfirm } from "antd";
+import { List, Button, Spin, Modal, Card, Avatar } from "antd";
 import {
   PlayCircleOutlined,
   ClockCircleOutlined,
@@ -22,6 +22,12 @@ const PlayList_Video = () => {
   const navigate = useNavigate();
   const [selectedPlaylistId, setSelectedPlaylistId] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isDeletePlaylistModalVisible, setIsDeletePlaylistModalVisible] =
+    useState(false);
+  const [isDeleteVideoModalVisible, setIsDeleteVideoModalVisible] =
+    useState(false);
+  const [playlistToDelete, setPlaylistToDelete] = useState(null);
+  const [videoToDelete, setVideoToDelete] = useState(null);
 
   // Lấy danh sách phát
   const {
@@ -71,30 +77,62 @@ const PlayList_Video = () => {
     setIsModalVisible(false);
     setSelectedPlaylistId(null);
   };
-  if (videoDetails?.length) {
-    return <Spin tip="Đang tải danh sách phát..." />;
-  }
 
-  const handleDeletePlaylist = (playlistId) => {
-    deletePlaylist(playlistId, {
-      onSuccess: () => {
-        refetchPlaylists();
-        if (selectedPlaylistId === playlistId) {
-          handleCloseModal();
-        }
-      },
-    });
+  const handleOpenDeletePlaylistModal = (playlistId) => {
+    setPlaylistToDelete(playlistId);
+    setIsDeletePlaylistModalVisible(true);
   };
 
-  const handleRemoveVideo = (playlistId, videoId) => {
-    removeVideo(
-      { playlistId, videoId },
-      {
-        onSuccess: () => {
-          refetchVideos();
-        },
-      }
-    );
+  const handleCloseDeletePlaylistModal = () => {
+    setIsDeletePlaylistModalVisible(false);
+    setPlaylistToDelete(null);
+  };
+
+  const handleDeletePlaylist = () => {
+    if (playlistToDelete) {
+      console.log(
+        "Xóa danh sách phát với ID:",
+        playlistToDelete,
+        "User ID:",
+        user_id
+      );
+      deletePlaylist(
+        { playlistId: playlistToDelete, userId: user_id },
+        {
+          onSuccess: () => {
+            refetchPlaylists();
+            if (selectedPlaylistId === playlistToDelete) {
+              handleCloseModal();
+            }
+            handleCloseDeletePlaylistModal();
+          },
+        }
+      );
+    }
+  };
+
+  const handleOpenDeleteVideoModal = (videoId) => {
+    setVideoToDelete(videoId);
+    setIsDeleteVideoModalVisible(true);
+  };
+
+  const handleCloseDeleteVideoModal = () => {
+    setIsDeleteVideoModalVisible(false);
+    setVideoToDelete(null);
+  };
+
+  const handleRemoveVideo = () => {
+    if (videoToDelete) {
+      removeVideo(
+        { playlistId: selectedPlaylistId, videoId: videoToDelete },
+        {
+          onSuccess: () => {
+            refetchVideos();
+            handleCloseDeleteVideoModal();
+          },
+        }
+      );
+    }
   };
 
   // Hàm chuyển đến trang phát video
@@ -129,16 +167,11 @@ const PlayList_Video = () => {
     return (
       <List.Item
         actions={[
-          <Popconfirm
-            title="Bạn có chắc muốn xóa video này khỏi danh sách phát?"
-            onConfirm={() =>
-              handleRemoveVideo(selectedPlaylistId, video.video_id)
-            }
-            okText="Có"
-            cancelText="Không"
-          >
-            <Button danger icon={<DeleteOutlined />} />
-          </Popconfirm>,
+          <Button
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleOpenDeleteVideoModal(video.video_id)}
+          />,
         ]}
       >
         <Card
@@ -272,7 +305,7 @@ const PlayList_Video = () => {
       <h2>Danh sách phát của bạn</h2>
       {isPlaylistsLoading ? (
         <Spin tip="Đang tải danh sách phát..." />
-      ) : safePlaylists?.length === 0 ? (
+      ) : safePlaylists.length === 0 ? (
         <div>
           Không tìm thấy danh sách phát. Hãy tạo danh sách phát đầu tiên!
         </div>
@@ -290,14 +323,11 @@ const PlayList_Video = () => {
                 >
                   Xem
                 </Button>,
-                <Popconfirm
-                  title="Bạn có chắc muốn xóa danh sách phát này?"
-                  onConfirm={() => handleDeletePlaylist(playlist._id)}
-                  okText="Có"
-                  cancelText="Không"
-                >
-                  <Button danger icon={<DeleteOutlined />} />
-                </Popconfirm>,
+                <Button
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={() => handleOpenDeletePlaylistModal(playlist._id)}
+                />,
               ]}
             >
               <List.Item.Meta
@@ -309,6 +339,7 @@ const PlayList_Video = () => {
         />
       )}
 
+      {/* Modal for viewing playlist videos */}
       <Modal
         title={
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -342,6 +373,30 @@ const PlayList_Video = () => {
             style={{ maxHeight: 500, overflowY: "auto" }}
           />
         )}
+      </Modal>
+
+      <Modal
+        title="Xác nhận xóa danh sách phát"
+        open={isDeletePlaylistModalVisible}
+        onOk={handleDeletePlaylist}
+        onCancel={handleCloseDeletePlaylistModal}
+        okText="Xóa"
+        cancelText="Hủy"
+        okButtonProps={{ danger: true }}
+      >
+        <p>Bạn có chắc muốn xóa danh sách phát này?</p>
+      </Modal>
+
+      <Modal
+        title="Xác nhận xóa video"
+        open={isDeleteVideoModalVisible}
+        onOk={handleRemoveVideo}
+        onCancel={handleCloseDeleteVideoModal}
+        okText="Xóa"
+        cancelText="Hủy"
+        okButtonProps={{ danger: true }}
+      >
+        <p>Bạn có chắc muốn xóa video này khỏi danh sách phát?</p>
       </Modal>
     </div>
   );

@@ -55,12 +55,15 @@ const updatePlaylistService = async (playlistId, data, user_id) => {
 };
 
 const deletePlaylistService = async (playlistId, user_id) => {
+  if (!user_id) {
+    throw new AppError("Người dùng chưa được xác thực", 401);
+  }
   const playlist = await Playlist.findById(playlistId);
   if (!playlist) {
-    throw new AppError("Playlist not found", 404);
+    throw new AppError("Không tìm thấy danh sách phát", 404);
   }
   if (playlist.user_id.toString() !== user_id.toString()) {
-    throw new AppError("You are not authorized to delete this playlist", 403);
+    throw new AppError("Bạn không có quyền xóa danh sách phát này", 403);
   }
   await Playlist.deleteOne({ _id: playlistId });
   return playlist;

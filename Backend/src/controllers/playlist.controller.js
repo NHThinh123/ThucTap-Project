@@ -76,8 +76,14 @@ const updatePlaylist = async (req, res, next) => {
 
 const deletePlaylist = async (req, res, next) => {
   try {
-    validateObjectId(req.params.id, "Playlist ID");
-    await deletePlaylistService(req.params.id, req.user?._id);
+    const { id } = req.params;
+    const { userId } = req.query;
+    validateObjectId(id, "Playlist ID");
+    if (!userId) {
+      throw new AppError("Thiếu userId trong yêu cầu", 400);
+    }
+    validateObjectId(userId, "User ID");
+    await deletePlaylistService(id, userId);
     res.status(204).send();
   } catch (error) {
     next(error);

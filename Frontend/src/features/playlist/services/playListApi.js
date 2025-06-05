@@ -27,8 +27,8 @@ const getVideosInPlaylist = async (playlistId) => {
   return response?.data?.videos || [];
 };
 
-const deletePlaylist = async (playlistId) => {
-  const URL_API = `/api/playlist/${playlistId}`;
+const deletePlaylist = async ({ playlistId, userId }) => {
+  const URL_API = `/api/playlist/${playlistId}?userId=${userId}`;
   const response = await axios.delete(URL_API);
   return response.data;
 };
