@@ -7,6 +7,8 @@ const {
   incrementViewService,
   searchVideosService,
   getSearchSuggestionsService,
+  getVideosByUserIdService,
+  countVideoOfUserIdService,
 } = require("../services/video.service");
 
 const createVideo = async (req, res, next) => {
@@ -126,6 +128,28 @@ const getSearchSuggestions = async (req, res) => {
   }
 };
 
+// Lấy danh sách video theo userId
+const getVideosByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await getVideosByUserIdService(userId);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// Đếm số lượng video của userId
+const countVideoOfUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await countVideoOfUserIdService(userId);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createVideo,
   getVideos,
@@ -135,4 +159,6 @@ module.exports = {
   deleteVideo,
   searchVideos,
   getSearchSuggestions,
+  getVideosByUserId,
+  countVideoOfUserId,
 };

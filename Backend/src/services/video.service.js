@@ -7,6 +7,14 @@ const Playlist_Video = require("../models/playlist_video.model");
 const History = require("../models/history.model");
 const VideoStats = require("../models/video_stats.model");
 
+const {
+  countLikeVideoService,
+} = require("../services/user_like_video.service");
+const {
+  countDislikeVideoService,
+} = require("../services/user_dislike_video.service");
+const { getVideoCommentsCountService } = require("../services/comment.service");
+
 const createVideoService = async (videoData, userId) => {
   try {
     if (!videoData.video_url || !videoData.title || !userId) {
@@ -325,6 +333,67 @@ const getSearchSuggestionsService = async (query) => {
   }
 };
 
+// Lấy danh sách video theo userId
+const getVideosByUserIdService = async (userId) => {
+  try {
+    if (!userId) {
+      throw new Error("Thiếu user_id");
+    }
+
+    const videos = await Video.find({ user_id: userId })
+      .populate("user_id", "user_name email avatar nickname")
+      .sort({ createdAt: -1 });
+
+    const total = await Video.countDocuments({ user_id: userId });
+
+    // Tạo mảng để lưu thông tin bổ sung (like, dislike, comment)
+    const videosWithStats = await Promise.all(
+      videos.map(async (video) => {
+        const likes = await countLikeVideoService(video._id);
+        const dislikes = await countDislikeVideoService(video._id);
+        const comments = await getVideoCommentsCountService({
+          video_id: video._id,
+        });
+
+        return {
+          ...video._doc, // Lấy toàn bộ dữ liệu video
+          likes,
+          dislikes,
+          comments: comments.totalCount,
+        };
+      })
+    );
+
+    return {
+      message: "Lấy danh sách video theo user_id thành công",
+      data: {
+        videos: videosWithStats,
+        total,
+      },
+    };
+  } catch (error) {
+    throw new Error(`Lỗi khi lấy danh sách video: ${error.message}`);
+  }
+};
+
+// Đếm số lượng video của một userId
+const countVideoOfUserIdService = async (userId) => {
+  try {
+    if (!userId) {
+      throw new Error("Thiếu user_id");
+    }
+
+    const total = await Video.countDocuments({ user_id: userId });
+
+    return {
+      message: "Đếm số lượng video thành công",
+      total,
+    };
+  } catch (error) {
+    throw new Error(`Lỗi khi đếm số lượng video: ${error.message}`);
+  }
+};
+
 module.exports = {
   createVideoService,
   getVideosService,
@@ -335,4 +404,6 @@ module.exports = {
   incrementViewService,
   searchVideosService,
   getSearchSuggestionsService,
+  getVideosByUserIdService,
+  countVideoOfUserIdService,
 };
