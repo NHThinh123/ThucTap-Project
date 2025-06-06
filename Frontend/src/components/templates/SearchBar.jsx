@@ -1,6 +1,6 @@
 import { SearchOutlined } from "@ant-design/icons";
 import { Button, Input, AutoComplete } from "antd";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { debounce } from "lodash";
 import "../../styles/searchbar.css"; // File CSS tùy chỉnh
 import useSearch from "../../features/search/hooks/useSeach";
@@ -11,15 +11,12 @@ const SearchBar = () => {
   const navigate = useNavigate();
   const { suggestions, isSuggestionsLoading } = useSearch(searchValue);
 
-  const handleSearch = debounce((value) => {
-    setSearchValue(value);
-  }, 300);
-
-  // Hàm xử lý khi nhấn nút tìm kiếm hoặc Enter
-  //   const onSearch = (value) => {
-  //     console.log("Search query:", value);
-  //     window.location.href = `/search`;
-  //   };
+  const handleSearch = useCallback(
+    debounce((value) => {
+      setSearchValue(value);
+    }, 300),
+    []
+  );
 
   const onSearch = (value) => {
     if (value.trim()) {

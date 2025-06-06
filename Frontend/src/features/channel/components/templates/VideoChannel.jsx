@@ -28,7 +28,7 @@ const VideoChannel = ({ channelId }) => {
           background: "#fff",
         }}
       >
-        <VideoGrid videos={videoList} xxl={6} />
+        <VideoGrid videos={videoList} xxl={6} isShow={false} />
       </Content>
     </Layout>
   );

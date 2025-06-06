@@ -3,7 +3,7 @@ import { formatTime } from "../../../../constants/formatTime";
 import { formatViews } from "../../../../constants/formatViews";
 import { formatDuration } from "../../../../constants/formatDuration";
 
-const VideoCard = ({ video }) => {
+const VideoCard = ({ video, isShow = true }) => {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
@@ -29,20 +29,22 @@ const VideoCard = ({ video }) => {
           </div>
         </div>
         <div className="video-card__content">
-          <Link
-            to={`/channel/${video?.user_id._id}`}
-            className="video-card__avatar-link"
-            onClick={handleLinkClick}
-          >
-            <img
-              className="video-card__avatar"
-              src={
-                video.user_id.avatar ||
-                "https://res.cloudinary.com/nienluan/image/upload/v1747707203/avaMacDinh_jxwsog.jpg"
-              }
-              alt="Channel avatar"
-            />
-          </Link>
+          {isShow && (
+            <Link
+              to={`/channel/${video?.user_id._id}`}
+              className="video-card__avatar-link"
+              onClick={handleLinkClick}
+            >
+              <img
+                className="video-card__avatar"
+                src={
+                  video.user_id.avatar ||
+                  "https://res.cloudinary.com/nienluan/image/upload/v1747707203/avaMacDinh_jxwsog.jpg"
+                }
+                alt="Channel avatar"
+              />
+            </Link>
+          )}
           <div className="video-card__info">
             <div className="video-card__title-container">
               <div className="video-card__title">{video.title}</div>
@@ -63,15 +65,17 @@ const VideoCard = ({ video }) => {
                 </svg>
               </button>
             </div>
-            <Link
-              to={`/channel/${video?.user_id._id}`}
-              className="video-card__channel-link"
-              onClick={handleLinkClick}
-            >
-              <span className="video-card__channel">
-                {video.user_id.nickname || "Channel Name"}
-              </span>
-            </Link>
+            {isShow && (
+              <Link
+                to={`/channel/${video?.user_id._id}`}
+                className="video-card__channel-link"
+                onClick={handleLinkClick}
+              >
+                <span className="video-card__channel">
+                  {video.user_id.nickname || "Channel Name"}
+                </span>
+              </Link>
+            )}
             <div className="video-card__meta">
               <span>{formatViews(video.views)} lượt xem</span>
               <span className="dot">•</span>
