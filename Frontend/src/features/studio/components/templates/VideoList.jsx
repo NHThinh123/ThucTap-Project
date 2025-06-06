@@ -224,12 +224,27 @@ const VideoList = ({ userId }) => {
         const percent = total === 0 ? 0 : Math.round((like / total) * 100);
         return (
           <>
-            <Progress
-              percent={percent}
-              size={"small"}
-              strokeColor={"#c90626"}
-            />
-            <p style={{ color: "grey", fontSize: 14 }}>{like} lượt thích</p>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+              }}
+            >
+              <Progress
+                percent={percent}
+                size="small"
+                strokeColor="#c90626"
+                showInfo={false} // Hide default percentage text
+                style={{ maxWidth: "120px" }}
+              />
+              <span style={{ color: "black", fontSize: 14 }}>
+                {percent === 100 ? "100%" : `${percent}%`}
+              </span>
+            </div>
+            <p style={{ color: "grey", fontSize: 14, textAlign: "end" }}>
+              {like} lượt thích
+            </p>
           </>
         );
       },
@@ -243,7 +258,7 @@ const VideoList = ({ userId }) => {
             <Pencil strokeWidth={1.5} size={18} />
           </Button>
           <Button type="text" onClick={() => showDeleteModal(record.video)}>
-            <Trash strokeWidth={1.5} size={18} />
+            <Trash strokeWidth={1.5} size={18} color="#c90626" />
           </Button>
         </Space>
       ),
@@ -321,7 +336,7 @@ const VideoList = ({ userId }) => {
             label="Mô tả"
             rules={[{ required: true, message: "Vui lòng nhập mô tả!" }]}
           >
-            <Input.TextArea rows={4} placeholder="Nhập mô tả video" />
+            <Input.TextArea rows={6} placeholder="Nhập mô tả video" />
           </Form.Item>
         </Form>
       </Modal>

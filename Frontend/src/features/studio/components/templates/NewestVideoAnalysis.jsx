@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import BoxCustom from "../../../../components/atoms/BoxCustom";
 import { useNewestVideoAnalysis } from "../../hooks/useNewestVideoAnalysis";
+import { formatViews } from "../../../../constants/formatViews";
 
 const NewestVideoAnalysis = ({ userId }) => {
   const { data, isLoading, error } = useNewestVideoAnalysis({ userId });
@@ -30,13 +31,6 @@ const NewestVideoAnalysis = ({ userId }) => {
   const { video, stats } = data.data;
   // Lấy trends từ tuần hiện tại (index cuối cùng)
   const latestTrends = stats?.length > 1 ? stats[stats.length - 1].trends : {};
-
-  // Hàm định dạng số
-  const formatNumber = (num) => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-    return num;
-  };
 
   // Hàm hiển thị trend với icon
   const renderTrend = (value, isPositiveGood = true) => {
@@ -88,7 +82,7 @@ const NewestVideoAnalysis = ({ userId }) => {
               size={20}
               style={{ marginTop: 2 }}
             />
-            <p>{formatNumber(video.totalViews)}</p>
+            <p>{formatViews(video.totalViews)}</p>
           </Space>
         </Col>
         <Col span={4}>

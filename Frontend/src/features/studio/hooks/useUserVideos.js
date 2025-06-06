@@ -20,6 +20,5 @@ export const useUserVideos = (userId) => {
     queryKey: ["userVideos", userId],
     queryFn: () => fetchUserVideos(userId),
     enabled: !!userId,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 };

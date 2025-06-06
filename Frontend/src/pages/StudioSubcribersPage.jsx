@@ -29,7 +29,13 @@ const StudioSubcribersPage = () => {
               <List.Item style={{ padding: 6 }}>
                 <Row gutter={16} align="middle">
                   <Col span={4}>
-                    <Avatar src={item.avatar} size={60} />
+                    <Avatar
+                      src={
+                        item.avatar ||
+                        "https://res.cloudinary.com/nienluan/image/upload/v1747707203/avaMacDinh_jxwsog.jpg"
+                      }
+                      size={60}
+                    />
                   </Col>
                   <Col span={20}>
                     <p

@@ -29,7 +29,13 @@ const SubscriberList = () => {
           <List.Item style={{ padding: 4 }}>
             <Row gutter={16} align={"middle"}>
               <Col span={4}>
-                <Avatar src={item.avatar} size={50} />
+                <Avatar
+                  src={
+                    item.avatar ||
+                    "https://res.cloudinary.com/nienluan/image/upload/v1747707203/avaMacDinh_jxwsog.jpg"
+                  }
+                  size={50}
+                />
               </Col>
               <Col span={20}>
                 <p
