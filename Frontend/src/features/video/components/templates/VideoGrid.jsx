@@ -1,7 +1,7 @@
 import { Row, Col } from "antd";
 import VideoCard from "./VideoCard";
 
-const VideoGrid = ({ videos, xxl }) => {
+const VideoGrid = ({ videos, xxl, isShow }) => {
   if (!videos || !Array.isArray(videos)) return null;
   return (
     <Row gutter={[20, 30]}>
@@ -15,7 +15,7 @@ const VideoGrid = ({ videos, xxl }) => {
           xl={xxl || 8}
           xxl={xxl || 6}
         >
-          <VideoCard video={video} />
+          <VideoCard video={video} isShow={isShow} />
         </Col>
       ))}
     </Row>
