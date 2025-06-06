@@ -29,13 +29,13 @@ const StudioOverviewPage = () => {
       <Row gutter={16}>
         <Col span={8}>
           <OverviewAnalysis userId={userId} />
-          <VideoPublish />
         </Col>
         <Col span={8}>
           <NewestVideoAnalysis userId={userId} />
         </Col>
         <Col span={8}>
           <SubscriberList />
+          <VideoPublish userId={userId} />
         </Col>
       </Row>
     </>

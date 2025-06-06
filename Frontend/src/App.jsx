@@ -22,6 +22,7 @@ import {
   YoutubeOutlined,
   UserOutlined,
   AppstoreOutlined,
+  PlusOutlined,
 } from "@ant-design/icons";
 import logo from "./assets/logo/logo.png";
 import { useState, useContext, useEffect } from "react";
@@ -210,20 +211,22 @@ function App() {
             >
               <SearchBar />
             </Col>
-            <Col span={2} style={{ display: "flex", justifyContent: "center" }}>
+            <Col span={3} style={{ display: "flex", justifyContent: "end" }}>
               <Button
-                type="text"
-                icon={<Upload />}
+                color="primary"
+                variant="outlined"
                 style={{
-                  fontSize: "24px",
-                  color: "#000",
+                  fontSize: "16px",
+
                   marginLeft: "16px",
                 }}
                 onClick={handleUploadClick}
-              ></Button>
+              >
+                <PlusOutlined /> Đăng tải
+              </Button>
             </Col>
             <Col
-              span={4}
+              span={3}
               style={{ display: "flex", justifyContent: "flex-end" }}
             >
               {isUserLoggedIn ? (

@@ -1,4 +1,18 @@
-import { Button, Col, Progress, Row, Space, Table, Tag } from "antd";
+/* eslint-disable no-unused-vars */
+import {
+  Button,
+  Col,
+  Form,
+  Input,
+  Modal,
+  Progress,
+  Row,
+  Space,
+  Table,
+  Upload,
+  Spin,
+  message,
+} from "antd";
 import {
   ChartNoAxesColumn,
   Pencil,
@@ -6,17 +20,126 @@ import {
   ThumbsUp,
   Trash,
 } from "lucide-react";
-import React from "react";
-
-import { mockVideos } from "../../../../data/mockVideos";
+import React, { useState } from "react";
+import { useVideoManagement } from "../../hooks/useVideoManagement";
+import { useUserVideos } from "../../hooks/useUserVideos";
+import { useVideoUpload } from "../../../uploadvideo/hooks/useVideoUpload";
 import { formatDate } from "../../../../constants/formatDate";
 import { formatViews } from "../../../../constants/formatViews";
+import { UploadOutlined } from "@ant-design/icons";
 
-const VideoList = () => {
-  const data = mockVideos.map((video, index) => ({
-    key: video.id || index,
-    video: video,
-  }));
+const VideoList = ({ userId }) => {
+  const [messageApi, contextHolder] = message.useMessage();
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState(null);
+  const [thumbnailUrl, setThumbnailUrl] = useState(null);
+  const [form] = Form.useForm();
+  const { editVideo, isEditing, deleteVideo, isDeleting } =
+    useVideoManagement(userId);
+  const { data: videos, isLoading, error } = useUserVideos(userId);
+  const { uploadThumbnail, isUploadingThumbnail } = useVideoUpload();
+
+  const showEditModal = (video) => {
+    setSelectedVideo(video);
+    setThumbnailPreview(video.thumbnail_video || null);
+    setThumbnailUrl(video.thumbnail_video || null);
+    form.setFieldsValue({
+      title: video.title,
+      description: video.description_video,
+      thumbnail: video.thumbnail_video
+        ? [{ url: video.thumbnail_video, status: "done", name: "thumbnail" }]
+        : [],
+    });
+    setIsEditModalVisible(true);
+  };
+
+  const showDeleteModal = (video) => {
+    setSelectedVideo(video);
+    setIsDeleteModalVisible(true);
+  };
+
+  const handleThumbnailChange = ({ fileList }) => {
+    if (fileList.length > 0 && fileList[0].originFileObj) {
+      const file = fileList[0].originFileObj;
+      const newThumbnailUrl = URL.createObjectURL(file);
+      setThumbnailPreview(newThumbnailUrl);
+
+      // Gọi API upload thumbnail
+      uploadThumbnail(file, {
+        onSuccess: (data) => {
+          setThumbnailUrl(data); // Lưu URL từ API
+        },
+        onProgress: (percent) => {
+          console.log(`Upload progress: ${percent}%`);
+        },
+      });
+    } else {
+      setThumbnailPreview(selectedVideo?.thumbnail_video || null);
+      setThumbnailUrl(selectedVideo?.thumbnail_video || null);
+    }
+    form.setFieldsValue({ thumbnail: fileList });
+  };
+
+  const handleEditOk = () => {
+    form
+      .validateFields()
+      .then((values) => {
+        editVideo(selectedVideo._id, {
+          title: values.title,
+          description: values.description,
+          thumbnail: thumbnailUrl, // Sử dụng URL đã upload
+        });
+        setIsEditModalVisible(false);
+        form.resetFields();
+        setThumbnailPreview(null);
+        setThumbnailUrl(null);
+      })
+      .catch(() => {
+        messageApi.error("Vui lòng kiểm tra lại thông tin!");
+      });
+  };
+
+  const handleEditCancel = () => {
+    setIsEditModalVisible(false);
+    form.resetFields();
+    setThumbnailPreview(null);
+    setThumbnailUrl(null);
+  };
+
+  const handleDeleteOk = () => {
+    deleteVideo(selectedVideo._id);
+    setIsDeleteModalVisible(false);
+  };
+
+  const handleDeleteCancel = () => {
+    setIsDeleteModalVisible(false);
+  };
+
+  const normFile = (e) => {
+    if (Array.isArray(e)) {
+      return e;
+    }
+    return e && e.fileList;
+  };
+
+  const data =
+    videos?.map((video, index) => ({
+      key: video._id || index,
+      video: {
+        ...video,
+        id: video._id,
+        thumbnailUrl: video.thumbnail_video,
+        description: video.description_video,
+        createdAt: video.createdAt,
+        views: video.views,
+        commentCount: video.comments,
+        likeCount: video.likes,
+        dislikeCount: video.dislikes,
+      },
+    })) || [];
+
   const columns = [
     {
       title: "Video",
@@ -32,7 +155,7 @@ const VideoList = () => {
               src={video.thumbnailUrl}
               style={{
                 width: "100%",
-                aspectRatio: "5/ 3",
+                aspectRatio: "5/3",
                 borderRadius: "8px",
                 objectFit: "cover",
               }}
@@ -72,24 +195,23 @@ const VideoList = () => {
         </Row>
       ),
     },
-
     {
       title: "Ngày đăng tải",
       key: "createdAt",
       dataIndex: "video",
-      render: (video) => <p> {formatDate(video.createdAt)}</p>,
+      render: (video) => <p>{formatDate(video.createdAt)}</p>,
     },
     {
       title: "Lượt xem",
       dataIndex: "video",
       key: "views",
-      render: (video) => <p> {formatViews(video.views)}</p>,
+      render: (video) => <p>{formatViews(video.views)}</p>,
     },
     {
       title: "Số bình luận",
       dataIndex: "video",
       key: "comment",
-      render: (video) => <p> {video.commentCount}</p>,
+      render: (video) => <p>{video.commentCount}</p>,
     },
     {
       title: "Lượt thích(%)",
@@ -102,34 +224,139 @@ const VideoList = () => {
         const percent = total === 0 ? 0 : Math.round((like / total) * 100);
         return (
           <>
-            <Progress
-              percent={percent}
-              size={"small"}
-              strokeColor={"#c90626"}
-            />
-            <p style={{ color: "grey", fontSize: 14 }}>{like} lượt thích</p>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+              }}
+            >
+              <Progress
+                percent={percent}
+                size="small"
+                strokeColor="#c90626"
+                showInfo={false} // Hide default percentage text
+                style={{ maxWidth: "120px" }}
+              />
+              <span style={{ color: "black", fontSize: 14 }}>
+                {percent === 100 ? "100%" : `${percent}%`}
+              </span>
+            </div>
+            <p style={{ color: "grey", fontSize: 14, textAlign: "end" }}>
+              {like} lượt thích
+            </p>
           </>
         );
       },
     },
-
     {
       title: "Hành động",
       key: "action",
-      render: () => (
+      render: (_, record) => (
         <Space size="middle">
-          <Button type="text">
+          <Button type="text" onClick={() => showEditModal(record.video)}>
             <Pencil strokeWidth={1.5} size={18} />
           </Button>
-          <Button variant="text" color="primary">
-            <Trash strokeWidth={1.5} size={18} />
+          <Button type="text" onClick={() => showDeleteModal(record.video)}>
+            <Trash strokeWidth={1.5} size={18} color="#c90626" />
           </Button>
         </Space>
       ),
     },
   ];
 
-  return <Table columns={columns} dataSource={data} />;
+  if (isLoading) {
+    return (
+      <Spin size="large" style={{ display: "block", margin: "50px auto" }} />
+    );
+  }
+
+  if (error) {
+    messageApi.error(error.message || "Lỗi khi tải danh sách video!");
+    return <p>Không thể tải danh sách video.</p>;
+  }
+
+  return (
+    <>
+      {contextHolder}
+      <Table columns={columns} dataSource={data} />
+      <Modal
+        title="Chỉnh sửa video"
+        open={isEditModalVisible}
+        onOk={handleEditOk}
+        onCancel={handleEditCancel}
+        okText="Lưu"
+        cancelText="Hủy"
+        centered
+        confirmLoading={isEditing || isUploadingThumbnail}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item
+            name="thumbnail"
+            valuePropName="fileList"
+            getValueFromEvent={normFile}
+          >
+            <div style={{ marginBottom: 16 }}>
+              {thumbnailPreview ? (
+                <img
+                  src={thumbnailPreview}
+                  alt="Thumbnail Preview"
+                  style={{
+                    width: "70%",
+                    aspectRatio: "16/9",
+                    borderRadius: "8px",
+                    objectFit: "cover",
+                  }}
+                />
+              ) : (
+                <p>Chưa có thumbnail</p>
+              )}
+            </div>
+            <Upload
+              listType="text"
+              maxCount={1}
+              beforeUpload={() => false}
+              onChange={handleThumbnailChange}
+              disabled={isUploadingThumbnail}
+            >
+              <Button icon={<UploadOutlined />} loading={isUploadingThumbnail}>
+                Chọn ảnh
+              </Button>
+            </Upload>
+          </Form.Item>
+          <Form.Item
+            name="title"
+            label="Tiêu đề"
+            rules={[{ required: true, message: "Vui lòng nhập tiêu đề!" }]}
+          >
+            <Input placeholder="Nhập tiêu đề video" />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label="Mô tả"
+            rules={[{ required: true, message: "Vui lòng nhập mô tả!" }]}
+          >
+            <Input.TextArea rows={6} placeholder="Nhập mô tả video" />
+          </Form.Item>
+        </Form>
+      </Modal>
+      <Modal
+        title="Xác nhận xóa"
+        open={isDeleteModalVisible}
+        onOk={handleDeleteOk}
+        onCancel={handleDeleteCancel}
+        okText="Xóa"
+        cancelText="Hủy"
+        okButtonProps={{ danger: true }}
+        confirmLoading={isDeleting}
+      >
+        <p>
+          Bạn có chắc chắn muốn xóa video "
+          <strong>{selectedVideo?.title}</strong>" không?
+        </p>
+      </Modal>
+    </>
+  );
 };
 
 export default VideoList;

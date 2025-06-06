@@ -59,7 +59,7 @@ const getVideoById = async (req, res, next) => {
 const updateVideo = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { url, title, description, thumbnail, duration } = req.body;
+    const { title, description, thumbnail } = req.body;
     const user_id = req.body.user_id; // Giả sử user_id được gửi từ client
 
     if (!user_id) {
@@ -69,11 +69,9 @@ const updateVideo = async (req, res, next) => {
     }
 
     const videoData = {
-      url,
       title,
       description,
       thumbnail,
-      duration,
     };
 
     const result = await updateVideoService(id, videoData, user_id);

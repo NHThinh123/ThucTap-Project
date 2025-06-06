@@ -63,14 +63,13 @@ const uploadVideoService = async (file, sse) => {
       new Promise((resolve, reject) => {
         ffmpeg(inputPath)
           .output(outputPath)
-          .videoCodec("libx264") // Sử dụng NVENC thay vì libx264
+          .videoCodec("libx264")
           .audioCodec("aac")
           .outputOptions([
-            "-crf 28", // Mức nén
-            "-preset veryfast", // Tốc độ nén nhanh
-            "-movflags +faststart", // Tối ưu cho phát trực tuyến
-            "-threads 4", // Giới hạn 4 luồng CPU
-            "-vf scale=1280:720", // Bỏ comment nếu muốn giảm độ phân giải
+            "-crf 28",
+            "-preset veryfast",
+            "-movflags +faststart",
+            "-threads 0",
           ])
           .on("progress", (progress) => {
             if (progress.bytesWritten) {

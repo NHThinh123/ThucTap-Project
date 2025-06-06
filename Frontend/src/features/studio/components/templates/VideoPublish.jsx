@@ -1,15 +1,46 @@
 import React from "react";
 import BoxCustom from "../../../../components/atoms/BoxCustom";
-import { Button, Col, Divider, List, Row, Space, Typography } from "antd";
+import {
+  Button,
+  Col,
+  Divider,
+  List,
+  Row,
+  Space,
+  Typography,
+  Spin,
+  message,
+} from "antd";
 import { ChartNoAxesColumn, ThumbsDown, ThumbsUp } from "lucide-react";
+import { useUserVideos } from "../../hooks/useUserVideos";
+import { formatViews } from "../../../../constants/formatViews";
 
-const VideoPublish = () => {
-  const data = Array(3).fill({
-    thumbnail: "https://pbs.twimg.com/media/F_vO2geW0AE1mmW.jpg",
-    title:
-      "Anime Youtube Thumbnails designs, themes, templates and downloadable graphic elements on Dribbble. Your resource to discover and connect with designers worldwide.",
-    view: "600 N",
-  });
+const VideoPublish = ({ userId }) => {
+  const { data: videos, isLoading, error } = useUserVideos(userId);
+
+  const data =
+    videos?.slice(0, 3).map((video) => ({
+      thumbnail: video.thumbnail_video,
+      title: video.title,
+      view: formatViews(video.views),
+      likes: video.likes,
+      dislikes: video.dislikes,
+    })) || [];
+
+  if (isLoading) {
+    return (
+      <Spin size="large" style={{ display: "block", margin: "50px auto" }} />
+    );
+  }
+
+  if (error) {
+    message.open({
+      type: "error",
+      content: error.message || "Lỗi khi tải danh sách video!",
+    });
+    return <p>Không thể tải danh sách video.</p>;
+  }
+
   return (
     <BoxCustom>
       <Typography.Title level={5}>Video đã xuất bản</Typography.Title>
@@ -31,7 +62,7 @@ const VideoPublish = () => {
                   src={item.thumbnail}
                   style={{
                     width: "100%",
-                    aspectRatio: "5/ 3",
+                    aspectRatio: "5/3",
                     borderRadius: "8px",
                     objectFit: "cover",
                   }}
@@ -69,7 +100,7 @@ const VideoPublish = () => {
                         size={16}
                         style={{ marginTop: 2 }}
                       />
-                      <p style={{ fontSize: 12 }}>3</p>
+                      <p style={{ fontSize: 12 }}>{item.likes}</p>
                     </Space>
                   </Col>
                   <Col span={4}>
@@ -79,7 +110,7 @@ const VideoPublish = () => {
                         size={16}
                         style={{ marginTop: 2 }}
                       />
-                      <p style={{ fontSize: 12 }}>3</p>
+                      <p style={{ fontSize: 12 }}>{item.dislikes}</p>
                     </Space>
                   </Col>
                 </Row>
@@ -89,7 +120,7 @@ const VideoPublish = () => {
         )}
       />
       <Divider style={{ marginTop: 5 }} />
-      <Button color="primary" variant="outlined">
+      <Button color="primary" variant="outlined" href="/studio/content">
         Xem số liệu phân tích video
       </Button>
     </BoxCustom>

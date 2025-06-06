@@ -19,7 +19,7 @@ const getVideoStatsService = async (videoId, period, startDate, endDate) => {
     try {
       cachedData = await redisClient.get(cacheKey);
       if (cachedData) {
-        console.log(`Cache hit for ${cacheKey} (Upstash)`);
+        // console.log(`Cache hit for ${cacheKey} (Upstash)`);
         return JSON.parse(cachedData);
       }
     } catch (error) {
@@ -167,7 +167,7 @@ const getUserStatsService = async (userId, period, startDate, endDate) => {
     try {
       cachedData = await redisClient.get(cacheKey);
       if (cachedData) {
-        console.log(`Cache hit for ${cacheKey} (Upstash)`);
+        // console.log(`Cache hit for ${cacheKey} (Upstash)`);
         return JSON.parse(cachedData);
       }
     } catch (error) {

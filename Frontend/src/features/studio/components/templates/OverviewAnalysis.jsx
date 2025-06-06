@@ -114,7 +114,7 @@ const OverviewAnalysis = ({ userId }) => {
                   {item.title}
                 </p>
               </Col>
-              <Col span={4}>
+              <Col span={4} style={{ textAlign: "right" }}>
                 <Typography.Text type="secondary">
                   {formatNumber(item.views)}
                 </Typography.Text>

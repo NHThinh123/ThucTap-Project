@@ -11,8 +11,8 @@ import {
   Space,
   Typography,
 } from "antd";
-import { useContext, useState } from "react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { useContext, useState, useMemo } from "react";
+import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../contexts/auth.context";
 import logo from "../assets/logo/logo.png";
 import {
@@ -20,8 +20,8 @@ import {
   ArrowLeftOutlined,
   HomeOutlined,
   MenuOutlined,
-  SearchOutlined,
-  UserOutlined,
+  PlusOutlined,
+  StockOutlined,
   YoutubeOutlined,
 } from "@ant-design/icons";
 import { ToastContainer } from "react-toastify";
@@ -33,6 +33,7 @@ const { Header, Content, Sider } = Layout;
 
 const StudioPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const { auth, setAuth } = useContext(AuthContext);
   const [setIsLoggingOut] = useState(false);
@@ -69,10 +70,9 @@ const StudioPage = () => {
     },
     {
       key: "analytics",
-      icon: <YoutubeOutlined />,
+      icon: <StockOutlined />,
       label: <Link to="/studio/analytics">Thống kê</Link>,
     },
-
     {
       key: "subscribers",
       icon: <YoutubeOutlined />,
@@ -104,6 +104,17 @@ const StudioPage = () => {
   const handleLogoClick = () => {
     window.location.href = "/";
   };
+
+  // Determine the selected menu key based on the current route
+  const selectedKey = useMemo(() => {
+    const path = location.pathname;
+    if (path === "/studio") return "overview";
+    if (path === "/studio/content") return "content";
+    if (path === "/studio/analytics") return "analytics";
+    if (path === "/studio/subscribers") return "subscribers";
+    if (path === "/") return "back";
+    return "overview"; // Fallback to overview
+  }, [location.pathname]);
 
   return (
     <>
@@ -163,30 +174,22 @@ const StudioPage = () => {
             <Col
               span={12}
               style={{ display: "flex", justifyContent: "center" }}
-            >
-              <Input.Search
-                size="large"
-                placeholder="Tìm kiếm trên kênh"
-                style={{ width: "100%", maxWidth: "600px" }}
-                enterButton={
-                  <Button type="primary" icon={<SearchOutlined />} />
-                }
-              />
-            </Col>
-            <Col span={2} style={{ display: "flex", justifyContent: "center" }}>
+            ></Col>
+            <Col span={3} style={{ display: "flex", justifyContent: "end" }}>
               <Button
-                type="text"
-                icon={<Upload />}
+                color="primary"
+                variant="outlined"
                 style={{
-                  fontSize: "24px",
-                  color: "#000",
+                  fontSize: "16px",
                   marginLeft: "16px",
                 }}
                 onClick={handleUploadClick}
-              ></Button>
+              >
+                <PlusOutlined /> Đăng tải
+              </Button>
             </Col>
             <Col
-              span={4}
+              span={3}
               style={{ display: "flex", justifyContent: "flex-end" }}
             >
               {isUserLoggedIn ? (
@@ -251,7 +254,7 @@ const StudioPage = () => {
             </div>
             <Menu
               mode="inline"
-              defaultSelectedKeys={["overview"]}
+              selectedKeys={[selectedKey]}
               items={menuItems}
               style={{ height: "100%", borderRight: 0 }}
             />
