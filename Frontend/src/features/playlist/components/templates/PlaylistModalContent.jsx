@@ -5,12 +5,12 @@ import CreatePlaylistForm from "../organisms/PlayListForm";
 const PlaylistModalContent = ({ video_id, user_id }) => {
   if (!video_id) {
     console.error(
-      "PlaylistModalContent: video_id is undefined. Please provide a valid video_id."
+      "PlaylistModalContent: video_id không được xác định. Vui lòng cung cấp video_id hợp lệ."
     );
   }
   if (!user_id) {
     console.error(
-      "PlaylistModalContent: user_id is undefined. Please provide a valid user_id."
+      "PlaylistModalContent: user_id không được xác định. Vui lòng cung cấp user_id hợp lệ."
     );
   }
 
@@ -24,8 +24,9 @@ const PlaylistModalContent = ({ video_id, user_id }) => {
         playlists={safePlaylist}
         videoId={video_id}
         isLoading={isLoading}
+        // Truyền video_id và user_id để sử dụng trong CreatePlaylistForm
+        onCreatePlaylist={(video_id, user_id)}
       />
-      <CreatePlaylistForm user_id={user_id} video_id={video_id} />
     </div>
   );
 };

@@ -1,26 +1,15 @@
-/* eslint-disable no-unused-vars */
 import { Form, Input, Checkbox, Button, Divider } from "antd";
-
-import {
-  useAddVideoToPlaylist,
-  useCreatePlaylist,
-} from "../../hooks/usePlayList";
+import { useCreatePlaylist } from "../../hooks/usePlayList";
 import { useModal } from "../../../../contexts/modal.context";
 import { useContext } from "react";
 import { AuthContext } from "../../../../contexts/auth.context";
+import PlaylistModalContent from "../templates/PlaylistModalContent";
 
 const PlaylistForm = ({ user_id, video_id }) => {
   const [form] = Form.useForm();
   const { mutate: createPlaylist, isPending } = useCreatePlaylist();
-  const { mutate: addVideo } = useAddVideoToPlaylist();
-  const { closeModal } = useModal();
+  const { closeModal, openModal } = useModal();
   const { auth } = useContext(AuthContext);
-
-  if (!video_id) {
-    console.error(
-      "PlaylistForm: videoId is undefined. Please provide a valid videoId."
-    );
-  }
 
   const handleSubmit = (values) => {
     createPlaylist(
@@ -31,30 +20,22 @@ const PlaylistForm = ({ user_id, video_id }) => {
         isPublic: values.isPublic || true,
       },
       {
-        onSuccess: (newPlaylist) => {
-          if (!newPlaylist?._id || !video_id) {
-            return;
-          }
-
-          const validPlaylistId = String(newPlaylist._id).trim();
-          const validVideoId = String(video_id).trim();
-
-          addVideo(
-            {
-              playlistId: validPlaylistId,
-              video_id: validVideoId,
-            },
-            {
-              onSuccess: closeModal,
-              onError: (error) => {
-                console.error("Add video to new playlist error:", error);
-              },
-            }
-          );
+        onSuccess: () => {
+          // Đóng modal sau khi tạo danh sách phát thành công
+          closeModal();
           form.resetFields();
+        },
+        onError: (error) => {
+          console.error("Lỗi tạo danh sách phát:", error);
         },
       }
     );
+  };
+
+  const handleCancel = () => {
+    // Đóng modal hiện tại và mở lại modal PlaylistModalContent
+    closeModal();
+    openModal(<PlaylistModalContent video_id={video_id} user_id={user_id} />);
   };
 
   return (
@@ -80,6 +61,9 @@ const PlaylistForm = ({ user_id, video_id }) => {
           >
             <Button type="primary" htmlType="submit" loading={isPending}>
               Tạo
+            </Button>
+            <Button style={{ marginLeft: 8 }} onClick={handleCancel}>
+              Hủy
             </Button>
           </div>
         </Form.Item>
