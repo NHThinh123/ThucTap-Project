@@ -9,11 +9,9 @@ const {
   deleteAllHistories,
 } = require("../controllers/history.controller");
 
-router
-  .route("/")
-  .post(createHistory)
-  .get(getAllHistories)
-  .delete(deleteAllHistories);
+router.route("/").post(createHistory);
+
+router.route("/user/:id").get(getAllHistories).delete(deleteAllHistories);
 
 router
   .route("/:id")

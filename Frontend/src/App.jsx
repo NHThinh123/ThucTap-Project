@@ -23,6 +23,7 @@ import {
   UserOutlined,
   AppstoreOutlined,
   PlusOutlined,
+  HistoryOutlined,
 } from "@ant-design/icons";
 import logo from "./assets/logo/logo.png";
 import { useState, useContext, useEffect } from "react";
@@ -53,6 +54,12 @@ function App() {
       icon: <HomeOutlined />,
       label: <Link to="/">Home</Link>,
       path: "/",
+    },
+    {
+      key: "history",
+      icon: <HistoryOutlined />,
+      label: <Link to="/history">Video đã xem</Link>,
+      path: "/history",
     },
     {
       key: "playlist",

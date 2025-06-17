@@ -33,8 +33,8 @@ const getHistory = async (req, res, next) => {
 
 const getAllHistories = async (req, res, next) => {
   try {
-    const { user_id } = req.body;
-    const histories = await getAllHistoriesOfUserService(user_id);
+    const { id } = req.params;
+    const histories = await getAllHistoriesOfUserService(id);
     res.status(200).json({
       status: "success",
       results: histories.length,

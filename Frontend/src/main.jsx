@@ -22,6 +22,7 @@ import UploadPage from "./pages/UploadPage.jsx";
 import { ModalProvider } from "./contexts/modal.context.jsx";
 import SearchResultPage from "./pages/SearchResultPage.jsx";
 import PlayListPage from "./pages/PlayListPage.jsx";
+import VideoHistoryPage from "./pages/VideoHistoryPage.jsx";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,10 @@ const router = createBrowserRouter([
       {
         path: "profile",
         element: <ProfilePage />,
+      },
+      {
+        path: "history",
+        element: <VideoHistoryPage />,
       },
     ],
   },
