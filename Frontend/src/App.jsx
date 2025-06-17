@@ -1,11 +1,8 @@
-/* eslint-disable no-unused-vars */
-
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
-import { CircleUserRound, ListVideo, Upload } from "lucide-react";
+import { CircleUserRound, ListVideo } from "lucide-react";
 import {
   Layout,
   Menu,
-  Input,
   Button,
   Space,
   Row,
@@ -16,13 +13,11 @@ import {
   Typography,
 } from "antd";
 import {
-  SearchOutlined,
   MenuOutlined,
   HomeOutlined,
-  YoutubeOutlined,
-  UserOutlined,
   AppstoreOutlined,
   PlusOutlined,
+  DownOutlined,
 } from "@ant-design/icons";
 import logo from "./assets/logo/logo.png";
 import { useState, useContext, useEffect } from "react";
@@ -32,6 +27,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useModal } from "./contexts/modal.context";
 import UploadPage from "./pages/UploadPage";
 import SearchBar from "./components/templates/SearchBar";
+import useUserSubscriptions from "./features/channel/hooks/useUserSubscriptions";
 
 const { Header, Content, Sider } = Layout;
 
@@ -45,46 +41,93 @@ function App() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isUserLoggedIn = auth?.isAuthenticated;
   const isVideoWatchPage = location.pathname.startsWith("/watch/");
+  const { data } = useUserSubscriptions(auth?.user?.id);
+  const userSubscriptionsList = data?.data.channels || [];
+  const [showAllChannels, setShowAllChannels] = useState(false); // Trạng thái để hiển thị tất cả kênh
 
   // Định nghĩa menu items
-  const menuItems = [
-    {
-      key: "home",
-      icon: <HomeOutlined />,
-      label: <Link to="/">Home</Link>,
-      path: "/",
-    },
-    {
-      key: "playlist",
-      icon: <ListVideo size={18} />,
-      label: <Link to="/playlist">PlayList</Link>,
-    },
-    {
-      key: "studio",
-      icon: <AppstoreOutlined />,
-      label: <Link to="/studio">Studio</Link>,
-      path: "/studio",
-    },
-  ];
+  const getMenuItems = () => {
+    let subscriptionChildren = userSubscriptionsList.map((channel) => ({
+      key: channel.channelId,
+      label: (
+        <Link to={`/channel/${channel.channelId}`} style={{ paddingLeft: 0 }}>
+          <Avatar
+            src={channel.channelAvatar}
+            size="small"
+            style={{ marginRight: 8 }}
+          />
+          {channel.channelNickname}
+        </Link>
+      ),
+    }));
+
+    // Nếu số lượng kênh > 5 và chưa hiển thị tất cả, chỉ lấy 5 kênh đầu và thêm "Xem thêm"
+    if (userSubscriptionsList.length > 5 && !showAllChannels) {
+      subscriptionChildren = subscriptionChildren.slice(0, 5);
+      subscriptionChildren.push({
+        key: "showMore",
+        label: (
+          <p>
+            <DownOutlined style={{ marginRight: 8 }} />
+            Xem thêm
+          </p>
+        ),
+
+        onClick: () => setShowAllChannels(true), // Khi nhấn "Xem thêm", hiển thị tất cả kênh
+      });
+    }
+
+    return [
+      {
+        key: "home",
+        icon: <HomeOutlined />,
+        label: <Link to="/">Trang chủ</Link>,
+        path: "/",
+      },
+
+      {
+        type: "divider",
+      },
+      {
+        key: "subscriptions",
+        label: "Kênh đăng ký",
+        children: subscriptionChildren,
+      },
+      {
+        type: "divider",
+      },
+      {
+        key: "playlist",
+        icon: <ListVideo size={18} />,
+        label: <Link to="/playlist">Danh sách phát</Link>,
+        path: "/playlist",
+      },
+      {
+        key: "studio",
+        icon: <AppstoreOutlined />,
+        label: <Link to="/studio">Quản lý kênh</Link>,
+        path: "/studio",
+      },
+    ];
+  };
+
+  const menuItems = getMenuItems();
 
   // Xác định key được chọn dựa trên đường dẫn hiện tại
   const getSelectedKey = () => {
-    // Tìm menu item khớp với đường dẫn hiện tại
     const currentItem = menuItems.find(
       (item) =>
         location.pathname === item.path ||
         location.pathname.startsWith(`${item.path}/`)
     );
-    // Nếu là trang watch, chọn "video" hoặc key phù hợp
     if (isVideoWatchPage) {
       return "video";
     }
-    return currentItem ? currentItem.key : "home"; // Mặc định là "home" nếu không khớp
+    return currentItem ? currentItem.key : "home";
   };
 
   const [selectedKey, setSelectedKey] = useState(getSelectedKey());
 
-  // Cập nhật selectedKey khi location.pathname thay đổi
   useEffect(() => {
     setSelectedKey(getSelectedKey());
   }, [location.pathname]);
@@ -139,10 +182,9 @@ function App() {
 
   const handleUploadClick = () => {
     navigate("/studio");
-    openModal(<UploadPage />);
+    openModal(<UploadPage navigate={navigate} />);
   };
 
-  // Handle logo click to refresh and navigate to homepage
   const handleLogoClick = () => {
     window.location.href = "/";
   };
@@ -217,7 +259,6 @@ function App() {
                 variant="outlined"
                 style={{
                   fontSize: "16px",
-
                   marginLeft: "16px",
                 }}
                 onClick={handleUploadClick}
@@ -269,7 +310,8 @@ function App() {
             >
               <Menu
                 mode="inline"
-                selectedKeys={[selectedKey]} // Sử dụng selectedKeys động
+                selectedKeys={[selectedKey]}
+                defaultOpenKeys={["subscriptions"]} // Tự động mở "Kênh đăng ký"
                 items={menuItems}
                 style={{ height: "100%", borderRight: 0 }}
               />
@@ -314,7 +356,8 @@ function App() {
             >
               <Menu
                 mode="inline"
-                selectedKeys={[selectedKey]} // Sử dụng selectedKeys động
+                selectedKeys={[selectedKey]}
+                defaultOpenKeys={["subscriptions"]} // Tự động mở "Kênh đăng ký"
                 items={menuItems}
                 style={{ borderRight: 0 }}
               />

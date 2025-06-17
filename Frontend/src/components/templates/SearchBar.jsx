@@ -8,12 +8,14 @@ import { useNavigate } from "react-router-dom";
 
 const SearchBar = () => {
   const [searchValue, setSearchValue] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Trạng thái dropdown
   const navigate = useNavigate();
   const { suggestions, isSuggestionsLoading } = useSearch(searchValue);
 
   const handleSearch = useCallback(
     debounce((value) => {
       setSearchValue(value);
+      setIsDropdownOpen(!!value); // Mở dropdown khi có giá trị nhập
     }, 300),
     []
   );
@@ -21,6 +23,7 @@ const SearchBar = () => {
   const onSearch = (value) => {
     if (value.trim()) {
       navigate(`/search?q=${encodeURIComponent(value)}`);
+      setIsDropdownOpen(false); // Đóng dropdown sau khi tìm kiếm
     }
   };
 
@@ -28,6 +31,12 @@ const SearchBar = () => {
   const onSelect = (value) => {
     setSearchValue(value);
     onSearch(value);
+  };
+
+  // Xử lý khi xóa nội dung
+  const onClear = () => {
+    setSearchValue("");
+    setIsDropdownOpen(false); // Đóng dropdown khi xóa
   };
 
   return (
@@ -40,7 +49,12 @@ const SearchBar = () => {
         onSearch={handleSearch}
         onSelect={onSelect}
         value={searchValue}
-        onChange={setSearchValue}
+        onChange={(value) => {
+          setSearchValue(value);
+          setIsDropdownOpen(!!value); // Giữ dropdown mở khi nhập
+        }}
+        open={isDropdownOpen} // Điều khiển trạng thái dropdown
+        onBlur={() => setIsDropdownOpen(false)} // Đóng dropdown khi mất focus
       >
         <Input
           size="large"
@@ -48,6 +62,12 @@ const SearchBar = () => {
           className="search-input"
           onPressEnter={() => onSearch(searchValue)}
           loading={isSuggestionsLoading}
+          allowClear // Thêm nút xóa nhanh
+          onChange={(e) => {
+            setSearchValue(e.target.value);
+            handleSearch(e.target.value);
+          }}
+          onClear={onClear} // Xử lý khi nhấn nút xóa
         />
       </AutoComplete>
       <Button

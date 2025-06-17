@@ -28,6 +28,7 @@ import { ToastContainer } from "react-toastify";
 import { CircleUserRound, CircleUserRoundIcon, Upload } from "lucide-react";
 import { useModal } from "../contexts/modal.context";
 import UploadPage from "./UploadPage";
+import { useEffect } from "react";
 
 const { Header, Content, Sider } = Layout;
 
@@ -97,7 +98,7 @@ const StudioPage = () => {
   const userMenu = <Menu items={userMenuItems} />;
 
   const handleUploadClick = () => {
-    openModal(<UploadPage />);
+    openModal(<UploadPage navigate={navigate} />);
   };
 
   // Handle logo click to refresh and navigate to homepage

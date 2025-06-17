@@ -8,7 +8,7 @@ import { AuthContext } from "../../../../contexts/auth.context";
 
 const { Step } = Steps;
 
-const VideoUploadForm = ({ onSuccess }) => {
+const VideoUploadForm = ({ onSuccess, navigate }) => {
   const { message } = App.useApp();
   const [form] = Form.useForm();
   const [videoFileList, setVideoFileList] = useState([]);
@@ -138,6 +138,7 @@ const VideoUploadForm = ({ onSuccess }) => {
       setCurrentStep(0);
       closeModal();
       onSuccess && onSuccess();
+      navigate(`/channel/${auth.user.id}`);
     } catch (error) {
       console.error("Create video catch error:", error);
       message.error("Đã xảy ra lỗi khi tạo video: " + (error.message || ""));
@@ -372,10 +373,10 @@ const VideoUploadForm = ({ onSuccess }) => {
             >
               <Input.TextArea rows={4} placeholder="Nhập mô tả video" />
             </Form.Item>
-            <Form.Item label="URL Video">
+            <Form.Item label="URL Video" style={{ display: "none" }}>
               <Input value={videoUrl} disabled />
             </Form.Item>
-            <Form.Item label="URL Thumbnail">
+            <Form.Item label="URL Thumbnail" style={{ display: "none" }}>
               <Input value={thumbnail} disabled />
             </Form.Item>
             <Form.Item>

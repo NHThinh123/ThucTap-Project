@@ -31,7 +31,7 @@ const SubscriberList = () => {
               <Col span={4}>
                 <Avatar
                   src={
-                    item.avatar ||
+                    item?.avatar ||
                     "https://res.cloudinary.com/nienluan/image/upload/v1747707203/avaMacDinh_jxwsog.jpg"
                   }
                   size={50}

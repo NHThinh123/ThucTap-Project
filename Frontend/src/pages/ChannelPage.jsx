@@ -18,11 +18,6 @@ const ChannelPage = () => {
       label: "Video",
       children: <VideoChannel channelId={id} />, // Replace with actual content
     },
-    {
-      key: "3",
-      label: "Danh sách phát",
-      children: "Content of Tab Pane 3", // Replace with actual content
-    },
   ];
   return (
     <Row>

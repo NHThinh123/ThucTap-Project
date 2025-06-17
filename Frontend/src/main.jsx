@@ -110,6 +110,11 @@ createRoot(document.getElementById("root")).render(
   <QueryClientProvider client={queryClient}>
     <ConfigProvider
       theme={{
+        components: {
+          Menu: {
+            itemPaddingInline: 0,
+          },
+        },
         token: {
           colorPrimary: "#c90626",
           fontFamily: "Roboto, arial, sans-serif", // Font chữ

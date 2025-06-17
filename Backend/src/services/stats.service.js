@@ -519,8 +519,8 @@ const getNewestVideoAnalysisService = async (userId) => {
 
     // 3. Lấy trends từ VideoStats (weekly)
     // 2. Lấy thống kê trong 7 ngày qua (theo tuần)
-    const stats = await getUserStatsService(
-      userId,
+    const stats = await getVideoStatsService(
+      newestVideo._id,
       "weekly",
       startDate,
       endDate
