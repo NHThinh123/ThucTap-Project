@@ -22,7 +22,7 @@ import {
   StockOutlined,
 } from "@ant-design/icons";
 import { ToastContainer } from "react-toastify";
-import { CircleUserRound } from "lucide-react";
+import { CircleUserRound, User } from "lucide-react";
 
 const { Header, Content, Sider } = Layout;
 
@@ -59,7 +59,7 @@ const AdminPage = () => {
     },
     {
       key: "list",
-      icon: <HomeOutlined />,
+      icon: <User size={18} />,
       label: <Link to="/admin/list">Danh sách</Link>,
     },
     {

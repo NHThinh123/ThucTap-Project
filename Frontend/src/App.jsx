@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { CircleUserRound, ListVideo } from "lucide-react";
 import {
