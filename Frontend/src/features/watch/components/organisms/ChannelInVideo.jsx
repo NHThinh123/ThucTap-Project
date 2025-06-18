@@ -41,7 +41,13 @@ const ChannelInVideo = ({ channelId }) => {
   }
   return (
     <Space>
-      <Link to={`/channel/${channelId}`}>
+      <Link
+        to={`/channel/${channelId}`}
+        onClick={(e) => {
+          e.preventDefault();
+          window.location.href = `/channel/${channelId}`;
+        }}
+      >
         <Avatar
           src={
             channelInfo.avatar ||
@@ -51,7 +57,13 @@ const ChannelInVideo = ({ channelId }) => {
         />
       </Link>
       <div style={{ marginLeft: 5, fontSize: 14, paddingRight: 20 }}>
-        <Link to={`/channel/${channelId}`}>
+        <Link
+          to={`/channel/${channelId}`}
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.href = `/channel/${channelId}`;
+          }}
+        >
           <p
             style={{
               fontWeight: "bold",

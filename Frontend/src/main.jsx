@@ -26,6 +26,7 @@ import AdminPage from "./pages/AdminPage.jsx";
 import AdminListUserPage from "./pages/AdminListUserPage.jsx";
 import AdminStatisticsPage from "./pages/AdminStatisticsPage.jsx";
 import AdminOverviewPage from "./pages/AdminOverviewPage.jsx";
+import VideoHistoryPage from "./pages/VideoHistoryPage.jsx";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,10 @@ const router = createBrowserRouter([
       {
         path: "profile",
         element: <ProfilePage />,
+      },
+      {
+        path: "history",
+        element: <VideoHistoryPage />,
       },
     ],
   },
