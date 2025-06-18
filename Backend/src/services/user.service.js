@@ -49,7 +49,7 @@ const checkUserCredentials = async (email, password) => {
 const getListUserService = async () => {
   try {
     const users = await User.find({ deleted: false });
-    return users.select("-password");
+    return users;
   } catch (error) {
     throw new Error("Lỗi server: " + error.message);
   }
@@ -61,11 +61,17 @@ const createUserService = async ({
   password,
   nickname,
   dateOfBirth,
-  role
-  
+  role,
 }) => {
   try {
-    if (!user_name || !nickname || !email || !password || !dateOfBirth || !role) {
+    if (
+      !user_name ||
+      !nickname ||
+      !email ||
+      !password ||
+      !dateOfBirth ||
+      !role
+    ) {
       throw new Error("Thiếu thông tin bắt buộc");
     }
 
@@ -83,7 +89,6 @@ const createUserService = async ({
       password: hashedPassword,
       dateOfBirth,
       role,
-      
     });
 
     await newUser.save();
@@ -95,7 +100,7 @@ const createUserService = async ({
 //Xóa người dùng
 const deleteUserService = async (id) => {
   try {
-    const user = await User.delete({ _id: id });
+    const user = await User.findByIdAndDelete(id);
     if (!user) {
       throw new Error("Không tìm thấy user");
     }

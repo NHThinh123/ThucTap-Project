@@ -55,6 +55,6 @@ router.post("/admin/create", protect, adminOnly, signup);
 //Cập nhật thông tin người dùng
 router.put("/admin/update/:id", protect, adminOnly, updateUser);
 //Xóa người dùng
-router.post("/admin/delete/:id", protect, adminOnly, deleteUser);
+router.delete("/admin/delete/:id", protect, adminOnly, deleteUser);
 
 module.exports = router;

@@ -14,6 +14,7 @@ const validateObjectId = (id, fieldName) => {
 
 const addVideoToPlaylist = async (req, res, next) => {
   try {
+    console.log("Nhận yêu cầu:", req.body);
     const { playlist_id, video_id } = req.body;
     validateObjectId(playlist_id, "Playlist ID");
     validateObjectId(video_id, "Video ID");
@@ -26,7 +27,10 @@ const addVideoToPlaylist = async (req, res, next) => {
       data: { playlist_video },
     });
   } catch (error) {
-    next(error);
+    console.error("Lỗi trong controller:", error);
+    const status = error.status || 500;
+    const message = error.message || "Lỗi máy chủ nội bộ";
+    return res.status(status).json({ message });
   }
 };
 

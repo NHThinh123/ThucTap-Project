@@ -2,7 +2,7 @@ import { SearchOutlined } from "@ant-design/icons";
 import { Button, Input, AutoComplete } from "antd";
 import { useCallback, useState } from "react";
 import { debounce } from "lodash";
-import "../../styles/searchbar.css"; // File CSS tùy chỉnh
+import "../../styles/searchbar.css";
 import useSearch from "../../features/search/hooks/useSeach";
 import { useNavigate } from "react-router-dom";
 
