@@ -96,7 +96,7 @@ function App() {
   }, [location.pathname, isVideoWatchPage]);
 
   const avatarSrc = isUserLoggedIn ? auth.user?.avatar : null;
-  const displayName = isUserLoggedIn ? auth.user?.name : "";
+  const displayName = isUserLoggedIn ? auth.user?.user_name : "";
 
   const handleLogout = () => {
     setIsLoggingOut(true);

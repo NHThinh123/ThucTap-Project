@@ -25,8 +25,7 @@ const NewestVideoAnalysis = ({ userId }) => {
 
   if (isLoading) return <Spin />;
   if (error) return <Alert message={error.message} type="error" />;
-  if (!data?.data?.video)
-    return <Alert message="Bạn chưa đăng video nào" type="warning" />;
+  if (!data?.data?.video) return null;
 
   const { video, stats } = data.data;
   // Lấy trends từ tuần hiện tại (index cuối cùng)

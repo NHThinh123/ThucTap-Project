@@ -22,6 +22,10 @@ import UploadPage from "./pages/UploadPage.jsx";
 import { ModalProvider } from "./contexts/modal.context.jsx";
 import SearchResultPage from "./pages/SearchResultPage.jsx";
 import PlayListPage from "./pages/PlayListPage.jsx";
+import AdminPage from "./pages/AdminPage.jsx";
+import AdminListUserPage from "./pages/AdminListUserPage.jsx";
+import AdminStatisticsPage from "./pages/AdminStatisticsPage.jsx";
+import AdminOverviewPage from "./pages/AdminOverviewPage.jsx";
 
 const queryClient = new QueryClient();
 
@@ -101,6 +105,24 @@ const router = createBrowserRouter([
       {
         path: "uploadvideo",
         element: <UploadPage />,
+      },
+    ],
+  },
+  {
+    path: "admin",
+    element: <AdminPage />,
+    children: [
+      {
+        path: "true",
+        element: <AdminOverviewPage />,
+      },
+      {
+        path: "list",
+        element: <AdminListUserPage />,
+      },
+      {
+        path: "statistics",
+        element: <AdminStatisticsPage />,
       },
     ],
   },
