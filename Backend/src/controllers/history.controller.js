@@ -33,8 +33,8 @@ const getHistory = async (req, res, next) => {
 
 const getAllHistories = async (req, res, next) => {
   try {
-    const { user_id } = req.body;
-    const histories = await getAllHistoriesOfUserService(user_id);
+    const { id } = req.params;
+    const histories = await getAllHistoriesOfUserService(id);
     res.status(200).json({
       status: "success",
       results: histories.length,
@@ -75,7 +75,8 @@ const deleteHistory = async (req, res, next) => {
 
 const deleteAllHistories = async (req, res, next) => {
   try {
-    await deleteAllHistoriesService(req.body.user_id);
+    const { id } = req.params;
+    await deleteAllHistoriesService(id);
     res.status(204).json({
       status: "success",
       data: null,

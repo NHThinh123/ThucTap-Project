@@ -1,13 +1,11 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { formatTime } from "../../../../constants/formatTime";
 import { formatViews } from "../../../../constants/formatViews";
 import { formatDuration } from "../../../../constants/formatDuration";
 
 const VideoCard = ({ video, isShow = true }) => {
-  const navigate = useNavigate();
-
   const handleCardClick = () => {
-    navigate(`/watch/${video._id}`); // Navigate to the video page
+    window.location.href = `/watch/${video._id}`; // Navigate to the video page
     window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll to top
   };
 

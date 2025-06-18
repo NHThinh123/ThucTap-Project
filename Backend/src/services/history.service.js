@@ -27,7 +27,45 @@ const getHistoryByIdService = async (historyId) => {
 };
 
 const getAllHistoriesOfUserService = async (userId) => {
-  return History.find({ user_id: userId });
+  const histories = await History.find({ user_id: userId })
+    .sort({
+      updatedAt: -1,
+    })
+    .populate({
+      path: "video_id",
+      select: "title thumbnail_video duration views createdAt user_id",
+      populate: {
+        path: "user_id",
+        select: "nickname avatar",
+      },
+    });
+
+  // Lấy danh sách các ngày duy nhất (bỏ trùng) từ updatedAt
+  const uniqueDates = [
+    ...new Set(
+      histories.map(
+        (history) => new Date(history.updatedAt).toISOString().split("T")[0]
+      )
+    ),
+  ];
+
+  // Nhóm các video theo ngày
+  const result = uniqueDates.map((date) => ({
+    date,
+    videos: histories
+      .filter(
+        (history) =>
+          new Date(history.updatedAt).toISOString().split("T")[0] === date
+      )
+      .map((history) => ({
+        _id: history._id,
+        video_id: history.video_id,
+        watch_duration: history.watch_duration,
+        updatedAt: history.updatedAt,
+      })),
+  }));
+
+  return result;
 };
 
 const updateWatchDurationService = async (id, watch_duration) => {

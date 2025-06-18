@@ -38,7 +38,15 @@ const MainChannel = ({ channelId }) => {
       <Divider style={{ marginTop: "-16px" }} />
       <Row align={"top"} gutter={16}>
         <Col span={10}>
-          <Link to={latestVideo ? `/watch/${latestVideo._id}` : "#"}>
+          <Link
+            to={latestVideo ? `/watch/${latestVideo._id}` : "#"}
+            onClick={(e) => {
+              e.preventDefault();
+              latestVideo
+                ? (window.location.href = `/watch/${latestVideo._id}`)
+                : (window.location.href = "#");
+            }}
+          >
             <img
               src={latestVideo?.thumbnail_video}
               alt={latestVideo?.title}
@@ -57,7 +65,15 @@ const MainChannel = ({ channelId }) => {
               WebkitBoxOrient: "vertical",
             }}
           >
-            <Link to={latestVideo ? `/watch/${latestVideo._id}` : "#"}>
+            <Link
+              to={latestVideo ? `/watch/${latestVideo._id}` : "#"}
+              onClick={(e) => {
+                e.preventDefault();
+                latestVideo
+                  ? (window.location.href = `/watch/${latestVideo._id}`)
+                  : (window.location.href = "#");
+              }}
+            >
               <span
                 style={{
                   fontWeight: "700",
