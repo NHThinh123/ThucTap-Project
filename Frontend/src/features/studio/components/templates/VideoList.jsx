@@ -323,6 +323,11 @@ const VideoList = ({ userId }) => {
         columns={columns}
         dataSource={filteredData}
         showSorterTooltip={false}
+        pagination={{
+          pageSize: 5,
+          showSizeChanger: false,
+          position: ["bottomRight"],
+        }}
       />
       <Modal
         title="Chỉnh sửa video"

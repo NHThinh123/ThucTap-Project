@@ -69,7 +69,7 @@ const ChannelInformation = ({ channelId }) => {
               />
             ) : (
               <>
-                <Button href="/studio">Tùy chỉnh kênh</Button>
+                <Button href="/studio">Quản lý kênh</Button>
               </>
             )}
           </Space>

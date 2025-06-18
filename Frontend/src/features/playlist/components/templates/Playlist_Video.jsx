@@ -14,6 +14,7 @@ import {
 import { useQueries } from "@tanstack/react-query";
 import { AuthContext } from "../../../../contexts/auth.context";
 import { getVideoByIdApi } from "../../services/playListApi";
+import { formatDuration } from "../../../../constants/formatDuration";
 
 const PlayList_Video = () => {
   const { auth } = useContext(AuthContext);
@@ -173,7 +174,6 @@ const PlayList_Video = () => {
         ]}
       >
         <Card
-          hoverable
           style={{ width: "100%", marginBottom: 8 }}
           onClick={() => handlePlayVideo(video.video_id)}
         >
@@ -189,6 +189,7 @@ const PlayList_Video = () => {
                     height: "100%",
                     objectFit: "cover",
                     borderRadius: 4,
+                    overflow: "hidden",
                   }}
                 />
               ) : (
@@ -237,13 +238,13 @@ const PlayList_Video = () => {
                     fontSize: 12,
                   }}
                 >
-                  {videoData.duration}
+                  {formatDuration(videoData.duration)}
                 </div>
               )}
             </div>
 
             {/* Video Info */}
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, padding: "8px 0" }}>
               <h4
                 style={{
                   margin: "0 0 8px 0",
