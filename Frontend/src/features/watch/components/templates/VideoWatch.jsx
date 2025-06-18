@@ -16,6 +16,19 @@ const VideoWatch = ({ video }) => {
   const { createHistory } = useCreateHistory();
   const { updateWatchDuration } = useUpdateWatchDuration();
   const { HistoryData, isLoading: isLoadingHistory } = useHistory(userId);
+  useEffect(() => {
+    if (HistoryData?.data?.histories && !isLoadingHistory) {
+      let found = false;
+      HistoryData.data.histories.forEach((history) => {
+        history.videos.forEach((vid) => {
+          if (vid.video_id._id === video._id) {
+            found = true;
+          }
+        });
+      });
+      setHasCreatedHistory(found);
+    }
+  }, [HistoryData, isLoadingHistory, video._id]);
 
   const videoRef = useRef(null);
   const prevPathRef = useRef(location.pathname);

@@ -5,7 +5,7 @@ import { formatDuration } from "../../../../constants/formatDuration";
 import { useState } from "react";
 import { Col, Row } from "antd";
 
-const VideoSuggestCard = ({ video }) => {
+const VideoSuggestCard = ({ video, watchDuration }) => {
   const [hoveredItemId, setHoveredItemId] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -66,31 +66,55 @@ const VideoSuggestCard = ({ video }) => {
         }}
         onClick={handleRowClick}
       >
-        <Col span={10} style={{ width: "80%", height: 100 }}>
-          <img
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              borderRadius: 10,
-            }}
-            src={video.thumbnail_video}
-            alt={video.title}
-          />
+        <Col span={10}>
           <div
             style={{
-              position: "absolute",
-              bottom: 5,
-              right: 7,
-              background: "rgba(0, 0, 0, 0.5)",
-              color: "#fff",
-              fontSize: 11,
-              fontWeight: 540,
-              padding: "1px 5px",
-              borderRadius: 4,
+              width: "100%",
+              height: 100,
+              borderRadius: 10,
+              position: "relative",
+              overflow: "hidden",
             }}
           >
-            {formatDuration(video.duration)}
+            <img
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
+              src={video.thumbnail_video}
+              alt={video.title}
+            />
+            {watchDuration !== 0 && (
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  height: 5,
+                  backgroundColor: "red",
+                  width: `${Math.min(
+                    (watchDuration / video.duration) * 100,
+                    100
+                  )}%`,
+                }}
+              />
+            )}
+            <div
+              style={{
+                position: "absolute",
+                bottom: 5,
+                right: 7,
+                background: "rgba(0, 0, 0, 0.5)",
+                color: "#fff",
+                fontSize: 11,
+                fontWeight: 540,
+                padding: "1px 5px",
+                borderRadius: 4,
+              }}
+            >
+              {formatDuration(video.duration)}
+            </div>
           </div>
         </Col>
         <Col
@@ -128,7 +152,7 @@ const VideoSuggestCard = ({ video }) => {
               </div>
             </div>
             <Link
-              to={`/channel/${video?.user_id._id}`}
+              to={`/channel/${video?.user_id?._id}`}
               style={{ textDecoration: "none" }}
               onClick={handleLinkClick}
             >
@@ -140,7 +164,7 @@ const VideoSuggestCard = ({ video }) => {
                   marginTop: 4,
                 }}
               >
-                {video.user_id.nickname}
+                {video.user_id?.nickname}
               </span>
             </Link>
             <div

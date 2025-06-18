@@ -3,9 +3,9 @@ import { formatTime } from "../../../../constants/formatTime";
 import { formatViews } from "../../../../constants/formatViews";
 import { formatDuration } from "../../../../constants/formatDuration";
 
-const VideoCard = ({ video, isShow = true }) => {
+const VideoCard = ({ video, isShow = true, watchDuration }) => {
   const handleCardClick = () => {
-    window.location.href = `/watch/${video._id}`; // Navigate to the video page
+    window.location.href = `/watch/${video?._id}`; // Navigate to the video page
     window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll to top
   };
 
@@ -25,18 +25,33 @@ const VideoCard = ({ video, isShow = true }) => {
           <div className="video-card__duration">
             {formatDuration(video.duration)}
           </div>
+          {watchDuration !== 0 && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                height: 5,
+                backgroundColor: "red",
+                width: `${Math.min(
+                  (watchDuration / video.duration) * 100,
+                  100
+                )}%`,
+              }}
+            />
+          )}
         </div>
         <div className="video-card__content">
           {isShow && (
             <Link
-              to={`/channel/${video?.user_id._id}`}
+              to={`/channel/${video?.user_id?._id}`}
               className="video-card__avatar-link"
               onClick={handleLinkClick}
             >
               <img
                 className="video-card__avatar"
                 src={
-                  video.user_id.avatar ||
+                  video?.user_id?.avatar ||
                   "https://res.cloudinary.com/nienluan/image/upload/v1747707203/avaMacDinh_jxwsog.jpg"
                 }
                 alt="Channel avatar"
@@ -45,7 +60,7 @@ const VideoCard = ({ video, isShow = true }) => {
           )}
           <div className="video-card__info">
             <div className="video-card__title-container">
-              <div className="video-card__title">{video.title}</div>
+              <div className="video-card__title">{video?.title}</div>
               <button
                 className="video-card__more-btn"
                 aria-label="More options"
@@ -65,19 +80,19 @@ const VideoCard = ({ video, isShow = true }) => {
             </div>
             {isShow && (
               <Link
-                to={`/channel/${video?.user_id._id}`}
+                to={`/channel/${video?.user_id?._id}`}
                 className="video-card__channel-link"
                 onClick={handleLinkClick}
               >
                 <span className="video-card__channel">
-                  {video.user_id.nickname || "Channel Name"}
+                  {video?.user_id?.nickname || "Channel Name"}
                 </span>
               </Link>
             )}
             <div className="video-card__meta">
-              <span>{formatViews(video.views)} lượt xem</span>
+              <span>{formatViews(video?.views)} lượt xem</span>
               <span className="dot">•</span>
-              <span>{formatTime(video.createdAt)}</span>
+              <span>{formatTime(video?.createdAt)}</span>
             </div>
           </div>
         </div>
@@ -98,6 +113,9 @@ const styles = `
 
   .video-card__thumbnail-container {
     position: relative;
+              border-radius: 10px;
+              overflow: hidden;
+              aspect-ratio: 16 / 9;
   }
 
   .video-card__duration {
@@ -115,10 +133,8 @@ const styles = `
 
   .video-card__cover {
   width: 100%;
-  height: auto; 
-  aspect-ratio: 16 / 9;
+  height: 100%
   object-fit: cover;
-  border-radius: 10px;
 }
 
   .video-card__content {
