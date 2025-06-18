@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { formatTime } from "../../../../constants/formatTime";
 import { formatViews } from "../../../../constants/formatViews";
 import { formatDuration } from "../../../../constants/formatDuration";
@@ -7,10 +7,9 @@ import { Avatar, Col, Row } from "antd";
 
 const VideoSearchCard = ({ video }) => {
   const [hoveredItemId, setHoveredItemId] = useState(null);
-  const navigate = useNavigate();
 
   const handleRowClick = () => {
-    navigate(`/watch/${video._id}`); // Navigate to the video page
+    window.location.href = `/watch/${video._id}`; // Navigate to the video page
     window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll to top
   };
 

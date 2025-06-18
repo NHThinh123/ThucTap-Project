@@ -111,7 +111,13 @@ const HorizontalListVideo = ({ videos = [] }) => {
             {videos.map((video) => (
               <div key={video._id}>
                 <div style={{ marginRight: 16 }}>
-                  <Link to={`/watch/${video._id}`}>
+                  <Link
+                    to={`/watch/${video._id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      window.location.href = `/watch/${video._id}`;
+                    }}
+                  >
                     <img
                       src={video.thumbnail_video}
                       alt={video.title}
@@ -129,7 +135,13 @@ const HorizontalListVideo = ({ videos = [] }) => {
                       width: videos.length >= 5 ? "100%" : "220px",
                     }}
                   >
-                    <Link to={`/watch/${video._id}`}>
+                    <Link
+                      to={`/watch/${video._id}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.location.href = `/watch/${video._id}`;
+                      }}
+                    >
                       <p
                         style={{
                           fontFamily: "sans-serif",

@@ -14,22 +14,23 @@ dayjs.extend(isSameOrAfter);
 dayjs.extend(isoWeek);
 dayjs.locale("vi");
 
+const capitalizeFirstLetter = (string) => {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+};
+
 export const formatDateLabel = (dateString) => {
   const date = dayjs(dateString);
   const today = dayjs();
 
   if (date.isToday()) return "Hôm nay";
+  if (date.isYesterday()) return "Hôm qua";
 
   // Kiểm tra nếu ngày trong cùng tuần với hôm nay
-  const startOfWeek = today.startOf("week"); // mặc định: Chủ nhật là đầu tuần
+  const startOfWeek = today.startOf("week");
   const endOfWeek = today.endOf("week");
 
-  if (
-    date.isSameOrAfter(startOfWeek) &&
-    date.isSameOrAfter(today.startOf("week")) &&
-    date.isBefore(endOfWeek)
-  ) {
-    return date.format("dddd"); // Thứ hai, Thứ ba, ...
+  if (date.isSameOrAfter(startOfWeek) && date.isBefore(endOfWeek)) {
+    return capitalizeFirstLetter(date.format("dddd")); // Viết hoa chữ cái đầu
   }
 
   // Ngày cũ hơn: hiển thị "17 thg 6"

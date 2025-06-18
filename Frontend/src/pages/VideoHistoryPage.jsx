@@ -10,7 +10,6 @@ const { Title } = Typography;
 const VideoHistoryPage = () => {
   const { auth } = useContext(AuthContext);
   const { HistoryData, isLoading, isError } = useHistory(auth?.user.id);
-  console.log("his: ", HistoryData);
   const DataLength = HistoryData?.data?.result;
   const Histories = HistoryData?.data?.histories;
 

@@ -1,10 +1,24 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import useIncrementView from "../../../video/hooks/useIncrementView";
+import { AuthContext } from "../../../../contexts/auth.context";
+import useCreateHistory from "../../../history/hooks/useCreateHistory";
+import useUpdateWatchDuration from "../../../history/hooks/useUpdateWatchDuration";
+import useHistory from "../../../history/hooks/useHistory";
+import { useLocation } from "react-router-dom";
 
 const VideoWatch = ({ video }) => {
+  const location = useLocation();
+  const { auth } = useContext(AuthContext);
+  const userId = auth?.user?.id;
   const { incrementView, isLoading } = useIncrementView();
+  const [historyId, setHistoryId] = useState(null);
+  const [hasCreatedHistory, setHasCreatedHistory] = useState(false);
+  const { createHistory } = useCreateHistory();
+  const { updateWatchDuration } = useUpdateWatchDuration();
+  const { HistoryData, isLoading: isLoadingHistory } = useHistory(userId);
 
   const videoRef = useRef(null);
+  const prevPathRef = useRef(location.pathname);
   const progressRef = useRef(null);
   const playerContainerRef = useRef(null);
   const volumeSliderRef = useRef(null);
@@ -25,23 +39,52 @@ const VideoWatch = ({ video }) => {
   const [watchTime, setWatchTime] = useState(0);
   const [hasIncrementedView, setHasIncrementedView] = useState(false);
 
-  // Lưu lịch sử xem vào localStorage
   const saveWatchHistory = () => {
-    if (!video?._id || watchTimeRef.current <= 0) return;
+    const current = videoRef.current?.currentTime || 0;
+    if (!video?._id || current <= 0) return;
 
-    const watchHistory = JSON.parse(
-      localStorage.getItem("watchHistory") || "[]"
-    );
-    const historyItem = {
-      _id: video._id,
-      video_url: video.video_url,
-      watchTime: watchTimeRef.current,
-      currentTime: videoRef.current?.currentTime || 0,
-      timestamp: new Date().toISOString(),
+    const payload = {
+      user_id: userId,
+      video_id: video._id,
+      watch_duration: Math.floor(current),
     };
-    watchHistory.push(historyItem);
-    localStorage.setItem("watchHistory", JSON.stringify(watchHistory));
-    console.log("Lịch sử xem đã được lưu:", historyItem);
+
+    if (!hasCreatedHistory) {
+      createHistory(payload, {
+        onSuccess: (data) => {
+          setHistoryId(data?._id);
+          setHasCreatedHistory(true);
+          console.log("Đã tạo lịch sử:", data);
+        },
+        onError: (err) => {
+          if (
+            err?.response?.data?.message ===
+            "This video already exists in the user's history"
+          ) {
+            // Nếu đã tồn tại thì chỉ cần update
+            setHasCreatedHistory(true); // đánh dấu là đã từng tạo
+          }
+        },
+      });
+    } else if (historyId && current > 0) {
+      updateWatchDuration(
+        {
+          id: historyId,
+          watch_duration: Math.floor(current),
+        },
+        {
+          onSuccess: (data) => {
+            console.log("Cập nhật thời lượng xem:", data);
+          },
+          onError: (err) => {
+            console.error(
+              "Lỗi cập nhật thời lượng xem:",
+              err?.response?.data || err
+            );
+          },
+        }
+      );
+    }
   };
 
   const formatTime = (time) => {
@@ -287,14 +330,6 @@ const VideoWatch = ({ video }) => {
     const handlePlay = () => {
       setIsPlaying(true);
       lastUpdateTimeRef.current = video.currentTime;
-
-      // Lưu lịch sử sau 5 giây kể từ khi bắt đầu phát
-      if (saveHistoryTimeoutRef.current) {
-        clearTimeout(saveHistoryTimeoutRef.current);
-      }
-      saveHistoryTimeoutRef.current = setTimeout(() => {
-        saveWatchHistory();
-      }, 5000);
     };
 
     const handlePause = () => {
@@ -324,6 +359,34 @@ const VideoWatch = ({ video }) => {
       }
     };
   }, [isDragging, isPlaying]);
+
+  useEffect(() => {
+    const videoEl = videoRef.current;
+    if (!videoEl || !video || !HistoryData?.data?.histories) return;
+
+    let found = null;
+
+    for (const group of HistoryData.data.histories) {
+      for (const item of group.videos) {
+        if (item.video_id && item.video_id._id === video._id) {
+          found = item;
+          break;
+        }
+      }
+      if (found) break;
+    }
+
+    if (found?.watch_duration > 0) {
+      videoEl.currentTime = found.watch_duration;
+      console.log("Tua đến thời gian đã xem:", found.watch_duration);
+      setWatchTime(0);
+    }
+
+    if (found?._id) {
+      setHistoryId(found._id);
+      setHasCreatedHistory(true);
+    }
+  }, [HistoryData, video]);
 
   // Kiểm tra thời gian xem để tăng lượt view
   useEffect(() => {
@@ -355,6 +418,28 @@ const VideoWatch = ({ video }) => {
     return () => clearInterval(interval);
   }, [isPlaying, watchTime]);
 
+  useEffect(() => {
+    return () => {
+      saveWatchHistory(); // lưu lần cuối khi rời khỏi trang
+    };
+  }, []);
+
+  useEffect(() => {
+    const prevPath = prevPathRef.current;
+    const currentPath = location.pathname;
+
+    const wasInWatch = prevPath.startsWith("/watch");
+    const isNowOutsideWatch = !currentPath.startsWith("/watch");
+
+    if (wasInWatch && isNowOutsideWatch) {
+      //Đang rời khỏi /watch/... → reload trang
+      saveWatchHistory();
+      window.location.reload();
+    }
+
+    prevPathRef.current = currentPath;
+  }, [location.pathname]);
+
   // Reset khi video thay đổi
   useEffect(() => {
     setCurrentTime(0);
@@ -370,14 +455,7 @@ const VideoWatch = ({ video }) => {
     }
   }, [video?.video_url]);
 
-  // Cleanup khi component unmount
-  useEffect(() => {
-    return () => {
-      saveWatchHistory();
-    };
-  }, []);
-
-  if (isLoading) return;
+  if (isLoading && isLoadingHistory) return;
 
   return (
     <div

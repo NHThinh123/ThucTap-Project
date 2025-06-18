@@ -12,14 +12,12 @@ import {
   useRemoveVideoFromPlaylist,
 } from "../../hooks/usePlayList";
 import { useQueries } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../../../contexts/auth.context";
 import { getVideoByIdApi } from "../../services/playListApi";
 
 const PlayList_Video = () => {
   const { auth } = useContext(AuthContext);
   const user_id = auth?.user?.id;
-  const navigate = useNavigate();
   const [selectedPlaylistId, setSelectedPlaylistId] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isDeletePlaylistModalVisible, setIsDeletePlaylistModalVisible] =
@@ -137,7 +135,7 @@ const PlayList_Video = () => {
 
   // Hàm chuyển đến trang phát video
   const handlePlayVideo = (videoId) => {
-    navigate(`/watch/${videoId}`);
+    window.location.href = `/watch/${videoId}`;
   };
 
   // Component hiển thị video item

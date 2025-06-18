@@ -75,7 +75,8 @@ const deleteHistory = async (req, res, next) => {
 
 const deleteAllHistories = async (req, res, next) => {
   try {
-    await deleteAllHistoriesService(req.body.user_id);
+    const { id } = req.params;
+    await deleteAllHistoriesService(id);
     res.status(204).json({
       status: "success",
       data: null,

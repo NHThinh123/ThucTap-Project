@@ -1,14 +1,12 @@
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { formatTime } from "../../../../constants/formatTime";
 import { formatViews } from "../../../../constants/formatViews";
 import { formatDuration } from "../../../../constants/formatDuration";
 import { Avatar, Col, Row } from "antd";
 
 const VideoCardHistory = ({ video, watchDuration }) => {
-  const navigate = useNavigate();
-
   const handleCardClick = () => {
-    navigate(`/watch/${video._id}`);
+    window.location.href = `/watch/${video._id}`;
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -31,6 +29,7 @@ const VideoCardHistory = ({ video, watchDuration }) => {
           cursor: "pointer",
           border: "none",
           padding: 0,
+          marginBottom: "1rem",
         }}
         onClick={handleCardClick}
       >
@@ -51,7 +50,7 @@ const VideoCardHistory = ({ video, watchDuration }) => {
                 position: "absolute",
                 bottom: 0,
                 left: 0,
-                height: 5,
+                height: 4,
                 backgroundColor: "red",
                 width: `${Math.min(
                   (watchDuration / video.duration) * 100,

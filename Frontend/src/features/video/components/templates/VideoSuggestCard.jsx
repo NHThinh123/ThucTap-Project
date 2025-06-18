@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { formatTime } from "../../../../constants/formatTime";
 import { formatViews } from "../../../../constants/formatViews";
 import { formatDuration } from "../../../../constants/formatDuration";
@@ -8,14 +8,15 @@ import { Col, Row } from "antd";
 const VideoSuggestCard = ({ video }) => {
   const [hoveredItemId, setHoveredItemId] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const navigate = useNavigate();
 
   const handleLinkClick = (e) => {
-    e.stopPropagation(); // Prevent parent onClick from firing
+    e.stopPropagation();
+    e.preventDefault();
+    window.location.href = `/channel/${video?.user_id._id}`;
   };
 
   const handleRowClick = () => {
-    navigate(`/watch/${video._id}`); // Navigate to the video page
+    window.location.href = `/watch/${video._id}`; // Navigate to the video page
     window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll to top
   };
   const handleMenuClick = (e) => {

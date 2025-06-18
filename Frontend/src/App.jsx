@@ -52,24 +52,72 @@ function App() {
     {
       key: "home",
       icon: <HomeOutlined />,
-      label: <Link to="/">Home</Link>,
+      label: isVideoWatchPage ? (
+        <Link
+          to="/"
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.href = "/";
+          }}
+        >
+          Home
+        </Link>
+      ) : (
+        <Link to="/">Home</Link>
+      ),
       path: "/",
     },
     {
       key: "history",
       icon: <HistoryOutlined />,
-      label: <Link to="/history">Video đã xem</Link>,
+      label: isVideoWatchPage ? (
+        <Link
+          to="/history"
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.href = "/history";
+          }}
+        >
+          Video đã xem
+        </Link>
+      ) : (
+        <Link to="/history">Video đã xem</Link>
+      ),
       path: "/history",
     },
     {
       key: "playlist",
       icon: <ListVideo size={18} />,
-      label: <Link to="/playlist">PlayList</Link>,
+      label: isVideoWatchPage ? (
+        <Link
+          to="/playlist"
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.href = "/playlist";
+          }}
+        >
+          Danh sách phát
+        </Link>
+      ) : (
+        <Link to="/playlist">Danh sách phát</Link>
+      ),
     },
     {
       key: "studio",
       icon: <AppstoreOutlined />,
-      label: <Link to="/studio">Studio</Link>,
+      label: isVideoWatchPage ? (
+        <Link
+          to="/studio"
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.href = "/studio";
+          }}
+        >
+          Studio
+        </Link>
+      ) : (
+        <Link to="/studio">Studio</Link>
+      ),
       path: "/studio",
     },
   ];
@@ -113,7 +161,7 @@ function App() {
         localStorage.removeItem("authUser");
       }
       setIsLoggingOut(false);
-      navigate("/");
+      isVideoWatchPage ? (window.location.href = "/") : navigate("/");
     }, 2000);
   };
 
@@ -121,7 +169,10 @@ function App() {
     {
       key: "profile",
       label: "Hồ sơ cá nhân",
-      onClick: () => navigate("/profile"),
+      onClick: () =>
+        isVideoWatchPage
+          ? (window.location.href = "/profile")
+          : navigate("/profile"),
     },
     { key: "logout", label: "Đăng xuất", onClick: handleLogout },
   ];
@@ -145,7 +196,7 @@ function App() {
   };
 
   const handleUploadClick = () => {
-    navigate("/studio");
+    isVideoWatchPage ? (window.location.href = "/studio") : navigate("/studio");
     openModal(<UploadPage />);
   };
 
@@ -250,7 +301,11 @@ function App() {
                 <Button
                   type="primary"
                   style={{ padding: "0 16px" }}
-                  onClick={() => navigate("/login")}
+                  onClick={() =>
+                    isVideoWatchPage
+                      ? (window.location.href = "/login")
+                      : navigate("/login")
+                  }
                 >
                   <CircleUserRound style={{ marginRight: "8px" }} />
                   Đăng nhập
