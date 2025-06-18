@@ -10,13 +10,13 @@ const SearchBar = () => {
   const [searchValue, setSearchValue] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Trạng thái dropdown
   const navigate = useNavigate();
-  const { suggestions, isSuggestionsLoading } = useSearch(searchValue);
+  const { suggestions, isSuggestionsLoading } = useSearch(searchValue || []);
 
   const handleSearch = useCallback(
     debounce((value) => {
       setSearchValue(value);
       setIsDropdownOpen(!!value); // Mở dropdown khi có giá trị nhập
-    }, 300),
+    }, 0),
     []
   );
 
@@ -42,9 +42,11 @@ const SearchBar = () => {
   return (
     <div className="search-bar">
       <AutoComplete
-        options={suggestions.suggestions?.map((suggestion) => ({
-          value: suggestion,
-        }))}
+        options={
+          suggestions.suggestions?.map((suggestion) => ({
+            value: suggestion,
+          })) || []
+        }
         style={{ width: "100%", maxWidth: "600px" }}
         onSearch={handleSearch}
         onSelect={onSelect}

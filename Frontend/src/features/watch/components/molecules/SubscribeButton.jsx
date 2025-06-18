@@ -91,7 +91,6 @@ const SubscribeButton = ({
         {isSubscribed ? (
           <div style={{ display: "flex", alignItems: "center" }}>
             Đã đăng ký{" "}
-            <ChevronDown strokeWidth={1.25} style={{ marginLeft: 5 }} />
           </div>
         ) : (
           <>Đăng ký</>

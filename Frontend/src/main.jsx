@@ -119,7 +119,7 @@ createRoot(document.getElementById("root")).render(
           colorPrimary: "#c90626",
           fontFamily: "Roboto, arial, sans-serif", // Font chữ
           fontSize: 16,
-          borderRadius: "24px",
+          borderRadius: "20px",
         },
       }}
     >

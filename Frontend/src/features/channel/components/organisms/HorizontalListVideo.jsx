@@ -55,8 +55,8 @@ const arrowStyles = (videoCount) => `
 
   /* Đặt kích thước cho slide dựa trên số lượng video */
   .slick-slide > div {
-    width: ${videoCount >= 5 ? "100%" : "240px"} !important;
-    margin-right: ${videoCount >= 5 ? "0" : "16px"};
+    width: 240px !important;
+    margin-right: 4px !important;
   }
 `;
 
@@ -70,6 +70,7 @@ const HorizontalListVideo = ({ videos = [] }) => {
     slidesToShow: Math.min(videos.length, 5), // Không vượt quá số video thực tế
     slidesToScroll: 2,
     arrows: true,
+    variableWidth: true,
     responsive: [
       {
         breakpoint: 1024,

@@ -35,15 +35,15 @@ function App() {
   const navigate = useNavigate();
   const { openModal } = useModal();
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const { auth, setAuth } = useContext(AuthContext);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const isUserLoggedIn = auth?.isAuthenticated;
+  const [collapsed, setCollapsed] = useState(isUserLoggedIn ? false : true);
   const isVideoWatchPage = location.pathname.startsWith("/watch/");
   const { data } = useUserSubscriptions(auth?.user?.id);
   const userSubscriptionsList = data?.data.channels || [];
-  const [showAllChannels, setShowAllChannels] = useState(false); // Trạng thái để hiển thị tất cả kênh
+  const [showAllChannels, setShowAllChannels] = useState(false);
 
   // Định nghĩa menu items
   const getMenuItems = () => {
@@ -72,43 +72,55 @@ function App() {
             Xem thêm
           </p>
         ),
-
-        onClick: () => setShowAllChannels(true), // Khi nhấn "Xem thêm", hiển thị tất cả kênh
+        onClick: () => setShowAllChannels(true),
       });
     }
 
-    return [
+    // Menu cơ bản
+    const menuItems = [
       {
         key: "home",
         icon: <HomeOutlined />,
         label: <Link to="/">Trang chủ</Link>,
         path: "/",
       },
-
-      {
-        type: "divider",
-      },
-      {
-        key: "subscriptions",
-        label: "Kênh đăng ký",
-        children: subscriptionChildren,
-      },
-      {
-        type: "divider",
-      },
-      {
-        key: "playlist",
-        icon: <ListVideo size={18} />,
-        label: <Link to="/playlist">Danh sách phát</Link>,
-        path: "/playlist",
-      },
-      {
-        key: "studio",
-        icon: <AppstoreOutlined />,
-        label: <Link to="/studio">Quản lý kênh</Link>,
-        path: "/studio",
-      },
     ];
+
+    // Chỉ thêm "Quản lý kênh" nếu đã đăng nhập
+    if (isUserLoggedIn) {
+      menuItems.push(
+        {
+          type: "divider",
+        },
+        {
+          key: "subscriptions",
+          label: "Kênh đăng ký",
+          children: subscriptionChildren,
+        },
+        {
+          type: "divider",
+        },
+        {
+          key: "channel",
+          icon: <AppstoreOutlined />,
+          label: <Link to={`/channel/${auth.user.id}`}>Kênh của bạn</Link>,
+        },
+        {
+          key: "playlist",
+          icon: <ListVideo size={18} />,
+          label: <Link to="/playlist">Danh sách phát</Link>,
+          path: "/playlist",
+        },
+        {
+          key: "studio",
+          icon: <AppstoreOutlined />,
+          label: <Link to="/studio">Quản lý kênh</Link>,
+          path: "/studio",
+        }
+      );
+    }
+
+    return menuItems;
   };
 
   const menuItems = getMenuItems();
@@ -311,7 +323,7 @@ function App() {
               <Menu
                 mode="inline"
                 selectedKeys={[selectedKey]}
-                defaultOpenKeys={["subscriptions"]} // Tự động mở "Kênh đăng ký"
+                defaultOpenKeys={["subscriptions"]}
                 items={menuItems}
                 style={{ height: "100%", borderRight: 0 }}
               />
@@ -357,7 +369,7 @@ function App() {
               <Menu
                 mode="inline"
                 selectedKeys={[selectedKey]}
-                defaultOpenKeys={["subscriptions"]} // Tự động mở "Kênh đăng ký"
+                defaultOpenKeys={["subscriptions"]}
                 items={menuItems}
                 style={{ borderRight: 0 }}
               />
@@ -371,7 +383,7 @@ function App() {
                 : collapsed
                 ? "80px"
                 : "200px",
-              padding: "24px",
+              padding: "8px",
               minHeight: "calc(100vh - 64px)",
               transition: "margin-left 0.2s",
               background: "#fff",

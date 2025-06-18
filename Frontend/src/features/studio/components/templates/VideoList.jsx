@@ -12,6 +12,7 @@ import {
   Upload,
   Spin,
   message,
+  Input as SearchInput,
 } from "antd";
 import {
   ChartNoAxesColumn,
@@ -20,7 +21,7 @@ import {
   ThumbsUp,
   Trash,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useVideoManagement } from "../../hooks/useVideoManagement";
 import { useUserVideos } from "../../hooks/useUserVideos";
 import { useVideoUpload } from "../../../uploadvideo/hooks/useVideoUpload";
@@ -35,6 +36,7 @@ const VideoList = ({ userId }) => {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [thumbnailUrl, setThumbnailUrl] = useState(null);
+  const [searchText, setSearchText] = useState("");
   const [form] = Form.useForm();
   const { editVideo, isEditing, deleteVideo, isDeleting } =
     useVideoManagement(userId);
@@ -66,10 +68,9 @@ const VideoList = ({ userId }) => {
       const newThumbnailUrl = URL.createObjectURL(file);
       setThumbnailPreview(newThumbnailUrl);
 
-      // Gọi API upload thumbnail
       uploadThumbnail(file, {
         onSuccess: (data) => {
-          setThumbnailUrl(data); // Lưu URL từ API
+          setThumbnailUrl(data);
         },
         onProgress: (percent) => {
           console.log(`Upload progress: ${percent}%`);
@@ -89,7 +90,7 @@ const VideoList = ({ userId }) => {
         editVideo(selectedVideo._id, {
           title: values.title,
           description: values.description,
-          thumbnail: thumbnailUrl, // Sử dụng URL đã upload
+          thumbnail: thumbnailUrl,
         });
         setIsEditModalVisible(false);
         form.resetFields();
@@ -124,29 +125,51 @@ const VideoList = ({ userId }) => {
     return e && e.fileList;
   };
 
-  const data =
-    videos?.map((video, index) => ({
-      key: video._id || index,
-      video: {
-        ...video,
-        id: video._id,
-        thumbnailUrl: video.thumbnail_video,
-        description: video.description_video,
-        createdAt: video.createdAt,
-        views: video.views,
-        commentCount: video.comments,
-        likeCount: video.likes,
-        dislikeCount: video.dislikes,
-      },
-    })) || [];
+  const handleSearch = (value) => {
+    setSearchText(value);
+  };
+
+  const filteredData = useMemo(() => {
+    return (
+      videos
+        ?.map((video, index) => ({
+          key: video._id || index,
+          video: {
+            ...video,
+            id: video._id,
+            thumbnailUrl: video.thumbnail_video,
+            description: video.description_video,
+            createdAt: video.createdAt,
+            views: video.views,
+            commentCount: video.comments,
+            likeCount: video.likes,
+            dislikeCount: video.dislikes,
+          },
+        }))
+        .filter((item) =>
+          item.video.title.toLowerCase().includes(searchText.toLowerCase())
+        ) || []
+    );
+  }, [videos, searchText]);
 
   const columns = [
     {
-      title: "Video",
+      title: (
+        <div>
+          Video
+          <SearchInput
+            placeholder="Tìm kiếm theo tiêu đề"
+            allowClear
+            onChange={(e) => handleSearch(e.target.value)}
+            style={{ width: 200, marginLeft: 8 }}
+          />
+        </div>
+      ),
       dataIndex: "video",
       key: "video",
       width: "35%",
       minWidth: 200,
+      sorter: (a, b) => a.video.title.localeCompare(b.video.title),
       render: (video) => (
         <Row gutter={16} align={"middle"}>
           <Col span={6}>
@@ -199,24 +222,41 @@ const VideoList = ({ userId }) => {
       title: "Ngày đăng tải",
       key: "createdAt",
       dataIndex: "video",
+      sorter: (a, b) =>
+        new Date(a.video.createdAt) - new Date(b.video.createdAt),
       render: (video) => <p>{formatDate(video.createdAt)}</p>,
     },
     {
       title: "Lượt xem",
       dataIndex: "video",
       key: "views",
+      sorter: (a, b) => a.video.views - b.video.views,
       render: (video) => <p>{formatViews(video.views)}</p>,
     },
     {
       title: "Số bình luận",
       dataIndex: "video",
       key: "comment",
+      sorter: (a, b) => a.video.commentCount - b.video.commentCount,
       render: (video) => <p>{video.commentCount}</p>,
     },
     {
       title: "Lượt thích(%)",
       dataIndex: "video",
       key: "like",
+      sorter: (a, b) => {
+        const aLike = parseInt(a.video.likeCount);
+        const aDislike = parseInt(a.video.dislikeCount);
+        const aTotal = aLike + aDislike;
+        const aPercent = aTotal === 0 ? 0 : Math.round((aLike / aTotal) * 100);
+
+        const bLike = parseInt(b.video.likeCount);
+        const bDislike = parseInt(b.video.dislikeCount);
+        const bTotal = bLike + bDislike;
+        const bPercent = bTotal === 0 ? 0 : Math.round((bLike / bTotal) * 100);
+
+        return aPercent - bPercent;
+      },
       render: (video) => {
         const like = parseInt(video.likeCount);
         const dislike = parseInt(video.dislikeCount);
@@ -235,7 +275,7 @@ const VideoList = ({ userId }) => {
                 percent={percent}
                 size="small"
                 strokeColor="#c90626"
-                showInfo={false} // Hide default percentage text
+                showInfo={false}
                 style={{ maxWidth: "120px" }}
               />
               <span style={{ color: "black", fontSize: 14 }}>
@@ -279,7 +319,11 @@ const VideoList = ({ userId }) => {
   return (
     <>
       {contextHolder}
-      <Table columns={columns} dataSource={data} />
+      <Table
+        columns={columns}
+        dataSource={filteredData}
+        showSorterTooltip={false}
+      />
       <Modal
         title="Chỉnh sửa video"
         open={isEditModalVisible}
