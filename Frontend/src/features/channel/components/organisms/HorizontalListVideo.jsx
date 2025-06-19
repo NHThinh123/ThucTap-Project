@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -7,6 +7,8 @@ import { formatTime } from "../../../../constants/formatTime";
 import { formatViews } from "../../../../constants/formatViews";
 import { Link } from "react-router-dom";
 import { formatDuration } from "../../../../constants/formatDuration";
+import useHistory from "../../../history/hooks/useHistory";
+import { AuthContext } from "../../../../contexts/auth.context";
 
 // CSS tùy chỉnh cho mũi tên và căn trái video
 const arrowStyles = (videoCount) => `
@@ -64,6 +66,23 @@ const arrowStyles = (videoCount) => `
 const { Title, Text } = Typography;
 
 const HorizontalListVideo = ({ videos = [] }) => {
+  const { auth } = useContext(AuthContext);
+  const { HistoryData, isLoading } = useHistory(auth?.user?.id);
+
+  // Hàm tìm watch_duration từ HistoryData theo video.id
+  const getWatchDuration = (videoId) => {
+    if (!HistoryData?.data?.histories) return 0;
+
+    for (const history of HistoryData.data.histories) {
+      for (const vid of history.videos) {
+        if (vid?.video_id?._id === videoId) {
+          return vid.watch_duration;
+        }
+      }
+    }
+    return 0;
+  };
+
   const settings = {
     dots: false,
     infinite: false,
@@ -94,6 +113,8 @@ const HorizontalListVideo = ({ videos = [] }) => {
     ],
   };
 
+  if (isLoading) return null;
+
   return (
     <>
       {/* Chèn CSS tùy chỉnh dựa trên số lượng video */}
@@ -121,20 +142,42 @@ const HorizontalListVideo = ({ videos = [] }) => {
                       window.location.href = `/watch/${video._id}`;
                     }}
                   >
-                    <div style={{ position: "relative" }}>
+                    <div
+                      style={{
+                        position: "relative",
+                        borderRadius: 10,
+                        overflow: "hidden",
+                        objectFit: "cover",
+                      }}
+                    >
                       <img
                         src={video.thumbnail_video}
                         alt={video.title}
                         style={{
                           width: videos.length >= 5 ? "100%" : "220px", // Width động
                           height: "120px",
-                          borderRadius: "8px",
                           objectFit: "cover",
                         }}
                       />
                       <div className="video-card__duration">
                         {formatDuration(video.duration)}
                       </div>
+                      {getWatchDuration(video._id) !== 0 && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            bottom: 0,
+                            left: 0,
+                            height: 5,
+                            backgroundColor: "red",
+                            width: `${Math.min(
+                              (getWatchDuration(video._id) / video.duration) *
+                                100,
+                              100
+                            )}%`,
+                          }}
+                        />
+                      )}
                     </div>
                   </Link>
                   <div

@@ -289,11 +289,11 @@ const styles = `
 
   .video-card__thumbnail-container {
     position: relative;
-              border-radius: 10px;
-              overflow: hidden;
-              oject-fit: cover;
-              object-position: center;
-              aspect-ratio: 16 / 9;
+    border-radius: 10px;
+    overflow: hidden;
+    object-fit: cover;
+    object-position: center;
+    aspect-ratio: 16 / 9;
   }
 
   .video-card__duration {
