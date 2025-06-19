@@ -34,13 +34,20 @@ const VideoCardHistory = ({ video, watchDuration }) => {
         onClick={handleCardClick}
       >
         <Col span={10} style={{ width: "80%", height: "20vh" }}>
-          <div style={{ position: "relative", width: "100%", height: "100%" }}>
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              borderRadius: 10,
+              overflow: "hidden",
+            }}
+          >
             <img
               style={{
                 width: "100%",
                 height: "100%",
                 objectFit: "cover",
-                borderRadius: 10,
               }}
               src={video.thumbnail_video}
               alt={video.title}
@@ -50,15 +57,12 @@ const VideoCardHistory = ({ video, watchDuration }) => {
                 position: "absolute",
                 bottom: 0,
                 left: 0,
-                height: 4,
+                height: 5,
                 backgroundColor: "red",
                 width: `${Math.min(
                   (watchDuration / video.duration) * 100,
                   100
                 )}%`,
-                borderBottomLeftRadius: 10,
-                borderBottomRightRadius:
-                  watchDuration >= video.duration ? 10 : 0,
               }}
             />
             <div
@@ -132,7 +136,13 @@ const VideoCardHistory = ({ video, watchDuration }) => {
                 to={`/channel/${video?.user_id?._id}`}
                 onClick={handleLinkClick}
               >
-                <Avatar src={video.user_id?.avatar} size={30} />
+                <Avatar
+                  src={
+                    video.user_id?.avatar ||
+                    `https://res.cloudinary.com/nienluan/image/upload/v1746760288/images/lsdixzyj0wqya3yutjy4.jpg`
+                  }
+                  size={30}
+                />
               </Link>
               <Link
                 to={`/channel/${video?.user_id?._id}`}

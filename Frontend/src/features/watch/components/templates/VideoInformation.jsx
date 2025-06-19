@@ -8,7 +8,7 @@ import ReviewSpace from "../../../review/components/templates/ReviewSpace";
 const { Title } = Typography;
 
 const VideoInformation = ({ video, isLoading }) => {
-  const channelId = video?.user_id._id;
+  const channelId = video?.user_id?._id;
   if (isLoading) {
     return <div>Loading...</div>;
   }

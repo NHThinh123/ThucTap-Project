@@ -16,6 +16,19 @@ const VideoWatch = ({ video }) => {
   const { createHistory } = useCreateHistory();
   const { updateWatchDuration } = useUpdateWatchDuration();
   const { HistoryData, isLoading: isLoadingHistory } = useHistory(userId);
+  useEffect(() => {
+    if (HistoryData?.data?.histories && !isLoadingHistory) {
+      let found = false;
+      HistoryData.data.histories.forEach((history) => {
+        history.videos.forEach((vid) => {
+          if (vid.video_id?._id === video._id) {
+            found = true;
+          }
+        });
+      });
+      setHasCreatedHistory(found);
+    }
+  }, [HistoryData, isLoadingHistory, video._id]);
 
   const videoRef = useRef(null);
   const prevPathRef = useRef(location.pathname);
@@ -390,7 +403,7 @@ const VideoWatch = ({ video }) => {
 
   // Kiểm tra thời gian xem để tăng lượt view
   useEffect(() => {
-    if (!video?._id || !video?.user_id._id || hasIncrementedView) return;
+    if (!video?._id || !video?.user_id?._id || hasIncrementedView) return;
 
     // Ngưỡng để tăng view: 70% thời lượng video
     const viewThreshold = duration * 0.7;

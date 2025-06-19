@@ -5,7 +5,7 @@ import { formatDuration } from "../../../../constants/formatDuration";
 import { useState } from "react";
 import { Avatar, Col, Row } from "antd";
 
-const VideoSearchCard = ({ video }) => {
+const VideoSearchCard = ({ video, watchDuration }) => {
   const [hoveredItemId, setHoveredItemId] = useState(null);
 
   const handleRowClick = () => {
@@ -34,7 +34,16 @@ const VideoSearchCard = ({ video }) => {
         }}
         onClick={handleRowClick}
       >
-        <Col span={10} style={{ width: "80%", height: "40vh" }}>
+        <Col
+          span={10}
+          style={{
+            width: "80%",
+            height: "40vh",
+            borderRadius: 10,
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
           <img
             style={{
               width: "100%",
@@ -45,6 +54,21 @@ const VideoSearchCard = ({ video }) => {
             src={video.thumbnail_video}
             alt={video.title}
           />
+          {watchDuration !== 0 && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                height: 5,
+                backgroundColor: "red",
+                width: `${Math.min(
+                  (watchDuration / video.duration) * 100,
+                  100
+                )}%`,
+              }}
+            />
+          )}
           <div
             style={{
               position: "absolute",
