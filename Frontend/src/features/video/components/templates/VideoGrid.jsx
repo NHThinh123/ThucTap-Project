@@ -16,7 +16,7 @@ const VideoGrid = ({ videos, xxl, isShow }) => {
 
     for (const history of HistoryData.data.histories) {
       for (const vid of history.videos) {
-        if (vid.video_id._id === videoId) {
+        if (vid?.video_id?._id === videoId) {
           return vid.watch_duration;
         }
       }
@@ -28,7 +28,7 @@ const VideoGrid = ({ videos, xxl, isShow }) => {
     <Row gutter={[20, 30]}>
       {videos.map((video) => (
         <Col
-          key={video.id}
+          key={video?.id}
           xs={24}
           sm={24}
           md={8}
@@ -39,7 +39,7 @@ const VideoGrid = ({ videos, xxl, isShow }) => {
           <VideoCard
             video={video}
             isShow={isShow}
-            watchDuration={getWatchDuration(video._id)}
+            watchDuration={getWatchDuration(video?._id)}
           />
         </Col>
       ))}
