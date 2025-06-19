@@ -36,6 +36,12 @@ const getHistoryByIdApi = (historyId) => {
   return axios.get(URL_API);
 };
 
+// Tạm dừng hoặc tiếp tục lưu lịch sử xem của user
+const togglePauseHistoryApi = (userId) => {
+  const URL_API = `/api/history/pause/${userId}`;
+  return axios.patch(URL_API);
+};
+
 export {
   getAllHistoriesOfUserApi,
   createHistoryApi,
@@ -43,4 +49,5 @@ export {
   deleteHistoryApi,
   deleteAllHistoriesApi,
   getHistoryByIdApi,
+  togglePauseHistoryApi,
 };

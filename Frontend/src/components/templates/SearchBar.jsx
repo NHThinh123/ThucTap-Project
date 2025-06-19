@@ -11,6 +11,7 @@ const SearchBar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Trạng thái dropdown
   const navigate = useNavigate();
   const { suggestions, isSuggestionsLoading } = useSearch(searchValue || []);
+  const isVideoWatchPage = location.pathname.startsWith("/watch/");
 
   const handleSearch = useCallback(
     debounce((value) => {
@@ -22,7 +23,9 @@ const SearchBar = () => {
 
   const onSearch = (value) => {
     if (value.trim()) {
-      navigate(`/search?q=${encodeURIComponent(value)}`);
+      isVideoWatchPage
+        ? (window.location.href = `/search?q=${encodeURIComponent(value)}`)
+        : navigate(`/search?q=${encodeURIComponent(value)}`);
       setIsDropdownOpen(false); // Đóng dropdown sau khi tìm kiếm
     }
   };

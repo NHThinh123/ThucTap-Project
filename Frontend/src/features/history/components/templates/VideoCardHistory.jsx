@@ -1,10 +1,15 @@
 import { Link } from "react-router-dom";
-import { formatTime } from "../../../../constants/formatTime";
 import { formatViews } from "../../../../constants/formatViews";
 import { formatDuration } from "../../../../constants/formatDuration";
-import { Avatar, Col, Row } from "antd";
+import { Avatar, Col, Row, Button, message } from "antd";
+import { useQueryClient } from "@tanstack/react-query";
+import useDeleteHistory from "../../hooks/useDeleteHistory";
+import { CloseOutlined } from "@ant-design/icons";
 
-const VideoCardHistory = ({ video, watchDuration }) => {
+const VideoCardHistory = ({ video, watchDuration, historyId }) => {
+  const queryClient = useQueryClient();
+  const { deleteHistory, isLoading: isDeleteLoading } = useDeleteHistory();
+
   const handleCardClick = () => {
     window.location.href = `/watch/${video._id}`;
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -12,6 +17,21 @@ const VideoCardHistory = ({ video, watchDuration }) => {
 
   const handleLinkClick = (e) => {
     e.stopPropagation(); // tránh trigger navigate khi click vào link
+  };
+
+  const handleDeleteHistory = (e) => {
+    e.stopPropagation(); // Ngăn sự kiện click lan sang card
+    deleteHistory(historyId, {
+      onSuccess: () => {
+        message.success("Xóa video khỏi lịch sử xem thành công");
+        queryClient.invalidateQueries(["histories"]);
+      },
+      onError: (error) => {
+        message.error(
+          error?.message || "Đã xảy ra lỗi khi xóa video khỏi lịch sử"
+        );
+      },
+    });
   };
 
   return (
@@ -83,7 +103,7 @@ const VideoCardHistory = ({ video, watchDuration }) => {
           </div>
         </Col>
         <Col
-          span={13}
+          span={11}
           style={{
             display: "flex",
             alignItems: "flex-start",
@@ -128,8 +148,6 @@ const VideoCardHistory = ({ video, watchDuration }) => {
               }}
             >
               <span>{formatViews(video.views)} lượt xem</span>
-              <span>•</span>
-              <span>{formatTime(video.createdAt)}</span>
             </div>
             <div style={{ padding: "16px 0" }}>
               <Link
@@ -175,6 +193,16 @@ const VideoCardHistory = ({ video, watchDuration }) => {
               {video.description_video}
             </div>
           </div>
+        </Col>
+        <Col span={3} style={{ display: "flex" }}>
+          <Button
+            type="text"
+            onClick={handleDeleteHistory}
+            disabled={isDeleteLoading}
+            style={{ fontSize: "20px", color: "#000" }}
+          >
+            <CloseOutlined />
+          </Button>
         </Col>
       </Row>
     </div>

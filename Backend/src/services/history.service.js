@@ -82,11 +82,10 @@ const updateWatchDurationService = async (id, watch_duration) => {
 };
 
 const deleteHistoryService = async (historyId) => {
-  const history = await History.findOne({ _id: historyId });
+  const history = await History.findByIdAndDelete(historyId);
   if (!history) {
     throw new AppError("History record not found", 404);
   }
-  await history.delete();
   return history;
 };
 
