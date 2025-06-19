@@ -13,7 +13,7 @@ const VideoSuggestGrid = ({ videos }) => {
 
     for (const history of HistoryData.data.histories) {
       for (const vid of history.videos) {
-        if (vid.video_id._id === videoId) {
+        if (vid?.video_id?._id === videoId) {
           return vid.watch_duration;
         }
       }

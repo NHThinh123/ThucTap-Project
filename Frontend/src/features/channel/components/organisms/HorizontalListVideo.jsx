@@ -6,6 +6,7 @@ import { Typography } from "antd";
 import { formatTime } from "../../../../constants/formatTime";
 import { formatViews } from "../../../../constants/formatViews";
 import { Link } from "react-router-dom";
+import { formatDuration } from "../../../../constants/formatDuration";
 
 // CSS tùy chỉnh cho mũi tên và căn trái video
 const arrowStyles = (videoCount) => `
@@ -97,6 +98,7 @@ const HorizontalListVideo = ({ videos = [] }) => {
     <>
       {/* Chèn CSS tùy chỉnh dựa trên số lượng video */}
       <style>{arrowStyles(videos.length)}</style>
+      <style>{styles}</style>
       <div
         className="slider-container"
         style={{
@@ -119,16 +121,21 @@ const HorizontalListVideo = ({ videos = [] }) => {
                       window.location.href = `/watch/${video._id}`;
                     }}
                   >
-                    <img
-                      src={video.thumbnail_video}
-                      alt={video.title}
-                      style={{
-                        width: videos.length >= 5 ? "100%" : "220px", // Width động
-                        height: "120px",
-                        borderRadius: "8px",
-                        objectFit: "cover",
-                      }}
-                    />
+                    <div style={{ position: "relative" }}>
+                      <img
+                        src={video.thumbnail_video}
+                        alt={video.title}
+                        style={{
+                          width: videos.length >= 5 ? "100%" : "220px", // Width động
+                          height: "120px",
+                          borderRadius: "8px",
+                          objectFit: "cover",
+                        }}
+                      />
+                      <div className="video-card__duration">
+                        {formatDuration(video.duration)}
+                      </div>
+                    </div>
                   </Link>
                   <div
                     style={{
@@ -174,5 +181,126 @@ const HorizontalListVideo = ({ videos = [] }) => {
     </>
   );
 };
+const styles = `
+  .video-card {
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+  }
 
+  .video-card__thumbnail-container {
+    position: relative;
+  }
+
+  .video-card__duration {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 510;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .video-card__cover {
+  width: 100%;
+  height: auto; 
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+  .video-card__content {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding-top: 8px;
+  }
+
+  .video-card__avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .video-card__info {
+    flex: 1;
+    min-width: 0;
+  }
+  .video-card__title-container {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .video-card__title {
+    font-family: 'Roboto', Arial, sans-serif;
+    margin: 0;
+    color: #0f0f0f;
+    font-size: 17px;
+    font-weight: 600;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+  }
+
+  .video-card__more-btn {
+    background: none;
+    border: none;
+    padding: 4px;
+    display: flex;
+    margin-right: -5px;
+    cursor: pointer;
+  }
+
+  .video-card__more-btn:hover {
+    background:rgb(196, 196, 196);
+    border-color: black 1px solid;
+    border-radius: 50%;
+  }
+
+  .video-card__more-icon {
+    width: 20px;
+    height: 20px;
+    fill: #606060;
+  }
+
+  .video-card__channel {
+  font-family: 'Roboto', Arial, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #606060;
+  display: inline-block; /* Thay từ display: block */
+  white-space: nowrap; /* Ngăn ngắt dòng để chiều dài đúng với nội dung */
+}
+
+  .video-card__meta {
+  font-family: 'Roboto', Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  .video-card__meta span {
+    font-weight: 400;
+    font-size: 14px;
+    color: #606060;
+  }
+
+  .video-card__meta .dot {
+    line-height: 1;
+  }
+`;
 export default HorizontalListVideo;

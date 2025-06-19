@@ -18,6 +18,7 @@ import {
   AppstoreOutlined,
   PlusOutlined,
   HistoryOutlined,
+  YoutubeOutlined,
 } from "@ant-design/icons";
 import logo from "./assets/logo/logo.png";
 import { useState, useContext, useEffect } from "react";
@@ -34,11 +35,13 @@ const { Header, Content, Sider } = Layout;
 function App() {
   const navigate = useNavigate();
   const { openModal } = useModal();
-  const location = useLocation();
-  const [drawerVisible, setDrawerVisible] = useState(false);
   const { auth, setAuth } = useContext(AuthContext);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const location = useLocation();
   const isUserLoggedIn = auth?.isAuthenticated;
+  const [drawerVisible, setDrawerVisible] = useState(
+    isUserLoggedIn ? false : true
+  );
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [collapsed, setCollapsed] = useState(isUserLoggedIn ? false : true);
   const isVideoWatchPage = location.pathname.startsWith("/watch/");
   const { data } = useUserSubscriptions(auth?.user?.id);
@@ -46,80 +49,158 @@ function App() {
   const [showAllChannels, setShowAllChannels] = useState(false);
 
   // Định nghĩa menu items
-  const menuItems = [
-    {
-      key: "home",
-      icon: <HomeOutlined />,
+  const getMenuItems = () => {
+    let subscriptionChildren = userSubscriptionsList.map((channel) => ({
+      key: channel.channelId,
       label: isVideoWatchPage ? (
         <Link
-          to="/"
+          to={`/channel/${channel.channelId}`}
           onClick={(e) => {
             e.preventDefault();
-            window.location.href = "/";
+            window.location.href = `/channel/${channel.channelId}`;
           }}
+          style={{ paddingLeft: 0 }}
         >
-          Home
+          <Avatar
+            src={channel.channelAvatar}
+            size="small"
+            style={{ marginRight: 8 }}
+          />
+          {channel.channelNickname}
         </Link>
       ) : (
-        <Link to="/">Home</Link>
-      ),
-      path: "/",
-    },
-    {
-      key: "history",
-      icon: <HistoryOutlined />,
-      label: isVideoWatchPage ? (
-        <Link
-          to="/history"
-          onClick={(e) => {
-            e.preventDefault();
-            window.location.href = "/history";
-          }}
-        >
-          Video đã xem
+        <Link to={`/channel/${channel.channelId}`} style={{ paddingLeft: 0 }}>
+          <Avatar
+            src={channel.channelAvatar}
+            size="small"
+            style={{ marginRight: 8 }}
+          />
+          {channel.channelNickname}
         </Link>
-      ) : (
-        <Link to="/history">Video đã xem</Link>
       ),
-      path: "/history",
-    },
-    {
-      key: "playlist",
-      icon: <ListVideo size={18} />,
-      label: isVideoWatchPage ? (
-        <Link
-          to="/playlist"
-          onClick={(e) => {
-            e.preventDefault();
-            window.location.href = "/playlist";
-          }}
-        >
-          Danh sách phát
-        </Link>
-      ) : (
-        <Link to="/playlist">Danh sách phát</Link>
-      ),
-    },
-    {
-      key: "studio",
-      icon: <AppstoreOutlined />,
-      label: isVideoWatchPage ? (
-        <Link
-          to="/studio"
-          onClick={(e) => {
-            e.preventDefault();
-            window.location.href = "/studio";
-          }}
-        >
-          Studio
-        </Link>
-      ) : (
-        <Link to="/studio">Studio</Link>
-      ),
-      path: "/studio",
-    },
-  ];
+    }));
+    if (userSubscriptionsList.length > 5 && !showAllChannels) {
+      subscriptionChildren = subscriptionChildren.slice(0, 5);
+      subscriptionChildren.push({
+        key: "showMore",
+        label: (
+          <p>
+            <DownOutlined style={{ marginRight: 8 }} />
+            Xem thêm
+          </p>
+        ),
+        onClick: () => setShowAllChannels(true),
+      });
+    }
 
+    const menuItems = [
+      {
+        key: "home",
+        icon: <HomeOutlined />,
+        label: isVideoWatchPage ? (
+          <Link
+            to="/"
+            onClick={(e) => {
+              e.preventDefault();
+              window.location.href = "/";
+            }}
+          >
+            Home
+          </Link>
+        ) : (
+          <Link to="/">Home</Link>
+        ),
+        path: "/",
+      },
+    ];
+    // Chỉ thêm "Quản lý kênh" nếu đã đăng nhập
+    if (isUserLoggedIn) {
+      menuItems.push(
+        {
+          type: "divider",
+        },
+        {
+          key: "history",
+          icon: <HistoryOutlined />,
+          label: isVideoWatchPage ? (
+            <Link
+              to="/history"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = "/history";
+              }}
+            >
+              Video đã xem
+            </Link>
+          ) : (
+            <Link to="/history">Video đã xem</Link>
+          ),
+          path: "/history",
+        },
+        {
+          key: "channel",
+          icon: <YoutubeOutlined />,
+          label: isVideoWatchPage ? (
+            <Link
+              to={`/channel/${auth.user.id}`}
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = `/channel/${auth.user.id}`;
+              }}
+            >
+              Kênh của bạn
+            </Link>
+          ) : (
+            <Link to={`/channel/${auth.user.id}`}>Kênh của bạn</Link>
+          ),
+        },
+        {
+          key: "playlist",
+          icon: <ListVideo size={18} />,
+          label: isVideoWatchPage ? (
+            <Link
+              to="/playlist"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = "/playlist";
+              }}
+            >
+              Danh sách phát
+            </Link>
+          ) : (
+            <Link to="/playlist">Danh sách phát</Link>
+          ),
+        },
+        {
+          key: "subscriptions",
+          label: "Kênh đăng ký",
+          children: subscriptionChildren,
+        },
+        {
+          key: "studio",
+          icon: <AppstoreOutlined />,
+          label: isVideoWatchPage ? (
+            <Link
+              to="/studio"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = "/studio";
+              }}
+            >
+              Quản lý kênh
+            </Link>
+          ) : (
+            <Link to="/studio">Quản lý kênh</Link>
+          ),
+          path: "/studio",
+        }
+      );
+    }
+
+    return menuItems;
+  };
+
+  const menuItems = getMenuItems();
   // Xác định key được chọn dựa trên đường dẫn hiện tại
   const getSelectedKey = () => {
     const currentItem = menuItems.find(
