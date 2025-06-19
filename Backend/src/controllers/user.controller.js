@@ -1,11 +1,11 @@
 require("dotenv").config();
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-const path = require('path');
+const path = require("path");
 const jwt = require("jsonwebtoken");
 const router = require("express").Router();
 const { sendResetPasswordEmail } = require("../services/email.service");
-const moment = require('moment');
+const moment = require("moment");
 
 const cloudinary = require("../configs/cloudinary");
 const {
@@ -36,7 +36,8 @@ const getUserById = async (req, res, next) => {
         email: user.email,
         avatar: user.avatar,
         dateOfBirth: user.dateOfBirth,
-      }
+        role: user.role,
+      },
     });
   } catch (error) {
     next(error);
@@ -47,7 +48,8 @@ const getUserById = async (req, res, next) => {
 const updateUser = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { user_name, dateOfBirth, email, oldPassword, newPassword } = req.body;
+    const { user_name, dateOfBirth, email, oldPassword, newPassword } =
+      req.body;
     let updateData = {};
 
     // Tìm user trước khi cập nhật
@@ -85,7 +87,9 @@ const updateUser = async (req, res, next) => {
     if (newPassword) {
       // Yêu cầu mật khẩu cũ nếu thay đổi mật khẩu
       if (!oldPassword) {
-        return res.status(400).json({ error: "Vui lòng cung cấp mật khẩu cũ!" });
+        return res
+          .status(400)
+          .json({ error: "Vui lòng cung cấp mật khẩu cũ!" });
       }
 
       // So sánh mật khẩu cũ với mật khẩu trong DB
@@ -95,10 +99,12 @@ const updateUser = async (req, res, next) => {
       }
 
       // Kiểm tra định dạng mật khẩu mới bằng regex
-      const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$#!%*?&]{8,}$/;
+      const passwordRegex =
+        /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$#!%*?&]{8,}$/;
       if (!passwordRegex.test(newPassword)) {
         return res.status(400).json({
-          error: "Mật khẩu mới phải dài ít nhất 8 ký tự, chứa ít nhất 1 chữ cái in hoa, 1 số và 1 ký tự đặc biệt trong @$!%*?&#!"
+          error:
+            "Mật khẩu mới phải dài ít nhất 8 ký tự, chứa ít nhất 1 chữ cái in hoa, 1 số và 1 ký tự đặc biệt trong @$!%*?&#!",
         });
       }
 
@@ -142,7 +148,6 @@ const updateUser = async (req, res, next) => {
         email: updatedUser.email,
         avatar: updatedUser.avatar,
         dateOfBirth: updatedUser.dateOfBirth,
-
       },
     });
   } catch (error) {
@@ -151,39 +156,55 @@ const updateUser = async (req, res, next) => {
   }
 };
 
-
-
 //singup
 const signup = async (req, res) => {
   try {
     let { user_name, email, password, nickname, dateOfBirth, role } = req.body;
-    user_name = user_name.trim().replace(/\s+/g, ' ');
+    user_name = user_name.trim().replace(/\s+/g, " ");
     email = email.trim();
     nickname = nickname.trim();
     dateOfBirth = dateOfBirth.trim();
     password = password.trim();
     role = role.trim();
 
-    if (!user_name || !nickname || !email || !password || !dateOfBirth || !role) {
+    if (
+      !user_name ||
+      !nickname ||
+      !email ||
+      !password ||
+      !dateOfBirth ||
+      !role
+    ) {
       return res.status(400).json({ message: "Dữ liệu trống" });
     }
 
     if (!/^[\p{L}\s]+$/u.test(nickname)) {
-      return res.status(400).json({ status: "FAILED", message: "Tên kênh không hợp lệ." });
+      return res
+        .status(400)
+        .json({ status: "FAILED", message: "Tên kênh không hợp lệ." });
     }
 
     if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
-      return res.status(400).json({ status: "FAILED", message: "Email không hợp lệ" });
+      return res
+        .status(400)
+        .json({ status: "FAILED", message: "Email không hợp lệ" });
     }
 
-    if (!moment(dateOfBirth, 'YYYY-MM-DD', true).isValid()) {
-      return res.status(400).json({ status: "FAILED", message: "Ngày - Tháng - Năm không hợp lệ" });
+    if (!moment(dateOfBirth, "YYYY-MM-DD", true).isValid()) {
+      return res
+        .status(400)
+        .json({ status: "FAILED", message: "Ngày - Tháng - Năm không hợp lệ" });
     }
 
-    if (!/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$#!%*?&]{8,}$/.test(password)) {
+    if (
+      !/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$#!%*?&]{8,}$/.test(
+        password
+      )
+    ) {
       return res.status(400).json({
         status: "FAILED",
-        message: "Mật khẩu phải có chữ Hoa, chữ thường, số, ký tự đặc biệt và có độ dài lớn hơn 8 ký tự!"
+        message:
+          "Mật khẩu phải có chữ Hoa, chữ thường, số, ký tự đặc biệt và có độ dài lớn hơn 8 ký tự!",
       });
     }
 
@@ -207,7 +228,7 @@ const signup = async (req, res) => {
       password: hashedPassword,
       dateOfBirth,
       role,
-      avatar: avatarUrl
+      avatar: avatarUrl,
     });
 
     await newUser.save();
@@ -222,14 +243,13 @@ const signup = async (req, res) => {
         email: newUser.email,
         avatar: newUser.avatar,
         dateOfBirth: newUser.dateOfBirth,
-      }
+      },
     });
-
   } catch (error) {
     console.error("Lỗi khi đăng ký:", error);
     res.status(500).json({
       status: "FAILED",
-      message: "Lỗi server khi đăng ký người dùng"
+      message: "Lỗi server khi đăng ký người dùng",
     });
   }
 };
@@ -241,7 +261,7 @@ const signin = async (req, res) => {
   if (!email || !password) {
     return res.status(400).json({
       status: "FAILED",
-      message: "Thông tin đăng nhập trống"
+      message: "Thông tin đăng nhập trống",
     });
   }
 
@@ -250,10 +270,10 @@ const signin = async (req, res) => {
     if (!user) {
       return res.status(401).json({
         status: "FAILED",
-        message: "Email không tồn tại"
+        message: "Email không tồn tại",
       });
     }
-  // Kiểm tra xem password có tồn tại không
+    // Kiểm tra xem password có tồn tại không
     if (!user.password) {
       return res.status(500).json({
         status: "FAILED",
@@ -261,13 +281,12 @@ const signin = async (req, res) => {
       });
     }
 
-
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
     if (!isPasswordCorrect) {
       return res.status(401).json({
         status: "FAILED",
-        message: "Mật khẩu không hợp lệ"
+        message: "Mật khẩu không hợp lệ",
       });
     }
 
@@ -302,14 +321,14 @@ const signin = async (req, res) => {
         role: user.role,
         accessToken: accessToken,
         refreshToken: refreshToken,
-        createdAt: user.createdAt
-      }
+        createdAt: user.createdAt,
+      },
     });
   } catch (err) {
     console.error(err);
     return res.status(500).json({
       status: "FAILED",
-      message: "Đã xảy ra lỗi khi kiểm tra người dùng hiện tại"
+      message: "Đã xảy ra lỗi khi kiểm tra người dùng hiện tại",
     });
   }
 };
@@ -321,7 +340,7 @@ const refreshToken = async (req, res) => {
   if (!refreshToken) {
     return res.status(400).json({
       status: "FAILED",
-      message: "Refresh token không được cung cấp"
+      message: "Refresh token không được cung cấp",
     });
   }
 
@@ -331,7 +350,7 @@ const refreshToken = async (req, res) => {
     if (!user) {
       return res.status(403).json({
         status: "FAILED",
-        message: "Refresh token không hợp lệ"
+        message: "Refresh token không hợp lệ",
       });
     }
 
@@ -340,7 +359,7 @@ const refreshToken = async (req, res) => {
       if (err) {
         return res.status(403).json({
           status: "FAILED",
-          message: "Refresh token không hợp lệ hoặc đã hết hạn"
+          message: "Refresh token không hợp lệ hoặc đã hết hạn",
         });
       }
 
@@ -354,14 +373,14 @@ const refreshToken = async (req, res) => {
       return res.status(200).json({
         status: "SUCCESS",
         message: "Access token đã được làm mới",
-        accessToken: accessToken
+        accessToken: accessToken,
       });
     });
   } catch (err) {
     console.error(err);
     return res.status(500).json({
       status: "FAILED",
-      message: "Đã xảy ra lỗi khi làm mới token"
+      message: "Đã xảy ra lỗi khi làm mới token",
     });
   }
 };
@@ -369,7 +388,9 @@ const refreshToken = async (req, res) => {
 const uploadAvatar = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: "Không có file nào được tải lên" });
+      return res
+        .status(400)
+        .json({ message: "Không có file nào được tải lên" });
     }
 
     console.log("File đã upload:", req.file.path);
@@ -378,7 +399,7 @@ const uploadAvatar = async (req, res) => {
     console.error("Lỗi upload ảnh:", error);
     res.status(500).json({ message: "Lỗi upload ảnh", error });
   }
-}
+};
 //Gửi yêu cầu đặt lại mật khẩu
 const requestPasswordReset = async (req, res) => {
   console.log("Request body received:", req.body);
@@ -399,7 +420,9 @@ const requestPasswordReset = async (req, res) => {
 
   await sendResetPasswordEmail(user.email, resetToken);
 
-  res.status(200).json({ message: "Link đặt lại mật khẩu đã được gửi qua email!" });
+  res
+    .status(200)
+    .json({ message: "Link đặt lại mật khẩu đã được gửi qua email!" });
 };
 //Đặt lại mật khẩu
 const resetPassword = async (req, res) => {
@@ -413,8 +436,14 @@ const resetPassword = async (req, res) => {
 
     const resetToken = await ResetToken.findOne({ token });
 
-    if (!resetToken || !resetToken.userId || resetToken.expiresAt < Date.now()) {
-      return res.status(400).json({ message: "Token không hợp lệ hoặc đã hết hạn!" });
+    if (
+      !resetToken ||
+      !resetToken.userId ||
+      resetToken.expiresAt < Date.now()
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Token không hợp lệ hoặc đã hết hạn!" });
     }
 
     // Mã hóa mật khẩu mới
@@ -428,13 +457,17 @@ const resetPassword = async (req, res) => {
     );
 
     if (!updatedUser) {
-      return res.status(400).json({ message: "Không tìm thấy người dùng, đặt lại mật khẩu thất bại!" });
+      return res.status(400).json({
+        message: "Không tìm thấy người dùng, đặt lại mật khẩu thất bại!",
+      });
     }
 
     // Xóa token đặt lại mật khẩu sau khi sử dụng
     await ResetToken.findOneAndDelete({ token });
 
-    res.status(200).json({ message: "Mật khẩu đã được đặt lại thành công! Vui lòng đăng nhập lại." });
+    res.status(200).json({
+      message: "Mật khẩu đã được đặt lại thành công! Vui lòng đăng nhập lại.",
+    });
   } catch (error) {
     console.error("Lỗi đặt lại mật khẩu:", error);
     res.status(500).json({ message: "Lỗi server khi đặt lại mật khẩu" });
@@ -449,7 +482,9 @@ const getEmail = async (req, res) => {
     const resetRequest = await ResetToken.findOne({ token });
 
     if (!resetRequest) {
-      return res.status(404).json({ message: "Token không hợp lệ hoặc đã hết hạn" });
+      return res
+        .status(404)
+        .json({ message: "Token không hợp lệ hoặc đã hết hạn" });
     }
 
     // Dùng userId để tìm user trong bảng Users
@@ -467,27 +502,24 @@ const getEmail = async (req, res) => {
 };
 //Lấy danh sách người dùng
 const getListUser = async (req, res) => {
-    try {
-        const users = await getListUserService();
-        res.status(200).json(users);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+  try {
+    const users = await getListUserService();
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
-
-
 
 //Xóa người dùng
 const deleteUser = async (req, res) => {
-    try {
-        const result = await deleteUserService;
-        res.status(200).json(result);
-    } catch (error) {
-        const status = error.message.includes("Không tìm thấy") ? 404 : 500;
-        res.status(status).json({ message: error.message });
-    }
+  try {
+    const { id } = req.params;
+    const result = await deleteUserService(id);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
-
 
 module.exports = {
   getListUser,
@@ -501,6 +533,5 @@ module.exports = {
   resetPassword,
   getEmail,
   getListUser,
- 
-  deleteUser
+  deleteUser,
 };

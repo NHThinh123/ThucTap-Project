@@ -1,24 +1,47 @@
 const {
-  createReviewService,
+  createOrUpdateReviewService,
+  getUserReviewForVideoService,
   getReviewByIdService,
   getAllReviewsOfVideoService,
   getAllReviewsOfUserService,
+  countReviewVideoService,
   deleteReviewService,
   deleteAllReviewsService,
+  getVideoAverageRatingService,
 } = require("../services/review.service");
 
-const createReview = async (req, res, next) => {
+// Tạo hoặc cập nhật đánh giá
+const createOrUpdateReview = async (req, res, next) => {
   try {
-    const review = await createReviewService(req.body);
+    const result = await createOrUpdateReviewService(req.body);
     res.status(201).json({
       status: "success",
-      data: { review },
+      message: result.message,
+      data: {
+        review: result.review,
+        isNew: result.isNew,
+      },
     });
   } catch (error) {
     next(error);
   }
 };
 
+// Lấy đánh giá của user cho video cụ thể
+const getUserReviewForVideo = async (req, res, next) => {
+  try {
+    const { user_id, video_id } = req.params;
+    const result = await getUserReviewForVideoService(user_id, video_id);
+    res.status(200).json({
+      status: "success",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Lấy đánh giá theo ID
 const getReview = async (req, res, next) => {
   try {
     const review = await getReviewByIdService(req.params.id);
@@ -31,6 +54,7 @@ const getReview = async (req, res, next) => {
   }
 };
 
+// Lấy tất cả đánh giá của một video
 const getAllReviewsOfVideo = async (req, res, next) => {
   try {
     const { video_id } = req.params;
@@ -45,6 +69,7 @@ const getAllReviewsOfVideo = async (req, res, next) => {
   }
 };
 
+// Lấy tất cả đánh giá của một user
 const getAllReviewsOfUser = async (req, res, next) => {
   try {
     const { user_id } = req.params;
@@ -59,6 +84,24 @@ const getAllReviewsOfUser = async (req, res, next) => {
   }
 };
 
+// Đếm số lượng đánh giá của video
+const countReviewVideo = async (req, res, next) => {
+  try {
+    const { video_id } = req.params;
+    const count = await countReviewVideoService(video_id);
+    res.status(200).json({
+      status: "success",
+      data: {
+        video_id,
+        total_reviews: count,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Xóa một đánh giá
 const deleteReview = async (req, res, next) => {
   try {
     await deleteReviewService(req.params.id);
@@ -71,6 +114,7 @@ const deleteReview = async (req, res, next) => {
   }
 };
 
+// Xóa tất cả đánh giá của một video
 const deleteAllReviews = async (req, res, next) => {
   try {
     const { video_id } = req.body;
@@ -84,11 +128,28 @@ const deleteAllReviews = async (req, res, next) => {
   }
 };
 
+// Lấy điểm đánh giá trung bình của video
+const getVideoAverageRating = async (req, res, next) => {
+  try {
+    const { video_id } = req.params;
+    const result = await getVideoAverageRatingService(video_id);
+    res.status(200).json({
+      status: "success",
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
-  createReview,
+  createOrUpdateReview,
+  getUserReviewForVideo,
   getReview,
   getAllReviewsOfVideo,
   getAllReviewsOfUser,
+  countReviewVideo,
   deleteReview,
   deleteAllReviews,
+  getVideoAverageRating,
 };

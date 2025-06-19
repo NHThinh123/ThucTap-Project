@@ -36,3 +36,12 @@ body {
 .ant-card .ant-card-body {
   padding: 0;
 }
+
+li.ant-menu-item.ant-menu-item-only-child {
+  padding-left: 24px !important;
+}
+.ant-menu-item,
+.ant-menu-submenu {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -14,8 +14,7 @@ export const useUserStats = ({ userId, period, startDate, endDate }) => {
       });
       return response.data; // Trả về mảng data.data
     },
-    staleTime: 5 * 60 * 1000, // Cache 5 phút
+
     retry: 1,
-    refetchOnWindowFocus: false,
   });
 };

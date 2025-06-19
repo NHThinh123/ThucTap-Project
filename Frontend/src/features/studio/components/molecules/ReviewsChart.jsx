@@ -1,21 +1,23 @@
 import React from "react";
-import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   PointElement,
   LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend,
 } from "chart.js";
+import { Chart } from "react-chartjs-2";
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
   PointElement,
   LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend
@@ -26,22 +28,24 @@ const ReviewsChart = ({ data, labels, period }) => {
     labels,
     datasets: [
       {
-        label: "Đánh giá",
+        type: "bar", // Biểu đồ cột cho số lượng đánh giá
+        label: "Số lượng đánh giá",
         data: data ? data.map((item) => item.reviews) : [],
-        borderColor: "#ec4899",
-        backgroundColor: "rgba(236, 72, 153, 0.2)",
-        fill: false,
-        tension: 0.4,
-        yAxisID: "y-reviews", // Gán trục y riêng cho Reviews
+        backgroundColor: "rgba(59, 130, 246, 0.5)", // Màu xanh dương nhạt
+        borderColor: "#3b82f6",
+        borderWidth: 1,
+        yAxisID: "y-reviews",
+        barThickness: 20, // Giảm độ rộng của cột (đơn vị: pixel)
       },
       {
+        type: "line", // Biểu đồ đường cho đánh giá trung bình
         label: "Đánh giá trung bình",
         data: data ? data.map((item) => item.average_rating) : [],
         borderColor: "#f59e0b",
         backgroundColor: "rgba(245, 158, 11, 0.2)",
         fill: false,
         tension: 0.4,
-        yAxisID: "y-rating", // Gán trục y riêng cho Average Rating
+        yAxisID: "y-rating",
       },
     ],
   };
@@ -52,7 +56,7 @@ const ReviewsChart = ({ data, labels, period }) => {
       legend: { position: "top" },
       title: {
         display: true,
-        text: `Biểu đồ đánh giá & Trung bình đánh giá (${
+        text: `Biểu đồ số lượng đánh giá & Đánh giá trung bình (${
           period.charAt(0).toUpperCase() + period.slice(1)
         })`,
       },
@@ -60,7 +64,7 @@ const ReviewsChart = ({ data, labels, period }) => {
     scales: {
       x: {
         title: {
-          display: false,
+          display: true,
           text:
             period === "daily"
               ? "Ngày"
@@ -73,7 +77,7 @@ const ReviewsChart = ({ data, labels, period }) => {
         type: "linear",
         display: true,
         position: "left",
-        title: { display: true, text: "Đánh giá" },
+        title: { display: true, text: "Số lượng đánh giá" },
         beginAtZero: true,
       },
       "y-rating": {
@@ -82,9 +86,9 @@ const ReviewsChart = ({ data, labels, period }) => {
         position: "right",
         title: { display: true, text: "Đánh giá trung bình" },
         beginAtZero: true,
-        max: 5, // Giả sử rating tối đa là 5
+        max: 5, // Rating tối đa là 5
         grid: {
-          drawOnChartArea: false, // Không hiển thị lưới của trục này để tránh chồng lấn
+          drawOnChartArea: false, // Không hiển thị lưới để tránh chồng lấn
         },
       },
     },
@@ -92,7 +96,8 @@ const ReviewsChart = ({ data, labels, period }) => {
 
   return (
     <div style={{ width: "100%", minHeight: "500px" }}>
-      <Line
+      <Chart
+        type="bar"
         data={chartData}
         options={{ ...options, maintainAspectRatio: false }}
       />

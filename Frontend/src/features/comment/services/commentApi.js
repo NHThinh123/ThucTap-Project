@@ -7,6 +7,20 @@ const getVideoCommentsApi = (videoId) => {
   });
 };
 
+const getReplyCommentsApi = (commentId) => {
+  const URL_API = `/api/comment/reply`;
+  return axios.get(URL_API, {
+    params: { comment_id: commentId },
+  });
+};
+
+const getVideoCommentsCountApi = (videoId) => {
+  const URL_API = `/api/comment/count`;
+  return axios.get(URL_API, {
+    params: { video_id: videoId },
+  });
+};
+
 // Tạo comment hoặc reply (POST, truyền user_id, video_id, comment_content, parent_comment_id)
 const createCommentApi = (commentData) => {
   const URL_API = `/api/comment`;
@@ -33,6 +47,8 @@ export {
   getVideoCommentsApi,
   createCommentApi,
   getCommentApi,
+  getReplyCommentsApi,
+  getVideoCommentsCountApi,
   updateCommentApi,
   deleteCommentApi,
 };

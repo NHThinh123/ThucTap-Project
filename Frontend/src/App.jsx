@@ -1,11 +1,9 @@
-/* eslint-disable no-unused-vars */
-
+/* eslint-disable-disable no-unused-vars */
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
-import { CircleUserRound, Upload } from "lucide-react";
+import { CircleUserRound, ListVideo } from "lucide-react";
 import {
   Layout,
   Menu,
-  Input,
   Button,
   Space,
   Row,
@@ -13,44 +11,246 @@ import {
   Avatar,
   Dropdown,
   Drawer,
+  Typography,
 } from "antd";
 import {
-  SearchOutlined,
   MenuOutlined,
   HomeOutlined,
-  YoutubeOutlined,
-  UserOutlined,
   AppstoreOutlined,
+  PlusOutlined,
+  HistoryOutlined,
+  YoutubeOutlined,
+  DownOutlined,
 } from "@ant-design/icons";
 import logo from "./assets/logo/logo.png";
-import { useState, useContext, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "./contexts/auth.context";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useModal } from "./contexts/modal.context";
 import UploadPage from "./pages/UploadPage";
+import SearchBar from "./components/templates/SearchBar";
+import useUserSubscriptions from "./features/channel/hooks/useUserSubscriptions";
 
 const { Header, Content, Sider } = Layout;
 
 function App() {
   const navigate = useNavigate();
   const { openModal } = useModal();
-  const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
-  const [drawerVisible, setDrawerVisible] = useState(false);
   const { auth, setAuth } = useContext(AuthContext);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { pathname } = useLocation();
+  const location = useLocation();
   const isUserLoggedIn = auth?.isAuthenticated;
+  const playlistPathRegex = /^\/playlist\/[^/]+\/[^/]+$/;
+  const [drawerVisible, setDrawerVisible] = useState(
+    isUserLoggedIn ? false : true
+  );
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [collapsed, setCollapsed] = useState(
+    playlistPathRegex.test(pathname) ? true : isUserLoggedIn ? false : true
+  );
   const isVideoWatchPage = location.pathname.startsWith("/watch/");
+  const { data } = useUserSubscriptions(auth?.user?.id);
+  const userSubscriptionsList = data?.data.channels || [];
+  const [showAllChannels, setShowAllChannels] = useState(false);
+  const [openKeys, setOpenKeys] = useState(
+    playlistPathRegex.test(pathname) ? [] : ["subscriptions"]
+  );
+
+  // Define menu items
+  const getMenuItems = () => {
+    let subscriptionChildren = userSubscriptionsList.map((channel) => ({
+      key: channel.channelId,
+      label: isVideoWatchPage ? (
+        <Link
+          to={`/channel/${channel.channelId}`}
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.href = `/channel/${channel.channelId}`;
+          }}
+          style={{ paddingLeft: 0 }}
+        >
+          <Avatar
+            src={channel.channelAvatar}
+            size="small"
+            style={{ marginRight: 8 }}
+          />
+          {channel.channelNickname}
+        </Link>
+      ) : (
+        <Link to={`/channel/${channel.channelId}`} style={{ paddingLeft: 0 }}>
+          <Avatar
+            src={channel.channelAvatar}
+            size="small"
+            style={{ marginRight: 8 }}
+          />
+          {channel.channelNickname}
+        </Link>
+      ),
+    }));
+
+    if (userSubscriptionsList.length > 5 && !showAllChannels) {
+      subscriptionChildren = subscriptionChildren.slice(0, 5);
+      subscriptionChildren.push({
+        key: "showMore",
+        label: (
+          <p>
+            <DownOutlined style={{ marginRight: 8 }} />
+            Xem thêm
+          </p>
+        ),
+        onClick: () => setShowAllChannels(true),
+      });
+    }
+
+    const menuItems = [
+      {
+        key: "home",
+        icon: <HomeOutlined />,
+        label: isVideoWatchPage ? (
+          <Link
+            to="/"
+            onClick={(e) => {
+              e.preventDefault();
+              window.location.href = "/";
+            }}
+          >
+            Trang chủ
+          </Link>
+        ) : (
+          <Link to="/">Trang chủ</Link>
+        ),
+        path: "/",
+      },
+    ];
+
+    if (isUserLoggedIn) {
+      menuItems.push(
+        {
+          type: "divider",
+        },
+        {
+          key: "history",
+          icon: <HistoryOutlined />,
+          label: isVideoWatchPage ? (
+            <Link
+              to="/history"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = "/history";
+              }}
+            >
+              Video đã xem
+            </Link>
+          ) : (
+            <Link to="/history">Video đã xem</Link>
+          ),
+          path: "/history",
+        },
+        {
+          key: "channel",
+          icon: <YoutubeOutlined />,
+          label: isVideoWatchPage ? (
+            <Link
+              to={`/channel/${auth.user.id}`}
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = `/channel/${auth.user.id}`;
+              }}
+            >
+              Kênh của bạn
+            </Link>
+          ) : (
+            <Link to={`/channel/${auth.user.id}`}>Kênh của bạn</Link>
+          ),
+          path: `/channel/${auth.user.id}`,
+        },
+        {
+          key: "playlist",
+          icon: <ListVideo size={18} />,
+          label: isVideoWatchPage ? (
+            <Link
+              to="/playlist"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = "/playlist";
+              }}
+            >
+              Danh sách phát
+            </Link>
+          ) : (
+            <Link to="/playlist">Danh sách phát</Link>
+          ),
+          path: "/playlist", // Added for consistency
+        },
+        {
+          key: "subscriptions",
+          label: "Kênh đăng ký",
+          children: subscriptionChildren,
+        },
+        {
+          key: "studio",
+          icon: <AppstoreOutlined />,
+          label: isVideoWatchPage ? (
+            <Link
+              to="/studio"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = "/studio";
+              }}
+            >
+              Quản lý kênh
+            </Link>
+          ) : (
+            <Link to="/studio">Quản lý kênh</Link>
+          ),
+          path: "/studio",
+        }
+      );
+    }
+
+    return menuItems;
+  };
+
+  const menuItems = getMenuItems();
+
+  // Updated function to handle playlist paths
+  const getSelectedKey = () => {
+    if (isVideoWatchPage) {
+      return "video";
+    }
+    if (playlistPathRegex.test(location.pathname)) {
+      return "playlist";
+    }
+    const currentItem = menuItems.find(
+      (item) =>
+        location.pathname === item.path ||
+        location.pathname.startsWith(`${item.path}/`)
+    );
+    return currentItem ? currentItem.key : "home";
+  };
+
+  const [selectedKey, setSelectedKey] = useState(getSelectedKey());
 
   useEffect(() => {
+    setSelectedKey(getSelectedKey());
+
+    // Update collapsed and openKeys when pathname changes
+    if (playlistPathRegex.test(location.pathname)) {
+      setCollapsed(true);
+      setOpenKeys([]);
+    } else {
+      setCollapsed(isUserLoggedIn ? false : true);
+      setOpenKeys(["subscriptions"]);
+    }
+
     if (isVideoWatchPage) {
       setDrawerVisible(false);
     }
-  }, [location.pathname, isVideoWatchPage]);
+  }, [location.pathname, isUserLoggedIn, isVideoWatchPage]);
 
   const avatarSrc = isUserLoggedIn ? auth.user?.avatar : null;
-  const displayName = isUserLoggedIn ? auth.user?.name : "";
+  const displayName = isUserLoggedIn ? auth.user?.user_name : "";
 
   const handleLogout = () => {
     setIsLoggingOut(true);
@@ -60,39 +260,18 @@ function App() {
         localStorage.removeItem("authUser");
       }
       setIsLoggingOut(false);
-      navigate("/");
+      isVideoWatchPage ? (window.location.href = "/") : navigate("/");
     }, 2000);
   };
-
-  const menuItems = [
-    { key: "home", icon: <HomeOutlined />, label: <Link to="/">Home</Link> },
-    {
-      key: "video",
-      icon: <YoutubeOutlined />,
-      label: <Link to="/video">Video</Link>,
-    },
-    {
-      key: "channel",
-      icon: <UserOutlined />,
-      label: <Link to="/channel">Channel</Link>,
-    },
-    {
-      key: "search",
-      icon: <SearchOutlined />,
-      label: <Link to="/search">Search</Link>,
-    },
-    {
-      key: "studio",
-      icon: <AppstoreOutlined />,
-      label: <Link to="/studio">Studio</Link>,
-    },
-  ];
 
   const userMenuItems = [
     {
       key: "profile",
       label: "Hồ sơ cá nhân",
-      onClick: () => navigate("/profile"),
+      onClick: () =>
+        isVideoWatchPage
+          ? (window.location.href = "/profile")
+          : navigate("/profile"),
     },
     { key: "logout", label: "Đăng xuất", onClick: handleLogout },
   ];
@@ -114,9 +293,18 @@ function App() {
       setCollapsed(!collapsed);
     }
   };
+
   const handleUploadClick = () => {
-    navigate("/studio");
+    isVideoWatchPage ? (window.location.href = "/studio") : navigate("/studio");
     openModal(<UploadPage />);
+  };
+
+  const handleLogoClick = () => {
+    window.location.href = "/";
+  };
+
+  const onOpenChange = (keys) => {
+    setOpenKeys(keys);
   };
 
   return (
@@ -140,11 +328,10 @@ function App() {
             width: "100%",
             background: "#fff",
             padding: "0 24px",
-            //boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
           }}
         >
           <Row align="middle" justify="space-between">
-            <Col span={6} style={{ display: "flex", alignItems: "center" }}>
+            <Col span={1}>
               <Button
                 icon={<MenuOutlined />}
                 onClick={toggleMenu}
@@ -154,51 +341,51 @@ function App() {
                   marginRight: "16px",
                 }}
               />
+            </Col>
+            <Col span={5}>
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
-
                   flex: 1,
+                  cursor: "pointer",
+                  width: "fit-content",
                 }}
+                onClick={handleLogoClick}
               >
                 <img
                   src={logo}
                   style={{ height: "30px", width: "auto", marginRight: "8px" }}
                   alt="logo"
                 />
-                <span style={{ fontSize: "18px", fontWeight: "bold" }}>
+                <Typography.Text
+                  style={{ fontSize: "18px", fontWeight: "bold" }}
+                >
                   CUSC Tube
-                </span>
+                </Typography.Text>
               </div>
             </Col>
             <Col
               span={12}
               style={{ display: "flex", justifyContent: "center" }}
             >
-              <Input.Search
-                size="large"
-                placeholder="Search..."
-                style={{ width: "100%", maxWidth: "600px" }}
-                enterButton={
-                  <Button type="primary" icon={<SearchOutlined />} />
-                }
-              />
+              <SearchBar />
             </Col>
-            <Col span={2} style={{ display: "flex", justifyContent: "center" }}>
+            <Col span={3} style={{ display: "flex", justifyContent: "end" }}>
               <Button
-                type="text"
-                icon={<Upload />}
+                color="primary"
+                variant="outlined"
                 style={{
-                  fontSize: "24px",
-                  color: "#000",
+                  fontSize: "16px",
                   marginLeft: "16px",
                 }}
                 onClick={handleUploadClick}
-              ></Button>
+              >
+                <PlusOutlined /> Đăng tải
+              </Button>
             </Col>
             <Col
-              span={4}
+              span={3}
               style={{ display: "flex", justifyContent: "flex-end" }}
             >
               {isUserLoggedIn ? (
@@ -215,7 +402,11 @@ function App() {
                 <Button
                   type="primary"
                   style={{ padding: "0 16px" }}
-                  onClick={() => navigate("/login")}
+                  onClick={() =>
+                    isVideoWatchPage
+                      ? (window.location.href = "/login")
+                      : navigate("/login")
+                  }
                 >
                   <CircleUserRound style={{ marginRight: "8px" }} />
                   Đăng nhập
@@ -241,7 +432,9 @@ function App() {
             >
               <Menu
                 mode="inline"
-                defaultSelectedKeys={["home"]}
+                selectedKeys={[selectedKey]}
+                openKeys={openKeys}
+                onOpenChange={onOpenChange}
                 items={menuItems}
                 style={{ height: "100%", borderRight: 0 }}
               />
@@ -286,7 +479,9 @@ function App() {
             >
               <Menu
                 mode="inline"
-                defaultSelectedKeys={["watch"]}
+                selectedKeys={[selectedKey]}
+                openKeys={openKeys}
+                onOpenChange={onOpenChange}
                 items={menuItems}
                 style={{ borderRight: 0 }}
               />
@@ -300,7 +495,7 @@ function App() {
                 : collapsed
                 ? "80px"
                 : "200px",
-              padding: "24px",
+              padding: "8px",
               minHeight: "calc(100vh - 64px)",
               transition: "margin-left 0.2s",
               background: "#fff",

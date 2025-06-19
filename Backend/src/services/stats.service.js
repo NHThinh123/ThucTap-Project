@@ -19,7 +19,7 @@ const getVideoStatsService = async (videoId, period, startDate, endDate) => {
     try {
       cachedData = await redisClient.get(cacheKey);
       if (cachedData) {
-        console.log(`Cache hit for ${cacheKey} (Upstash)`);
+        // console.log(`Cache hit for ${cacheKey} (Upstash)`);
         return JSON.parse(cachedData);
       }
     } catch (error) {
@@ -167,7 +167,7 @@ const getUserStatsService = async (userId, period, startDate, endDate) => {
     try {
       cachedData = await redisClient.get(cacheKey);
       if (cachedData) {
-        console.log(`Cache hit for ${cacheKey} (Upstash)`);
+        // console.log(`Cache hit for ${cacheKey} (Upstash)`);
         return JSON.parse(cachedData);
       }
     } catch (error) {
@@ -495,29 +495,17 @@ const getNewestVideoAnalysisService = async (userId) => {
       user_id: new mongoose.Types.ObjectId(userId),
     })
       .sort({ createdAt: -1 })
-      .select("title thumbnail_video _id");
+      .select("title thumbnail_video _id views");
     if (!newestVideo) {
       throw new AppError("No videos found for this user", 404);
     }
+    console.log(newestVideo);
 
     // 2. Tính tổng view, like, dislike, comment
     const [totalViews, totalLikes, totalDislikes, totalComments] =
       await Promise.all([
         // Tổng view từ VideoStats
-        VideoStats.aggregate([
-          {
-            $match: {
-              video_id: newestVideo._id,
-              date: { $gte: startDate, $lte: endDate },
-            },
-          },
-          {
-            $group: {
-              _id: null,
-              totalViews: { $sum: "$views" },
-            },
-          },
-        ]).then((result) => result[0]?.totalViews || 0),
+        newestVideo.views,
 
         // Tổng like từ UserLikeVideo
         User_Like_Video.countDocuments({ video_id: newestVideo._id }),
@@ -531,8 +519,8 @@ const getNewestVideoAnalysisService = async (userId) => {
 
     // 3. Lấy trends từ VideoStats (weekly)
     // 2. Lấy thống kê trong 7 ngày qua (theo tuần)
-    const stats = await getUserStatsService(
-      userId,
+    const stats = await getVideoStatsService(
+      newestVideo._id,
       "weekly",
       startDate,
       endDate

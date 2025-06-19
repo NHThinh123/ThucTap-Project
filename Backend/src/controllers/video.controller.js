@@ -5,6 +5,10 @@ const {
   updateVideoService,
   deleteVideoService,
   incrementViewService,
+  searchVideosService,
+  getSearchSuggestionsService,
+  getVideosByUserIdService,
+  countVideoOfUserIdService,
 } = require("../services/video.service");
 
 const createVideo = async (req, res, next) => {
@@ -55,7 +59,7 @@ const getVideoById = async (req, res, next) => {
 const updateVideo = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { url, title, description, thumbnail, duration } = req.body;
+    const { title, description, thumbnail } = req.body;
     const user_id = req.body.user_id; // Giả sử user_id được gửi từ client
 
     if (!user_id) {
@@ -65,11 +69,9 @@ const updateVideo = async (req, res, next) => {
     }
 
     const videoData = {
-      url,
       title,
       description,
       thumbnail,
-      duration,
     };
 
     const result = await updateVideoService(id, videoData, user_id);
@@ -106,6 +108,46 @@ const deleteVideo = async (req, res, next) => {
   }
 };
 
+const searchVideos = async (req, res) => {
+  try {
+    const result = await searchVideosService(req.query);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getSearchSuggestions = async (req, res) => {
+  try {
+    const result = await getSearchSuggestionsService(req.query);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Lấy danh sách video theo userId
+const getVideosByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await getVideosByUserIdService(userId);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// Đếm số lượng video của userId
+const countVideoOfUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await countVideoOfUserIdService(userId);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createVideo,
   getVideos,
@@ -113,4 +155,8 @@ module.exports = {
   updateVideo,
   incrementView,
   deleteVideo,
+  searchVideos,
+  getSearchSuggestions,
+  getVideosByUserId,
+  countVideoOfUserId,
 };

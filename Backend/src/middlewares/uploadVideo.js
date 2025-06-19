@@ -3,7 +3,7 @@ const path = require("path");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Thư mục tạm để lưu file trước khi nén
+    cb(null, path.join(__dirname, "../public/videos")); // Lưu trực tiếp vào thư mục videos
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`);
@@ -20,7 +20,7 @@ const uploadVideoMiddleware = multer({
     const extname = filetypes.test(
       path.extname(file.originalname).toLowerCase()
     );
-    const mimetype = mimetypes.test(file.mimetype); // Sửa lỗi: dùng mimetypes thay vì mimetype
+    const mimetype = mimetypes.test(file.mimetype);
     if (mimetype && extname) {
       return cb(null, true);
     }

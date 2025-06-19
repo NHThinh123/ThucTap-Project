@@ -3,6 +3,7 @@ const {
   getCommentByIdService,
   getVideoCommentsService,
   getReplyCommentsService,
+  getVideoCommentsCountService,
   updateCommentService,
   deleteCommentService,
 } = require("../services/comment.service");
@@ -43,7 +44,16 @@ const getVideoComments = async (req, res, next) => {
 
 const getReplyComments = async (req, res, next) => {
   try {
-    const replies = await getReplyCommentsService(req.query);
+    const data = await getReplyCommentsService(req.query);
+    res.status(200).json(data);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getVideoCommentsCount = async (req, res, next) => {
+  try {
+    const data = await getVideoCommentsCountService(req.query);
     res.status(200).json(data);
   } catch (error) {
     next(error);
@@ -85,6 +95,7 @@ module.exports = {
   getComment,
   getVideoComments,
   getReplyComments,
+  getVideoCommentsCount,
   updateComment,
   deleteComment,
 };

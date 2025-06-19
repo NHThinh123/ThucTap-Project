@@ -7,6 +7,14 @@ const Playlist_Video = require("../models/playlist_video.model");
 const History = require("../models/history.model");
 const VideoStats = require("../models/video_stats.model");
 
+const {
+  countLikeVideoService,
+} = require("../services/user_like_video.service");
+const {
+  countDislikeVideoService,
+} = require("../services/user_dislike_video.service");
+const { getVideoCommentsCountService } = require("../services/comment.service");
+
 const createVideoService = async (videoData, userId) => {
   try {
     if (!videoData.video_url || !videoData.title || !userId) {
@@ -19,7 +27,7 @@ const createVideoService = async (videoData, userId) => {
       description_video: videoData.description || null,
       video_url: videoData.video_url,
       thumbnail_video: videoData.thumbnail || "",
-      duration: videoData.duration || 0,
+      duration: videoData.duration ? Math.round(Number(videoData.duration)) : 0,
       views: 0,
     });
 
@@ -36,7 +44,7 @@ const createVideoService = async (videoData, userId) => {
 
 const getVideosService = async (query) => {
   try {
-    const { page = 1, limit = 10, user_id } = query;
+    const { page = 1, limit = 99, user_id } = query;
     const filter = user_id ? { user_id } : {};
 
     const videos = await Video.find(filter)
@@ -262,6 +270,130 @@ const getInteractionDataService = async () => {
   }
 };
 
+const searchVideosService = async (query) => {
+  try {
+    const { q } = query;
+
+    if (!q || typeof q !== "string" || q.trim() === "") {
+      throw new Error(
+        "Search query is required and must be a non-empty string"
+      );
+    }
+
+    // Tìm kiếm văn bản sử dụng text index
+    const regexQuery = { $regex: q, $options: "i" }; // Tìm kiếm không phân biệt hoa thường
+    const videos = await Video.find({
+      $or: [{ title: regexQuery }],
+    })
+      .populate("user_id", "user_name email avatar nickname")
+      .sort({ createdAt: -1 });
+
+    const total = await Video.countDocuments({
+      $or: [{ title: regexQuery }],
+    });
+
+    return {
+      message: "Videos retrieved successfully",
+      data: {
+        videos,
+        total,
+      },
+    };
+  } catch (error) {
+    throw new Error(`Error searching videos: ${error.message}`);
+  }
+};
+
+// Dịch vụ gợi ý tìm kiếm
+const getSearchSuggestionsService = async (query) => {
+  try {
+    const { q } = query;
+
+    if (!q || typeof q !== "string" || q.trim() === "") {
+      return {
+        message: "No suggestions available",
+        suggestions: [],
+      };
+    }
+
+    const regexQuery = { $regex: q, $options: "i" };
+    const videos = await Video.find({ title: regexQuery }, { title: 1 })
+      .limit(5) // Giới hạn số gợi ý
+      .sort({ createdAt: -1 });
+
+    // Lấy danh sách tiêu đề làm gợi ý
+    const suggestions = videos.map((video) => video.title);
+
+    return {
+      message: "Suggestions retrieved successfully",
+      suggestions,
+    };
+  } catch (error) {
+    throw new Error(`Error retrieving search suggestions: ${error.message}`);
+  }
+};
+
+// Lấy danh sách video theo userId
+const getVideosByUserIdService = async (userId) => {
+  try {
+    if (!userId) {
+      throw new Error("Thiếu user_id");
+    }
+
+    const videos = await Video.find({ user_id: userId })
+      .populate("user_id", "user_name email avatar nickname")
+      .sort({ createdAt: -1 });
+
+    const total = await Video.countDocuments({ user_id: userId });
+
+    // Tạo mảng để lưu thông tin bổ sung (like, dislike, comment)
+    const videosWithStats = await Promise.all(
+      videos.map(async (video) => {
+        const likes = await countLikeVideoService(video._id);
+        const dislikes = await countDislikeVideoService(video._id);
+        const comments = await getVideoCommentsCountService({
+          video_id: video._id,
+        });
+
+        return {
+          ...video._doc, // Lấy toàn bộ dữ liệu video
+          likes,
+          dislikes,
+          comments: comments.totalCount,
+        };
+      })
+    );
+
+    return {
+      message: "Lấy danh sách video theo user_id thành công",
+      data: {
+        videos: videosWithStats,
+        total,
+      },
+    };
+  } catch (error) {
+    throw new Error(`Lỗi khi lấy danh sách video: ${error.message}`);
+  }
+};
+
+// Đếm số lượng video của một userId
+const countVideoOfUserIdService = async (userId) => {
+  try {
+    if (!userId) {
+      throw new Error("Thiếu user_id");
+    }
+
+    const total = await Video.countDocuments({ user_id: userId });
+
+    return {
+      message: "Đếm số lượng video thành công",
+      total,
+    };
+  } catch (error) {
+    throw new Error(`Lỗi khi đếm số lượng video: ${error.message}`);
+  }
+};
+
 module.exports = {
   createVideoService,
   getVideosService,
@@ -270,4 +402,8 @@ module.exports = {
   deleteVideoService,
   getInteractionDataService,
   incrementViewService,
+  searchVideosService,
+  getSearchSuggestionsService,
+  getVideosByUserIdService,
+  countVideoOfUserIdService,
 };

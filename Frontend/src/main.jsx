@@ -7,7 +7,6 @@ import "./styles/global.css";
 import App from "./App.jsx";
 import { AuthWrapper } from "./contexts/auth.context";
 import HomePage from "./pages/HomePage.jsx";
-import VideoDetailPage from "./pages/VideoDetailPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import SignupPage from "./pages/SignupPage.jsx";
 import ChannelPage from "./pages/ChannelPage.jsx";
@@ -22,6 +21,13 @@ import StudioOverviewPage from "./pages/StudioOverviewPage.jsx";
 import UploadPage from "./pages/UploadPage.jsx";
 import { ModalProvider } from "./contexts/modal.context.jsx";
 import SearchResultPage from "./pages/SearchResultPage.jsx";
+import PlayListPage from "./pages/PlayListPage.jsx";
+import AdminPage from "./pages/AdminPage.jsx";
+import AdminListUserPage from "./pages/AdminListUserPage.jsx";
+import AdminStatisticsPage from "./pages/AdminStatisticsPage.jsx";
+import AdminOverviewPage from "./pages/AdminOverviewPage.jsx";
+import VideoHistoryPage from "./pages/VideoHistoryPage.jsx";
+import PlayListVideoPage from "./pages/PlayListVideoPage.jsx";
 
 const queryClient = new QueryClient();
 
@@ -35,12 +41,26 @@ const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
-        path: "video",
-        element: <VideoDetailPage />,
+        path: "playlist",
+        children: [
+          {
+            index: true,
+            element: <PlayListPage />,
+          },
+          {
+            path: ":playlistId/:id",
+            element: <PlayListVideoPage />,
+          },
+        ],
       },
       {
         path: "channel",
-        element: <ChannelPage />,
+        children: [
+          {
+            path: ":id",
+            element: <ChannelPage />,
+          },
+        ],
       },
       {
         path: "watch",
@@ -51,6 +71,7 @@ const router = createBrowserRouter([
           },
         ],
       },
+
       {
         path: "search",
         element: <SearchResultPage />,
@@ -58,6 +79,10 @@ const router = createBrowserRouter([
       {
         path: "profile",
         element: <ProfilePage />,
+      },
+      {
+        path: "history",
+        element: <VideoHistoryPage />,
       },
     ],
   },
@@ -75,7 +100,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <StudioContentPage />,
+        element: <StudioOverviewPage />,
       },
       {
         path: "analytics",
@@ -86,16 +111,34 @@ const router = createBrowserRouter([
         element: <StudioEditPage />,
       },
       {
-        path: "subcribers",
+        path: "subscribers",
         element: <StudioSubcribersPage />,
       },
       {
-        path: "overview",
-        element: <StudioOverviewPage />,
+        path: "content",
+        element: <StudioContentPage />,
       },
       {
         path: "uploadvideo",
         element: <UploadPage />,
+      },
+    ],
+  },
+  {
+    path: "admin",
+    element: <AdminPage />,
+    children: [
+      {
+        path: "true",
+        element: <AdminOverviewPage />,
+      },
+      {
+        path: "list",
+        element: <AdminListUserPage />,
+      },
+      {
+        path: "statistics",
+        element: <AdminStatisticsPage />,
       },
     ],
   },
@@ -105,11 +148,16 @@ createRoot(document.getElementById("root")).render(
   <QueryClientProvider client={queryClient}>
     <ConfigProvider
       theme={{
+        components: {
+          Menu: {
+            itemPaddingInline: 0,
+          },
+        },
         token: {
           colorPrimary: "#c90626",
           fontFamily: "Roboto, arial, sans-serif", // Font chữ
           fontSize: 16,
-          borderRadius: "24px",
+          borderRadius: "20px",
         },
       }}
     >

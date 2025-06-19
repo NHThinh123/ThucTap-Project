@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { useMutation } from "@tanstack/react-query";
 import {
   uploadVideoApi,
@@ -34,7 +33,7 @@ export const useVideoUpload = () => {
     },
     onError: (error, { onError }) => {
       console.error("Thumbnail upload error:", error);
-      message.error(error.message || "Lỗi khi tải thumbnail!");
+      message.error("Lỗi khi tải thumbnail!");
       onError?.(error);
     },
   });
@@ -43,11 +42,11 @@ export const useVideoUpload = () => {
     mutationFn: createVideoApi,
     onSuccess: (data) => {
       console.log("Create video success:", data);
-      message.success(data.message || "Video đã được tạo thành công!");
+      message.success("Video đã được tạo thành công!");
     },
     onError: (error) => {
       console.error("Create video error:", error);
-      message.error(error.message || "Lỗi khi tạo video!");
+      message.error("Lỗi khi tạo video!");
     },
   });
 

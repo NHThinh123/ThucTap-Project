@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import {
   Avatar,
   Button,
@@ -15,23 +16,26 @@ import { ChartNoAxesColumn, ThumbsDown, ThumbsUp } from "lucide-react";
 import NewestVideoAnalysis from "../features/studio/components/templates/NewestVideoAnalysis";
 import OverviewAnalysis from "../features/studio/components/templates/OverviewAnalysis";
 import VideoPublish from "../features/studio/components/templates/VideoPublish";
-import SubcriberList from "../features/studio/components/templates/SubcriberList";
+import SubscriberList from "../features/studio/components/templates/SubscriberList";
+import { useContext } from "react";
+import { AuthContext } from "../contexts/auth.context";
 
 const StudioOverviewPage = () => {
-  const userId = "681ccf3e684f3cb552b04bd6"; // Thay thế bằng userId thực tế
+  const { auth, setAuth } = useContext(AuthContext);
+  const userId = auth.user.id; // Thay thế bằng userId thực tế
   return (
     <>
       <Typography.Title level={3}>Tổng quan của kênh</Typography.Title>
       <Row gutter={16}>
         <Col span={8}>
           <OverviewAnalysis userId={userId} />
-          <VideoPublish />
         </Col>
         <Col span={8}>
           <NewestVideoAnalysis userId={userId} />
         </Col>
         <Col span={8}>
-          <SubcriberList />
+          <SubscriberList />
+          <VideoPublish userId={userId} />
         </Col>
       </Row>
     </>

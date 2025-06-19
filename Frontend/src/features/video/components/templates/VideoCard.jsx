@@ -2,13 +2,128 @@ import { Link, useNavigate } from "react-router-dom";
 import { formatTime } from "../../../../constants/formatTime";
 import { formatViews } from "../../../../constants/formatViews";
 import { formatDuration } from "../../../../constants/formatDuration";
+import { useContext, useEffect, useRef, useState } from "react";
+import { useModal } from "../../../../contexts/modal.context";
+import { AuthContext } from "../../../../contexts/auth.context";
+import PlaylistModalContent from "../../../playlist/components/templates/PlaylistModalContent";
+import { message } from "antd";
 
-const VideoCard = ({ video }) => {
+const VideoCard = ({ video, isShow = true, watchDuration }) => {
+  const { auth } = useContext(AuthContext);
+  const { openModal } = useModal();
   const navigate = useNavigate();
+  const user_id = auth.isAuthenticated ? auth.user.id : null;
+  const video_id = video?._id;
+  const [hoveredItemId, setHoveredItemId] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  // Lắng nghe custom event để đóng menu
+  useEffect(() => {
+    const handleCloseAllMenus = (event) => {
+      if (event.detail.videoId !== video_id) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("closeAllMenus", handleCloseAllMenus);
+
+    return () => {
+      document.removeEventListener("closeAllMenus", handleCloseAllMenus);
+    };
+  }, [video_id]);
+
+  // Đóng menu khi nhấn ngoài
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener("click", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [isMenuOpen]);
+
+  const handleMenuClick = (e) => {
+    e.stopPropagation(); // Prevent row click when clicking the menu button
+    const newIsMenuOpen = !isMenuOpen;
+
+    if (newIsMenuOpen) {
+      // Dispatch custom event để đóng tất cả menu khác
+      const closeAllMenusEvent = new CustomEvent("closeAllMenus", {
+        detail: { videoId: video_id },
+      });
+      document.dispatchEvent(closeAllMenusEvent);
+    }
+
+    // Cập nhật trạng thái menu hiện tại
+    setIsMenuOpen(newIsMenuOpen);
+  };
+
+  const handleMenuAction = (action, e) => {
+    e.stopPropagation(); // Prevent row click when clicking a menu item
+    setIsMenuOpen(false); // Close menu after action
+    switch (action) {
+      case "playlists":
+        console.log("Bookmark button clicked");
+        if (!auth.isAuthenticated) {
+          navigate("/login");
+          return;
+        }
+        if (!video_id || !user_id) {
+          console.error(
+            "Không thể mở modal danh sách phát: videoId hoặc userId không hợp lệ",
+            { video_id, user_id }
+          );
+          return;
+        }
+        console.log("Opening modal with PlaylistModalContent");
+        openModal(
+          <PlaylistModalContent video_id={video_id} user_id={user_id} />
+        );
+        break;
+      case "share": {
+        console.log(`Sharing video ${video._id}`);
+        const shareUrl = `${window.location.origin}/watch/${video_id}`;
+        const shareData = {
+          title: "Chia sẻ video",
+          url: shareUrl,
+        };
+
+        try {
+          if (navigator.share) {
+            // Sử dụng Web Share API nếu trình duyệt hỗ trợ
+            navigator.share(shareData);
+            message.success("Chia sẻ video thành công!");
+          } else {
+            // Fallback: Sao chép link vào clipboard
+            navigator.clipboard.writeText(shareUrl);
+            message.success("Link video đã được sao chép vào clipboard!");
+          }
+        } catch (error) {
+          console.error("Lỗi khi chia sẻ video:", error);
+          message.error("Đã xảy ra lỗi khi chia sẻ video");
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  };
 
   const handleCardClick = () => {
-    navigate(`/watch/${video._id}`); // Navigate to the video page
+    window.location.href = `/watch/${video?._id}`; // Navigate to the video page
     window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll to top
+  };
+
+  const handleLinkClick = (e) => {
+    e.stopPropagation(); // Prevent parent onClick from firing
   };
   return (
     <>
@@ -23,27 +138,60 @@ const VideoCard = ({ video }) => {
           <div className="video-card__duration">
             {formatDuration(video.duration)}
           </div>
+          {watchDuration !== 0 && (
+            <div
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                height: 5,
+                backgroundColor: "red",
+                width: `${Math.min(
+                  (watchDuration / video.duration) * 100,
+                  100
+                )}%`,
+              }}
+            />
+          )}
         </div>
         <div className="video-card__content">
-          <Link to="/channel" className="video-card__avatar-link">
-            <img
-              className="video-card__avatar"
-              src={
-                video.avatar ||
-                "https://pbs.twimg.com/media/F_vO2geW0AE1mmW.jpg"
-              }
-              alt="Channel avatar"
-            />
-          </Link>
+          {isShow && (
+            <Link
+              to={`/channel/${video?.user_id?._id}`}
+              className="video-card__avatar-link"
+              onClick={handleLinkClick}
+            >
+              <img
+                className="video-card__avatar"
+                src={
+                  video?.user_id?.avatar ||
+                  "https://res.cloudinary.com/nienluan/image/upload/v1747707203/avaMacDinh_jxwsog.jpg"
+                }
+                alt="Channel avatar"
+              />
+            </Link>
+          )}
           <div className="video-card__info">
             <div className="video-card__title-container">
-              <div className="video-card__title">{video.title}</div>
+              <div className="video-card__title">{video?.title}</div>
               <button
-                className="video-card__more-btn"
+                style={{
+                  background:
+                    hoveredItemId === video.id ? "rgb(196, 196, 196)" : "none",
+                  border: hoveredItemId === video.id ? "none" : "none",
+                  borderRadius: hoveredItemId === video.id ? "50%" : "none",
+                  padding: 4,
+                  display: "flex",
+                  marginRight: -5,
+                  cursor: "pointer",
+                }}
+                onMouseEnter={() => setHoveredItemId(video.id)}
+                onMouseLeave={() => setHoveredItemId(null)}
+                onClick={handleMenuClick}
                 aria-label="More options"
               >
                 <svg
-                  className="video-card__more-icon"
+                  style={{ width: 20, height: 20 }}
                   viewBox="0 0 24 24"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
@@ -54,16 +202,70 @@ const VideoCard = ({ video }) => {
                   />
                 </svg>
               </button>
+              {isMenuOpen && (
+                <div
+                  ref={menuRef}
+                  style={{
+                    position: "absolute",
+                    margin: "28px 10px 0 0",
+                    right: 0,
+                    backgroundColor: "#fff",
+                    border: "1px solid #e0e0e0",
+                    borderRadius: 4,
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+                    zIndex: 2000,
+                    width: 240,
+                    padding: 8,
+                  }}
+                >
+                  <button
+                    style={{
+                      width: "100%",
+                      textAlign: "left",
+                      padding: "8px 12px",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: 14,
+                      color: "#0f0f0f",
+                    }}
+                    onClick={(e) => handleMenuAction("playlists", e)}
+                  >
+                    Lưu vào danh sách phát
+                  </button>
+                  <button
+                    style={{
+                      width: "100%",
+                      textAlign: "left",
+                      padding: "8px 12px",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: 14,
+                      color: "#0f0f0f",
+                    }}
+                    onClick={(e) => handleMenuAction("share", e)}
+                  >
+                    Chia sẻ
+                  </button>
+                </div>
+              )}
             </div>
-            <Link to="/channel" className="video-card__channel-link">
-              <span className="video-card__channel">
-                {video.user_id.nickname || "Channel Name"}
-              </span>
-            </Link>
+            {isShow && (
+              <Link
+                to={`/channel/${video?.user_id?._id}`}
+                className="video-card__channel-link"
+                onClick={handleLinkClick}
+              >
+                <span className="video-card__channel">
+                  {video?.user_id?.nickname || "Channel Name"}
+                </span>
+              </Link>
+            )}
             <div className="video-card__meta">
-              <span>{formatViews(video.views)} lượt xem</span>
+              <span>{formatViews(video?.views)} lượt xem</span>
               <span className="dot">•</span>
-              <span>{formatTime(video.createdAt)}</span>
+              <span>{formatTime(video?.createdAt)}</span>
             </div>
           </div>
         </div>
@@ -80,10 +282,18 @@ const styles = `
     cursor: pointer;
     border: none;
     padding: 0;
+    overflow: hidden;
+    oject-fit: cover;
+    object-position: center;
   }
 
   .video-card__thumbnail-container {
     position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    object-fit: cover;
+    object-position: center;
+    aspect-ratio: 16 / 9;
   }
 
   .video-card__duration {
@@ -100,11 +310,13 @@ const styles = `
   }
 
   .video-card__cover {
-    width: 100%;
-    height: 250px;
-    object-fit: cover;
-    border-radius: 10px;
-  }
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: center;
+  oject-fit: cover;
+}
 
   .video-card__content {
     display: flex;
@@ -169,10 +381,11 @@ const styles = `
   .video-card__channel {
   font-family: 'Roboto', Arial, sans-serif;
   font-weight: 400;
-    font-size: 14px;
-    color: #606060;
-    display: block;
-  }
+  font-size: 14px;
+  color: #606060;
+  display: inline-block; /* Thay từ display: block */
+  white-space: nowrap; /* Ngăn ngắt dòng để chiều dài đúng với nội dung */
+}
 
   .video-card__meta {
   font-family: 'Roboto', Arial, sans-serif;

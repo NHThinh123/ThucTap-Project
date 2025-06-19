@@ -21,4 +21,14 @@ const getNewestVideoAnalysis = ({ userId }) => {
   return axios.get(URL_API);
 };
 
-export { getUserStats, getChannelOverview, getNewestVideoAnalysis };
+const getSubscribers = ({ userId }) => {
+  const URL_API = `api/subscriptions/${userId}/subscribers`;
+  return axios.get(URL_API);
+};
+
+export {
+  getUserStats,
+  getChannelOverview,
+  getNewestVideoAnalysis,
+  getSubscribers,
+};

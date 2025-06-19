@@ -114,7 +114,7 @@ const OverviewAnalysis = ({ userId }) => {
                   {item.title}
                 </p>
               </Col>
-              <Col span={4}>
+              <Col span={4} style={{ textAlign: "right" }}>
                 <Typography.Text type="secondary">
                   {formatNumber(item.views)}
                 </Typography.Text>
@@ -123,10 +123,6 @@ const OverviewAnalysis = ({ userId }) => {
           </List.Item>
         )}
       />
-      <Divider style={{ marginTop: 5 }} />
-      <Button color="primary" variant="outlined">
-        Xem số liệu phân tích video
-      </Button>
     </BoxCustom>
   );
 };

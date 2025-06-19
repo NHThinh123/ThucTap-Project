@@ -5,7 +5,6 @@ const {
 
 const uploadImage = async (req, res, next) => {
   try {
-    //console.log("req.file", req.file);
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
     }

@@ -8,7 +8,8 @@ const {
   deletePlaylist,
 } = require("../controllers/playlist.controller");
 
-router.route("/").post(createPlaylist).get(getAllPlaylistOfUser);
+router.route("/").post(createPlaylist);
+router.route("/user/:userId").get(getAllPlaylistOfUser);
 
 router
   .route("/:id")

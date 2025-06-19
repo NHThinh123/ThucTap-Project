@@ -56,7 +56,12 @@ const getVideoCommentsService = async (query) => {
   const objectId = isValidId ? new mongoose.Types.ObjectId(user_id) : null;
   let comments = await Comment.collection
     .aggregate([
-      { $match: { video_id: new mongoose.Types.ObjectId(video_id) } },
+      {
+        $match: {
+          video_id: new mongoose.Types.ObjectId(video_id),
+          deleted: { $ne: true },
+        },
+      },
       {
         $lookup: {
           from: "users",
@@ -71,7 +76,7 @@ const getVideoCommentsService = async (query) => {
           comment_content: {
             $cond: {
               if: "$deleted",
-              then: "(bình luận đã bị xóa)",
+              then: "(Bình luận đã bị xóa)",
               else: "$comment_content",
             },
           },
@@ -105,14 +110,85 @@ const getVideoCommentsService = async (query) => {
   return result;
 };
 
-const getReplyCommentsService = async (parentCommentId) => {
-  const replies = await Comment.find({ parent_comment_id: parentCommentId })
-    .populate("user_id", "user_name email avatar nickname")
-    .sort({ createdAt: 1 });
-  if (!replies) {
-    throw new AppError("Replies not found", 404);
+const getReplyCommentsService = async (query) => {
+  const { comment_id, user_id } = query;
+  if (!mongoose.Types.ObjectId.isValid(comment_id)) {
+    throw new AppError("Invalid comment ID", 400);
   }
+
+  const isValidId = user_id ? mongoose.Types.ObjectId.isValid(user_id) : false;
+  const objectId = isValidId ? new mongoose.Types.ObjectId(user_id) : null;
+
+  let replies = await Comment.collection
+    .aggregate([
+      {
+        $match: {
+          parent_comment_id: new mongoose.Types.ObjectId(comment_id),
+          deleted: { $ne: true },
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user_id",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      { $unwind: { path: "$user", preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          comment_content: {
+            $cond: {
+              if: "$deleted",
+              then: "(Bình luận đã bị xóa)",
+              else: "$comment_content",
+            },
+          },
+        },
+      },
+      { $sort: { createdAt: -1 } },
+      {
+        $project: {
+          user: {
+            _id: "$user._id",
+            user_name: "$user.user_name",
+            nickname: "$user.nickname",
+            avatar: "$user.avatar",
+          },
+          comment_content: 1,
+          createdAt: 1,
+          parent_comment_id: 1,
+          isEdited: 1,
+          deleted: 1,
+        },
+      },
+    ])
+    .toArray();
+  for (let reply of replies) {
+    let replyCount = await Comment.countDocuments({
+      parent_comment_id: reply._id,
+    });
+    reply.replyCount = replyCount;
+  }
+
   return replies;
+};
+
+const getVideoCommentsCountService = async (query) => {
+  const { video_id } = query;
+
+  if (!mongoose.Types.ObjectId.isValid(video_id)) {
+    throw new AppError("Invalid video ID", 400);
+  }
+
+  // Đếm tất cả bình luận (bao gồm cả replies) cho video này, trừ những bình luận đã bị xóa
+  const totalCount = await Comment.countDocuments({
+    video_id: new mongoose.Types.ObjectId(video_id),
+    deleted: { $ne: true }, // Chỉ đếm những bình luận chưa bị xóa
+  });
+
+  return { totalCount };
 };
 
 const updateCommentService = async (commentId, userId, data) => {
@@ -141,6 +217,7 @@ module.exports = {
   getCommentByIdService,
   getVideoCommentsService,
   getReplyCommentsService,
+  getVideoCommentsCountService,
   updateCommentService,
   deleteCommentService,
 };
