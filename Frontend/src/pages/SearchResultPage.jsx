@@ -22,9 +22,9 @@ const SearchResultPage = () => {
   }
 
   if (isSearchError) {
-    return <p>Đã có lỗi xảy ra: {searchError.message}</p>;
+    return <p>Đã có lỗi xảy ra: {searchError?.message}</p>;
   }
-  if (searchResults?.data.videos.length === 0)
+  if (searchResults?.data?.videos?.length === 0)
     return (
       <Typography.Text
         type="secondary"
@@ -34,7 +34,7 @@ const SearchResultPage = () => {
       </Typography.Text>
     );
   // const { videoList } = useVideo();
-  return <VideoSearchGrid videos={searchResults.data.videos || []} />;
+  return <VideoSearchGrid videos={searchResults?.data?.videos || []} />;
 };
 
 export default SearchResultPage;
