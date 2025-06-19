@@ -49,7 +49,9 @@ const MainChannel = ({ channelId }) => {
                 : (window.location.href = "#");
             }}
           >
-            <div style={{ position: "relative" }}>
+            <div
+              style={{ position: "relative", width: "420px", height: "230px" }}
+            >
               <img
                 src={latestVideo?.thumbnail_video}
                 alt={latestVideo?.title}

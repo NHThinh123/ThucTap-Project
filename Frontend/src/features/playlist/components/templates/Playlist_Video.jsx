@@ -15,6 +15,7 @@ import { useQueries } from "@tanstack/react-query";
 import { AuthContext } from "../../../../contexts/auth.context";
 import { getVideoByIdApi } from "../../services/playListApi";
 import { formatDuration } from "../../../../constants/formatDuration";
+import { ChartGantt } from "lucide-react";
 
 const PlayList_Video = () => {
   const { auth } = useContext(AuthContext);
@@ -135,12 +136,12 @@ const PlayList_Video = () => {
   };
 
   // Hàm chuyển đến trang phát video
-  const handlePlayVideo = (videoId) => {
-    window.location.href = `/watch/${videoId}`;
+  const handlePlayVideo = (playlistId, videoId) => {
+    window.location.href = `/playlist/${playlistId}/${videoId}`;
   };
 
   // Component hiển thị video item
-  const VideoItem = ({ video }) => {
+  const VideoItem = ({ video, playlistId }) => {
     if (video.isLoading) {
       return (
         <List.Item>
@@ -175,7 +176,7 @@ const PlayList_Video = () => {
       >
         <Card
           style={{ width: "100%", marginBottom: 8 }}
-          onClick={() => handlePlayVideo(video.video_id)}
+          onClick={() => handlePlayVideo(playlistId, video.video_id)}
         >
           <div style={{ display: "flex", gap: 16 }}>
             {/* Thumbnail */}
@@ -252,9 +253,10 @@ const PlayList_Video = () => {
                   fontWeight: 500,
                   lineHeight: 1.3,
                   display: "-webkit-box",
-                  WebkitLineClamp: 2,
+                  WebkitLineClamp: 1,
                   WebkitBoxOrient: "vertical",
                   overflow: "hidden",
+                  padding: 4,
                 }}
               >
                 {videoData?.title || `Video ${video.video_id}`}
@@ -268,7 +270,9 @@ const PlayList_Video = () => {
                   gap: 12,
                 }}
               >
-                {videoData?.views && <span>{videoData.views} lượt xem</span>}
+                {videoData?.views >= 0 && (
+                  <span>{videoData.views} lượt xem</span>
+                )}
                 {videoData?.uploadDate && (
                   <span>
                     <ClockCircleOutlined style={{ marginRight: 4 }} />
@@ -368,7 +372,9 @@ const PlayList_Video = () => {
         ) : (
           <List
             dataSource={videoDetails}
-            renderItem={(video) => <VideoItem video={video} />}
+            renderItem={(video) => (
+              <VideoItem video={video} playlistId={selectedPlaylistId} />
+            )}
             style={{ maxHeight: 500, overflowY: "auto" }}
           />
         )}

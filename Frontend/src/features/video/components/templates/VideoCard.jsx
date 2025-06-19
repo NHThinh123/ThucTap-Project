@@ -109,12 +109,17 @@ const styles = `
     cursor: pointer;
     border: none;
     padding: 0;
+    overflow: hidden;
+    oject-fit: cover;
+    object-position: center;
   }
 
   .video-card__thumbnail-container {
     position: relative;
               border-radius: 10px;
               overflow: hidden;
+              oject-fit: cover;
+              object-position: center;
               aspect-ratio: 16 / 9;
   }
 
@@ -133,8 +138,11 @@ const styles = `
 
   .video-card__cover {
   width: 100%;
-  height: 100%
+  height: auto;
+  aspect-ratio: 16 / 9;
   object-fit: cover;
+  object-position: center;
+  oject-fit: cover;
 }
 
   .video-card__content {

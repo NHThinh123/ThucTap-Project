@@ -1,3 +1,4 @@
+/* eslint-disable-disable no-unused-vars */
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { CircleUserRound, ListVideo } from "lucide-react";
 import {
@@ -19,9 +20,10 @@ import {
   PlusOutlined,
   HistoryOutlined,
   YoutubeOutlined,
+  DownOutlined,
 } from "@ant-design/icons";
 import logo from "./assets/logo/logo.png";
-import { useState, useContext, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "./contexts/auth.context";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -36,19 +38,26 @@ function App() {
   const navigate = useNavigate();
   const { openModal } = useModal();
   const { auth, setAuth } = useContext(AuthContext);
+  const { pathname } = useLocation();
   const location = useLocation();
   const isUserLoggedIn = auth?.isAuthenticated;
+  const playlistPathRegex = /^\/playlist\/[^/]+\/[^/]+$/;
   const [drawerVisible, setDrawerVisible] = useState(
     isUserLoggedIn ? false : true
   );
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [collapsed, setCollapsed] = useState(isUserLoggedIn ? false : true);
+  const [collapsed, setCollapsed] = useState(
+    playlistPathRegex.test(pathname) ? true : isUserLoggedIn ? false : true
+  );
   const isVideoWatchPage = location.pathname.startsWith("/watch/");
   const { data } = useUserSubscriptions(auth?.user?.id);
   const userSubscriptionsList = data?.data.channels || [];
   const [showAllChannels, setShowAllChannels] = useState(false);
+  const [openKeys, setOpenKeys] = useState(
+    playlistPathRegex.test(pathname) ? [] : ["subscriptions"]
+  );
 
-  // Định nghĩa menu items
+  // Define menu items
   const getMenuItems = () => {
     let subscriptionChildren = userSubscriptionsList.map((channel) => ({
       key: channel.channelId,
@@ -79,6 +88,7 @@ function App() {
         </Link>
       ),
     }));
+
     if (userSubscriptionsList.length > 5 && !showAllChannels) {
       subscriptionChildren = subscriptionChildren.slice(0, 5);
       subscriptionChildren.push({
@@ -105,15 +115,15 @@ function App() {
               window.location.href = "/";
             }}
           >
-            Home
+            Trang chủ
           </Link>
         ) : (
-          <Link to="/">Home</Link>
+          <Link to="/">Trang chủ</Link>
         ),
         path: "/",
       },
     ];
-    // Chỉ thêm "Quản lý kênh" nếu đã đăng nhập
+
     if (isUserLoggedIn) {
       menuItems.push(
         {
@@ -153,6 +163,7 @@ function App() {
           ) : (
             <Link to={`/channel/${auth.user.id}`}>Kênh của bạn</Link>
           ),
+          path: `/channel/${auth.user.id}`,
         },
         {
           key: "playlist",
@@ -170,6 +181,7 @@ function App() {
           ) : (
             <Link to="/playlist">Danh sách phát</Link>
           ),
+          path: "/playlist", // Added for consistency
         },
         {
           key: "subscriptions",
@@ -201,16 +213,20 @@ function App() {
   };
 
   const menuItems = getMenuItems();
-  // Xác định key được chọn dựa trên đường dẫn hiện tại
+
+  // Updated function to handle playlist paths
   const getSelectedKey = () => {
+    if (isVideoWatchPage) {
+      return "video";
+    }
+    if (playlistPathRegex.test(location.pathname)) {
+      return "playlist";
+    }
     const currentItem = menuItems.find(
       (item) =>
         location.pathname === item.path ||
         location.pathname.startsWith(`${item.path}/`)
     );
-    if (isVideoWatchPage) {
-      return "video";
-    }
     return currentItem ? currentItem.key : "home";
   };
 
@@ -218,13 +234,20 @@ function App() {
 
   useEffect(() => {
     setSelectedKey(getSelectedKey());
-  }, [location.pathname]);
 
-  useEffect(() => {
+    // Update collapsed and openKeys when pathname changes
+    if (playlistPathRegex.test(location.pathname)) {
+      setCollapsed(true);
+      setOpenKeys([]);
+    } else {
+      setCollapsed(isUserLoggedIn ? false : true);
+      setOpenKeys(["subscriptions"]);
+    }
+
     if (isVideoWatchPage) {
       setDrawerVisible(false);
     }
-  }, [location.pathname, isVideoWatchPage]);
+  }, [location.pathname, isUserLoggedIn, isVideoWatchPage]);
 
   const avatarSrc = isUserLoggedIn ? auth.user?.avatar : null;
   const displayName = isUserLoggedIn ? auth.user?.user_name : "";
@@ -278,6 +301,10 @@ function App() {
 
   const handleLogoClick = () => {
     window.location.href = "/";
+  };
+
+  const onOpenChange = (keys) => {
+    setOpenKeys(keys);
   };
 
   return (
@@ -406,7 +433,8 @@ function App() {
               <Menu
                 mode="inline"
                 selectedKeys={[selectedKey]}
-                defaultOpenKeys={["subscriptions"]}
+                openKeys={openKeys}
+                onOpenChange={onOpenChange}
                 items={menuItems}
                 style={{ height: "100%", borderRight: 0 }}
               />
@@ -452,7 +480,8 @@ function App() {
               <Menu
                 mode="inline"
                 selectedKeys={[selectedKey]}
-                defaultOpenKeys={["subscriptions"]}
+                openKeys={openKeys}
+                onOpenChange={onOpenChange}
                 items={menuItems}
                 style={{ borderRight: 0 }}
               />

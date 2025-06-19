@@ -27,6 +27,7 @@ import AdminListUserPage from "./pages/AdminListUserPage.jsx";
 import AdminStatisticsPage from "./pages/AdminStatisticsPage.jsx";
 import AdminOverviewPage from "./pages/AdminOverviewPage.jsx";
 import VideoHistoryPage from "./pages/VideoHistoryPage.jsx";
+import PlayListVideoPage from "./pages/PlayListVideoPage.jsx";
 
 const queryClient = new QueryClient();
 
@@ -41,7 +42,16 @@ const router = createBrowserRouter([
       },
       {
         path: "playlist",
-        element: <PlayListPage />,
+        children: [
+          {
+            index: true,
+            element: <PlayListPage />,
+          },
+          {
+            path: ":playlistId/:id",
+            element: <PlayListVideoPage />,
+          },
+        ],
       },
       {
         path: "channel",
@@ -61,6 +71,7 @@ const router = createBrowserRouter([
           },
         ],
       },
+
       {
         path: "search",
         element: <SearchResultPage />,

@@ -42,7 +42,7 @@ const ChannelInformation = ({ channelId }) => {
     <Row align={"middle"} gutter={16}>
       <Col>
         <div>
-          <Avatar src={channelInfo?.avatar} alt="Avatar" size={100} />
+          <Avatar src={channelInfo?.avatar} alt="Avatar" size={125} />
         </div>
       </Col>
       <Col>
