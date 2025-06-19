@@ -5,6 +5,7 @@ const {
   updateWatchDurationService,
   deleteHistoryService,
   deleteAllHistoriesService,
+  togglePauseHistoryService,
 } = require("../services/history.service");
 
 const createHistory = async (req, res, next) => {
@@ -86,6 +87,19 @@ const deleteAllHistories = async (req, res, next) => {
   }
 };
 
+const togglePauseHistory = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = await togglePauseHistoryService(id);
+    res.status(200).json({
+      status: "success",
+      data: { isPauseHistory: user.isPauseHistory },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createHistory,
   getHistory,
@@ -93,4 +107,5 @@ module.exports = {
   deleteHistory,
   deleteAllHistories,
   updateWatchDuration,
+  togglePauseHistory,
 };

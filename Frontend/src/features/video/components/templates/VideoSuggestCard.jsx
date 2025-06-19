@@ -1,13 +1,54 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { formatTime } from "../../../../constants/formatTime";
 import { formatViews } from "../../../../constants/formatViews";
 import { formatDuration } from "../../../../constants/formatDuration";
-import { useState } from "react";
-import { Col, Row } from "antd";
+import { useContext, useEffect, useRef, useState } from "react";
+import { Col, message, Row } from "antd";
+import { useModal } from "../../../../contexts/modal.context";
+import { AuthContext } from "../../../../contexts/auth.context";
+import PlaylistModalContent from "../../../playlist/components/templates/PlaylistModalContent";
 
 const VideoSuggestCard = ({ video, watchDuration }) => {
+  const { auth } = useContext(AuthContext);
+  const { openModal } = useModal();
+  const navigate = useNavigate();
+  const user_id = auth.isAuthenticated ? auth.user.id : null;
+  const video_id = video?._id;
   const [hoveredItemId, setHoveredItemId] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  // Lắng nghe custom event để đóng menu
+  useEffect(() => {
+    const handleCloseAllMenus = (event) => {
+      if (event.detail.videoId !== video_id) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("closeAllMenus", handleCloseAllMenus);
+
+    return () => {
+      document.removeEventListener("closeAllMenus", handleCloseAllMenus);
+    };
+  }, [video_id]);
+
+  // Đóng menu khi nhấn ngoài
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener("click", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [isMenuOpen]);
 
   const handleLinkClick = (e) => {
     e.stopPropagation();
@@ -21,29 +62,66 @@ const VideoSuggestCard = ({ video, watchDuration }) => {
   };
   const handleMenuClick = (e) => {
     e.stopPropagation(); // Prevent row click when clicking the menu button
-    setIsMenuOpen(!isMenuOpen); // Toggle menu visibility
+    const newIsMenuOpen = !isMenuOpen;
+
+    if (newIsMenuOpen) {
+      // Dispatch custom event để đóng tất cả menu khác
+      const closeAllMenusEvent = new CustomEvent("closeAllMenus", {
+        detail: { videoId: video_id },
+      });
+      document.dispatchEvent(closeAllMenusEvent);
+    }
+
+    // Cập nhật trạng thái menu hiện tại
+    setIsMenuOpen(newIsMenuOpen);
   };
 
   const handleMenuAction = (action, e) => {
     e.stopPropagation(); // Prevent row click when clicking a menu item
     setIsMenuOpen(false); // Close menu after action
     switch (action) {
-      case "watchLater":
-        console.log(`Saved video ${video._id} to Watch Later`);
-        // Add logic to save video to watch later
+      case "playlists":
+        console.log("Bookmark button clicked");
+        if (!auth.isAuthenticated) {
+          navigate("/login");
+          return;
+        }
+        if (!video_id || !user_id) {
+          console.error(
+            "Không thể mở modal danh sách phát: videoId hoặc userId không hợp lệ",
+            { video_id, user_id }
+          );
+          return;
+        }
+        console.log("Opening modal with PlaylistModalContent");
+        openModal(
+          <PlaylistModalContent video_id={video_id} user_id={user_id} />
+        );
         break;
-      case "hide":
-        console.log(`Hide video ${video._id}`);
-        // Add logic to hide video
-        break;
-      case "share":
+      case "share": {
         console.log(`Sharing video ${video._id}`);
-        // Add logic to share video
+        const shareUrl = `${window.location.origin}/watch/${video_id}`;
+        const shareData = {
+          title: "Chia sẻ video",
+          url: shareUrl,
+        };
+
+        try {
+          if (navigator.share) {
+            // Sử dụng Web Share API nếu trình duyệt hỗ trợ
+            navigator.share(shareData);
+            message.success("Chia sẻ video thành công!");
+          } else {
+            // Fallback: Sao chép link vào clipboard
+            navigator.clipboard.writeText(shareUrl);
+            message.success("Link video đã được sao chép vào clipboard!");
+          }
+        } catch (error) {
+          console.error("Lỗi khi chia sẻ video:", error);
+          message.error("Đã xảy ra lỗi khi chia sẻ video");
+        }
         break;
-      case "download":
-        console.log(`Downloading video ${video._id}`);
-        // Add logic to download video
-        break;
+      }
       default:
         break;
     }
@@ -188,7 +266,7 @@ const VideoSuggestCard = ({ video, watchDuration }) => {
             style={{
               background:
                 hoveredItemId === video.id ? "rgb(196, 196, 196)" : "none",
-              border: hoveredItemId === video.id ? "1px solid black" : "none",
+              border: hoveredItemId === video.id ? "none" : "none",
               borderRadius: hoveredItemId === video.id ? "50%" : "none",
               padding: 4,
               display: "flex",
@@ -214,8 +292,10 @@ const VideoSuggestCard = ({ video, watchDuration }) => {
           </button>
           {isMenuOpen && (
             <div
+              ref={menuRef}
               style={{
                 position: "absolute",
+                marginTop: 5,
                 right: 0,
                 backgroundColor: "#fff",
                 border: "1px solid #e0e0e0",
@@ -237,24 +317,9 @@ const VideoSuggestCard = ({ video, watchDuration }) => {
                   fontSize: 14,
                   color: "#0f0f0f",
                 }}
-                onClick={(e) => handleMenuAction("watchLater", e)}
+                onClick={(e) => handleMenuAction("playlists", e)}
               >
-                Lưu vào danh sách Xem sau
-              </button>
-              <button
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  padding: "8px 12px",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: 14,
-                  color: "#0f0f0f",
-                }}
-                onClick={(e) => handleMenuAction("hide", e)}
-              >
-                Ẩn video
+                Lưu vào danh sách phát
               </button>
               <button
                 style={{
@@ -270,21 +335,6 @@ const VideoSuggestCard = ({ video, watchDuration }) => {
                 onClick={(e) => handleMenuAction("share", e)}
               >
                 Chia sẻ
-              </button>
-              <button
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  padding: "8px 12px",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: 14,
-                  color: "#0f0f0f",
-                }}
-                onClick={(e) => handleMenuAction("download", e)}
-              >
-                Tải xuống
               </button>
             </div>
           )}
