@@ -11,11 +11,11 @@ import {
   undislikeVideoApi,
 } from "../../services/user_dislike_videoApi";
 import { AuthContext } from "../../../../contexts/auth.context";
-import { useModal } from "../../../../contexts/modal.context"; // Import useModal
+import { useModal } from "../../../../contexts/modal.context";
 import { useParams, useNavigate } from "react-router-dom";
 import useCountLikeVideo from "../../hooks/useCountLikeVideo";
 import { formatLikes } from "../../../../constants/formatLikes";
-import { Button, Divider, Space } from "antd";
+import { Button, Divider, Space, message } from "antd";
 import {
   LikeOutlined,
   LikeFilled,
@@ -30,7 +30,7 @@ const InteractButton = () => {
   const { id } = useParams();
   const video_id = id;
   const { auth } = useContext(AuthContext);
-  const { openModal } = useModal(); // Use useModal to get openModal
+  const { openModal } = useModal();
   const user_id = auth.isAuthenticated ? auth.user.id : null;
   const { data } = useCountLikeVideo(video_id);
   const [isClickedLike, setIsClickedLike] = useState(false);
@@ -132,6 +132,29 @@ const InteractButton = () => {
     openModal(<PlaylistModalContent video_id={video_id} user_id={user_id} />);
   };
 
+  const handleClickShare = async () => {
+    const shareUrl = `${window.location.origin}/watch/${video_id}`;
+    const shareData = {
+      title: "Chia sẻ video",
+      url: shareUrl,
+    };
+
+    try {
+      if (navigator.share) {
+        // Sử dụng Web Share API nếu trình duyệt hỗ trợ
+        await navigator.share(shareData);
+        message.success("Chia sẻ video thành công!");
+      } else {
+        // Fallback: Sao chép link vào clipboard
+        await navigator.clipboard.writeText(shareUrl);
+        message.success("Link video đã được sao chép vào clipboard!");
+      }
+    } catch (error) {
+      console.error("Lỗi khi chia sẻ video:", error);
+      message.error("Đã xảy ra lỗi khi chia sẻ video");
+    }
+  };
+
   return (
     <Space>
       <div
@@ -179,6 +202,7 @@ const InteractButton = () => {
             padding: "0 16px 0 16px",
           }}
           size="large"
+          onClick={handleClickShare}
         >
           <p style={{ fontSize: 16, fontWeight: 500 }}>Chia sẻ</p>
         </Button>
