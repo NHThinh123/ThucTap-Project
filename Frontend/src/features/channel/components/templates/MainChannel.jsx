@@ -104,7 +104,7 @@ const MainChannel = ({ channelId }) => {
                     height: 6,
                     backgroundColor: "red",
                     width: `${Math.min(
-                      (watchDurationLatestVideo / latestVideo.duration) * 100,
+                      (watchDurationLatestVideo / latestVideo?.duration) * 100,
                       100
                     )}%`,
                   }}

@@ -5,6 +5,7 @@ const Comment = require("./models/comment.model");
 const Review = require("./models/review.model");
 const User_Like_Video = require("./models/user_like_video.model");
 const User_Dislike_Video = require("./models/user_dislike_video.model");
+const mongoose = require("mongoose");
 
 // Hàm tổng hợp dữ liệu cho một ngày cụ thể (sử dụng UTC)
 const aggregateStatsForDay = async (targetDate) => {

@@ -76,7 +76,7 @@ const HorizontalListVideo = ({ videos = [] }) => {
     for (const history of HistoryData.data.histories) {
       for (const vid of history.videos) {
         if (vid?.video_id?._id === videoId) {
-          return vid.watch_duration;
+          return vid?.watch_duration;
         }
       }
     }
@@ -160,9 +160,9 @@ const HorizontalListVideo = ({ videos = [] }) => {
                         }}
                       />
                       <div className="video-card__duration">
-                        {formatDuration(video.duration)}
+                        {formatDuration(video?.duration)}
                       </div>
-                      {getWatchDuration(video._id) !== 0 && (
+                      {getWatchDuration(video?._id) !== 0 && (
                         <div
                           style={{
                             position: "absolute",
@@ -171,7 +171,7 @@ const HorizontalListVideo = ({ videos = [] }) => {
                             height: 5,
                             backgroundColor: "red",
                             width: `${Math.min(
-                              (getWatchDuration(video._id) / video.duration) *
+                              (getWatchDuration(video._id) / video?.duration) *
                                 100,
                               100
                             )}%`,
