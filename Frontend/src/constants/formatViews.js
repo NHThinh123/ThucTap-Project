@@ -1,4 +1,8 @@
 export const formatViews = (views) => {
+  // Kiểm tra nếu views không phải là số hợp lệ
+  if (views == null || isNaN(views)) {
+    return "0"; // Hoặc trả về chuỗi rỗng "" tùy theo yêu cầu
+  }
   if (views >= 10000000000) {
     // Từ 10 tỷ trở lên, hiển thị số nguyên + "T"
     const billions = Math.floor(views / 1000000000);
