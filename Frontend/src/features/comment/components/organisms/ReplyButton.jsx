@@ -33,6 +33,13 @@ const ReplyButton = ({
     onCancelReply();
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey && replyContent.trim()) {
+      e.preventDefault();
+      handleAddReply();
+    }
+  };
+
   return (
     <div>
       <Button
@@ -70,6 +77,7 @@ const ReplyButton = ({
               autoSize={{ minRows: 1 }}
               value={replyContent}
               onChange={(e) => setReplyContent(e.target.value)}
+              onKeyDown={handleKeyDown}
               placeholder="Viết phản hồi..."
               style={{
                 padding: "4px 10px",
