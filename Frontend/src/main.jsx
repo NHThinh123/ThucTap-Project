@@ -118,7 +118,7 @@ const router = createBrowserRouter([
     element: <AdminPage />,
     children: [
       {
-        path: "true",
+        index: "true",
         element: <AdminOverviewPage />,
       },
       {

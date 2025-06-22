@@ -9,6 +9,8 @@ const {
   getSearchSuggestionsService,
   getVideosByUserIdService,
   countVideoOfUserIdService,
+  updateVideoAdminService,
+  deleteVideoAdminService,
 } = require("../services/video.service");
 
 const createVideo = async (req, res, next) => {
@@ -147,7 +149,33 @@ const countVideoOfUserId = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+const updateAdminVideo = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { title, description, thumbnail } = req.body;
+    //const user_id = req.body.user_id;
 
+    const videoData = {
+      title,
+      description,
+      thumbnail,
+    };
+
+    const result = await updateVideoAdminService(id, videoData);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+const deleteAdminVideo = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const result = await deleteVideoAdminService(id);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = {
   createVideo,
   getVideos,
@@ -159,4 +187,6 @@ module.exports = {
   getSearchSuggestions,
   getVideosByUserId,
   countVideoOfUserId,
+  updateAdminVideo,
+  deleteAdminVideo,
 };

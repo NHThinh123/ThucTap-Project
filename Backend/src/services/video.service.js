@@ -393,7 +393,49 @@ const countVideoOfUserIdService = async (userId) => {
     throw new Error(`Lỗi khi đếm số lượng video: ${error.message}`);
   }
 };
+const updateVideoAdminService = async (videoId, videoData) => {
+  try {
+    const video = await Video.findById(videoId);
+    if (!video) {
+      throw new Error("Video not found");
+    }
 
+    const updatedData = {
+      title: videoData.title || video.title,
+      description_video: videoData.description || video.description_video,
+      video_url: videoData.video_url || video.video_url,
+      thumbnail_video: videoData.thumbnail || video.thumbnail_video,
+      duration: videoData.duration || video.duration,
+    };
+
+    const updatedVideo = await Video.findByIdAndUpdate(videoId, updatedData, {
+      new: true,
+    });
+
+    return {
+      message: "Video updated successfully",
+      video: updatedVideo,
+    };
+  } catch (error) {
+    throw new Error(`Error updating video: ${error.message}`);
+  }
+};
+const deleteVideoAdminService = async (videoId) => {
+  try {
+    const video = await Video.findById(videoId);
+    if (!video) {
+      throw new Error("Video not found");
+    }
+
+    await Video.findByIdAndDelete(videoId);
+
+    return {
+      message: "Video deleted successfully",
+    };
+  } catch (error) {
+    throw new Error(`Error deleting video: ${error.message}`);
+  }
+};
 module.exports = {
   createVideoService,
   getVideosService,
@@ -406,4 +448,6 @@ module.exports = {
   getSearchSuggestionsService,
   getVideosByUserIdService,
   countVideoOfUserIdService,
+  updateVideoAdminService,
+  deleteVideoAdminService,
 };
