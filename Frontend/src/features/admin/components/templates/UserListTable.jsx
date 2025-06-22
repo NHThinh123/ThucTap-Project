@@ -156,6 +156,7 @@ const UserListTable = () => {
       columns={columns}
       dataSource={users}
       loading={isLoading}
+      bordered={false}
       pagination={{
         style: { justifyContent: "center" },
         current: page,

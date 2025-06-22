@@ -1,7 +1,16 @@
-import React, { useState } from "react";
-import { Button, Modal, Space, Form, Input, DatePicker, Select } from "antd";
+import React, { useState, useEffect } from "react";
+import {
+  Button,
+  Modal,
+  Space,
+  Form,
+  Input,
+  DatePicker,
+  Select,
+  Spin,
+} from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import moment from "moment";
+import dayjs from "dayjs";
 
 import { useFetchUser } from "../../hooks/useFetchUser";
 import { useUpdateUser } from "../../hooks/useUpdateUser";
@@ -14,24 +23,33 @@ const UserActions = ({ userId }) => {
 
   const { mutate: deleteUser, isLoading: isDeleting } = useDeleteUser();
   const { mutate: updateUser, isLoading: isUpdating } = useUpdateUser();
-  const { data: user, isLoading: isUserLoading } = useFetchUser(
-    userId,
-    isEditModalVisible
-  );
+  const {
+    data: userData,
+    isLoading: isUserLoading,
+    isError,
+    error,
+  } = useFetchUser(userId, isEditModalVisible);
 
-  // Điền dữ liệu vào form khi lấy được thông tin người dùng
-  if (user && isEditModalVisible && !isUserLoading) {
-    form.setFieldsValue({
-      user_name: user.user_name,
-      nickname: user.nickname,
-      email: user.email,
-      dateOfBirth: user.dateOfBirth ? moment(user.dateOfBirth) : null,
-      role: user.role,
-    });
-  }
+  // Debug dữ liệu API
+  useEffect(() => {}, [userData, isUserLoading, isError, error]);
+
+  // Điền dữ liệu vào form khi nhận được user data
+  useEffect(() => {
+    if (userData && !isUserLoading && isEditModalVisible) {
+      const user = userData.user || userData;
+      form.setFieldsValue({
+        user_name: user.user_name || "",
+        nickname: user.nickname || "",
+        email: user.email || "",
+        dateOfBirth: user.dateOfBirth ? dayjs(user.dateOfBirth) : null,
+        role: user.role,
+      });
+    }
+  }, [userData, isUserLoading, isEditModalVisible, form]);
 
   const handleEdit = () => {
     setIsEditModalVisible(true);
+    form.resetFields();
   };
 
   const handleDelete = () => {
@@ -47,9 +65,11 @@ const UserActions = ({ userId }) => {
           userId,
           data: {
             user_name: values.user_name,
-            email: values.email,
             nickname: values.nickname,
-            dateOfBirth: values.dateOfBirth.format("YYYY-MM-DD"),
+            email: values.email,
+            dateOfBirth: values.dateOfBirth
+              ? values.dateOfBirth.format("YYYY-MM-DD")
+              : null,
             role: values.role,
           },
         });
@@ -63,29 +83,27 @@ const UserActions = ({ userId }) => {
   return (
     <Space>
       <Button
-        type="primary"
+        type="text"
         icon={<EditOutlined />}
         onClick={handleEdit}
         size="small"
         style={{
-          backgroundColor: "#52c41a",
-          borderColor: "#52c41a",
-          color: "#fff",
+          marginRight: 8,
+          color: "#000",
         }}
-      >
-        Cập nhật
-      </Button>
+      ></Button>
       <Button
-        type="primary"
+        type="text"
         danger
         icon={<DeleteOutlined />}
         loading={isDeleting}
         size="small"
         onClick={() => setIsDeleteModalVisible(true)}
-      >
-        Xóa
-      </Button>
-      {/* Modal chỉnh sửa */}
+        style={{
+          color: "#000",
+          marginLeft: 8,
+        }}
+      ></Button>
       <Modal
         title="Chỉnh sửa người dùng"
         open={isEditModalVisible}
@@ -97,7 +115,11 @@ const UserActions = ({ userId }) => {
         destroyOnClose
       >
         {isUserLoading ? (
-          <p>Đang tải thông tin...</p>
+          <Spin tip="Đang tải thông tin..." />
+        ) : isError ? (
+          <p style={{ color: "red" }}>
+            Lỗi: {error?.message || "Không thể tải thông tin người dùng."}
+          </p>
         ) : (
           <Form form={form} layout="vertical" preserve={false}>
             <Form.Item
@@ -136,7 +158,7 @@ const UserActions = ({ userId }) => {
               label="Vai trò"
               rules={[{ required: true, message: "Vui lòng chọn vai trò!" }]}
             >
-              <Select>
+              <Select placeholder="Chọn vai trò">
                 <Select.Option value="user">User</Select.Option>
                 <Select.Option value="admin">Admin</Select.Option>
               </Select>
@@ -144,7 +166,7 @@ const UserActions = ({ userId }) => {
           </Form>
         )}
       </Modal>
-      {/* Modal xóa */}
+
       <Modal
         title="Xác nhận xóa"
         open={isDeleteModalVisible}

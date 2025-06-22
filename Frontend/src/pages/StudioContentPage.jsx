@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { Typography } from "antd";
 
 import VideoList from "../features/studio/components/templates/VideoList";

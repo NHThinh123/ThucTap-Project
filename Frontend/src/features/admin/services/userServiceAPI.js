@@ -25,4 +25,15 @@ const updateUser = (id, data) => {
   });
 };
 
-export { fetchUsers, fetchUserById, deleteUser, updateUser };
+const createUser = (data) => {
+  const URL_API = "/api/users/admin/create";
+  // Log dữ liệu để debug
+  console.log("API Create User Data:", data);
+  return axios.post(URL_API, data, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+export { fetchUsers, fetchUserById, deleteUser, updateUser, createUser };

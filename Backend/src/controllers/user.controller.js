@@ -48,7 +48,7 @@ const getUserById = async (req, res, next) => {
 const updateUser = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { user_name, dateOfBirth, email, oldPassword, newPassword } =
+    const { user_name, dateOfBirth, email, oldPassword, newPassword, role } =
       req.body;
     let updateData = {};
 
@@ -56,6 +56,16 @@ const updateUser = async (req, res, next) => {
     const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({ error: "Người dùng không tồn tại!" });
+    }
+    //Nếu có vai trò mới, kiểm tra hợp lệ rồi thêm vào dữ liệu cập nhật
+    if (role) {
+      const validRoles = ["user", "admin"];
+      if (!validRoles.includes(role)) {
+        return res.status(400).json({
+          error: "Vai trò không hợp lệ! Chỉ có thể là 'user' hoặc 'admin'.",
+        });
+      }
+      updateData.role = role;
     }
 
     // Nếu có tên mới, thêm vào dữ liệu cập nhật
@@ -83,6 +93,7 @@ const updateUser = async (req, res, next) => {
       }
       updateData.email = email;
     }
+
     //Nếu có mật khẩu mới kiểm tra mật khẩu mới và cập nhật
     if (newPassword) {
       // Yêu cầu mật khẩu cũ nếu thay đổi mật khẩu

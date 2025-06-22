@@ -22,7 +22,7 @@ import {
   StockOutlined,
 } from "@ant-design/icons";
 import { ToastContainer } from "react-toastify";
-import { CircleUserRound } from "lucide-react";
+import { CircleUserRound, FileVideo, User } from "lucide-react";
 
 const { Header, Content, Sider } = Layout;
 
@@ -54,18 +54,13 @@ const AdminPage = () => {
   const menuItems = [
     {
       key: "overview",
-      icon: <AppstoreOutlined />,
-      label: <Link to="/admin">Tổng quan</Link>,
+      icon: <FileVideo size={18} />,
+      label: <Link to="/admin">Video</Link>,
     },
     {
       key: "list",
-      icon: <HomeOutlined />,
+      icon: <User size={18} />,
       label: <Link to="/admin/list">Danh sách</Link>,
-    },
-    {
-      key: "statistics",
-      icon: <StockOutlined />,
-      label: <Link to="/admin/statistics">Thống kê</Link>,
     },
     {
       key: "back",

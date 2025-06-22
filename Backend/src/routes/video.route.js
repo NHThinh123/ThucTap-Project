@@ -11,15 +11,20 @@ const {
   getSearchSuggestions,
   getVideosByUserId,
   countVideoOfUserId,
+  updateAdminVideo,
+  deleteAdminVideo,
 } = require("../controllers/video.controller");
 const {
   getRecommendations,
 } = require("../controllers/recommendation.controller");
+const { protect, adminOnly } = require("../middlewares/admin");
 
 router.post("/create", createVideo);
 router.get("/search", searchVideos);
 router.get("/suggestions", getSearchSuggestions);
-router.get("/", getVideos);
+router.get("/admin/getAllVideo", protect, adminOnly, getVideos);
+router.put("/admin/updateVideo/:id", protect, adminOnly, updateAdminVideo);
+router.delete("/admin/deleteVideo/:id", protect, adminOnly, deleteAdminVideo);
 router.get("/:id", getVideoById);
 router.put("/:id", updateVideo);
 router.put("/increment-view/:id", incrementView);
