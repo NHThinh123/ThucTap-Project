@@ -30,6 +30,7 @@ export const ModalProvider = ({ children }) => {
         width={600}
         centered
         destroyOnClose
+        maskClosable={false}
       >
         {modalState.content}
       </Modal>
