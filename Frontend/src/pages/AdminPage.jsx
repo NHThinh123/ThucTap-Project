@@ -60,7 +60,7 @@ const AdminPage = () => {
     {
       key: "list",
       icon: <User size={18} />,
-      label: <Link to="/admin/list">Danh sách</Link>,
+      label: <Link to="/admin/list">Người dùng</Link>,
     },
     {
       key: "back",

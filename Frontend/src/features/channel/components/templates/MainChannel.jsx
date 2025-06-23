@@ -84,6 +84,7 @@ const MainChannel = ({ channelId }) => {
               <img
                 src={latestVideo?.thumbnail_video}
                 alt={latestVideo?.title}
+                loading="lazy"
                 style={{
                   width: "420px",
                   height: "230px",

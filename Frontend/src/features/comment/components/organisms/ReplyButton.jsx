@@ -47,9 +47,10 @@ const ReplyButton = ({
         style={{
           padding: 0,
           marginTop: 10,
-          fontSize: 14,
+          fontSize: 13,
           height: "auto",
-          color: "#000",
+          fontWeight: 600,
+          color: "#8c8c8c",
         }}
         onClick={() => setIsReplying(true)}
       >
