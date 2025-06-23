@@ -29,7 +29,7 @@ const StudioSubcribersPage = () => {
 
   return (
     <Row justify={"center"}>
-      <Col span={12}>
+      <Col xs={24} sm={24} md={20} lg={16} xl={14}>
         <BoxCustom>
           <Typography.Title level={4}>Danh sách người đăng ký</Typography.Title>
           {/* Thanh tìm kiếm */}
@@ -51,16 +51,16 @@ const StudioSubcribersPage = () => {
             renderItem={(item) => (
               <List.Item style={{ padding: 6 }}>
                 <Row gutter={16} align="middle">
-                  <Col span={4}>
+                  <Col span={4} style={{ minWidth: 60 }}>
                     <Avatar
                       src={
                         item.avatar ||
                         "https://res.cloudinary.com/nienluan/image/upload/v1747707203/avaMacDinh_jxwsog.jpg"
                       }
-                      size={60}
+                      size={50}
                     />
                   </Col>
-                  <Col span={20}>
+                  <Col>
                     <p
                       style={{
                         display: "-webkit-box",

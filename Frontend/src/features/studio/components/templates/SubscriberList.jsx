@@ -28,7 +28,7 @@ const SubscriberList = () => {
         renderItem={(item) => (
           <List.Item style={{ padding: 4 }}>
             <Row gutter={16} align={"middle"}>
-              <Col span={4}>
+              <Col span={4} style={{ minWidth: 60 }}>
                 <Avatar
                   src={
                     item?.avatar ||
@@ -37,7 +37,7 @@ const SubscriberList = () => {
                   size={50}
                 />
               </Col>
-              <Col span={20}>
+              <Col>
                 <p
                   style={{
                     display: "-webkit-box",

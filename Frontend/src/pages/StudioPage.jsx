@@ -10,8 +10,9 @@ import {
   Row,
   Space,
   Typography,
+  Drawer,
 } from "antd";
-import { useContext, useState, useMemo } from "react";
+import { useContext, useState, useMemo, useEffect } from "react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../contexts/auth.context";
 import logo from "../assets/logo/logo.png";
@@ -25,25 +26,36 @@ import {
   YoutubeOutlined,
 } from "@ant-design/icons";
 import { ToastContainer } from "react-toastify";
-import { CircleUserRound, CircleUserRoundIcon, Upload } from "lucide-react";
+import { CircleUserRound, CircleUserRoundIcon } from "lucide-react";
 import { useModal } from "../contexts/modal.context";
 import UploadPage from "./UploadPage";
-import { useEffect } from "react";
 
 const { Header, Content, Sider } = Layout;
 
 const StudioPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(window.innerWidth <= 576);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 576);
   const { auth, setAuth } = useContext(AuthContext);
-  const [setIsLoggingOut] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false); // Sửa lỗi cú pháp
   const isUserLoggedIn = auth?.isAuthenticated;
 
   const avatarSrc = isUserLoggedIn ? auth.user?.avatar : null;
   const nickname = isUserLoggedIn ? auth.user?.nickname : "";
   const user_name = isUserLoggedIn ? auth.user?.name : "";
 
+  // Xử lý resize để cập nhật trạng thái responsive
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 576);
+      setCollapsed(window.innerWidth <= 576);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Xử lý đăng xuất
   const handleLogout = () => {
     setIsLoggingOut(true);
     setTimeout(() => {
@@ -58,6 +70,7 @@ const StudioPage = () => {
 
   const { openModal } = useModal();
 
+  // Menu items cho Sider
   const menuItems = [
     {
       key: "overview",
@@ -86,6 +99,7 @@ const StudioPage = () => {
     },
   ];
 
+  // Menu items cho Dropdown user
   const userMenuItems = [
     {
       key: "profile",
@@ -97,16 +111,17 @@ const StudioPage = () => {
 
   const userMenu = <Menu items={userMenuItems} />;
 
+  // Xử lý nút đăng tải
   const handleUploadClick = () => {
     openModal(<UploadPage navigate={navigate} />);
   };
 
-  // Handle logo click to refresh and navigate to homepage
+  // Xử lý click logo để reload về homepage
   const handleLogoClick = () => {
     window.location.href = "/";
   };
 
-  // Determine the selected menu key based on the current route
+  // Tính toán selectedKey dựa trên route
   const selectedKey = useMemo(() => {
     const path = location.pathname;
     if (path === "/studio") return "overview";
@@ -114,7 +129,7 @@ const StudioPage = () => {
     if (path === "/studio/analytics") return "analytics";
     if (path === "/studio/subscribers") return "subscribers";
     if (path === "/") return "back";
-    return "overview"; // Fallback to overview
+    return "overview";
   }, [location.pathname]);
 
   return (
@@ -131,24 +146,31 @@ const StudioPage = () => {
         pauseOnHover
       />
       <Layout style={{ minHeight: "100vh" }}>
+        {/* Header */}
         <Header
           style={{
             position: "fixed",
             zIndex: 1000,
             width: "100%",
             background: "#fff",
-            padding: "0 24px",
+            padding: isMobile ? "0 8px" : "0 24px",
           }}
         >
           <Row align="middle" justify="space-between">
-            <Col span={6} style={{ display: "flex", alignItems: "center" }}>
+            <Col
+              xs={8}
+              sm={6}
+              md={6}
+              lg={6}
+              style={{ display: "flex", alignItems: "center" }}
+            >
               <Button
                 icon={<MenuOutlined />}
                 onClick={() => setCollapsed(!collapsed)}
                 style={{
                   border: "none",
-                  fontSize: "18px",
-                  marginRight: "16px",
+                  fontSize: isMobile ? "16px" : "18px",
+                  marginRight: isMobile ? "8px" : "16px",
                 }}
               />
               <div
@@ -156,41 +178,66 @@ const StudioPage = () => {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  flex: 1,
                   cursor: "pointer",
                 }}
               >
                 <img
                   src={logo}
-                  style={{ height: "30px", width: "auto", marginRight: "8px" }}
+                  style={{
+                    height: isMobile ? "24px" : "30px",
+                    width: "auto",
+                    marginRight: "8px",
+                  }}
                   alt="logo"
                 />
                 <Typography.Text
-                  style={{ fontSize: "18px", fontWeight: "bold" }}
+                  style={{
+                    fontSize: isMobile ? "16px" : "18px",
+                    fontWeight: "bold",
+                    whiteSpace: "nowrap",
+                  }}
+                  ellipsis
                 >
                   CUSC Tube
                 </Typography.Text>
               </div>
             </Col>
             <Col
-              span={12}
+              xs={0}
+              sm={12}
+              md={12}
+              lg={12}
               style={{ display: "flex", justifyContent: "center" }}
-            ></Col>
-            <Col span={3} style={{ display: "flex", justifyContent: "end" }}>
+            >
+              {/* Không gian cho tìm kiếm, ẩn trên mobile */}
+            </Col>
+            <Col
+              xs={8}
+              sm={3}
+              md={3}
+              lg={3}
+              style={{ display: "flex", justifyContent: "end" }}
+            >
               <Button
                 color="primary"
                 variant="outlined"
                 style={{
-                  fontSize: "16px",
-                  marginLeft: "16px",
+                  fontSize: isMobile ? "14px" : "16px",
+                  padding: isMobile ? "0 8px" : "0 16px",
                 }}
                 onClick={handleUploadClick}
               >
-                <PlusOutlined /> Đăng tải
+                <PlusOutlined />
+                <span style={{ display: isMobile ? "none" : "inline" }}>
+                  Đăng tải
+                </span>
               </Button>
             </Col>
             <Col
-              span={3}
+              xs={3}
+              sm={3}
+              md={3}
+              lg={3}
               style={{ display: "flex", justifyContent: "flex-end" }}
             >
               {isUserLoggedIn ? (
@@ -199,72 +246,114 @@ const StudioPage = () => {
                     <Avatar
                       src={avatarSrc}
                       icon={!avatarSrc && <CircleUserRound />}
+                      size={isMobile ? 24 : 32}
                     />
-                    <span>{user_name}</span>
+                    <Typography.Text
+                      style={{ display: isMobile ? "none" : "inline" }}
+                      ellipsis
+                    >
+                      {user_name}
+                    </Typography.Text>
                   </Space>
                 </Dropdown>
               ) : (
                 <Button
                   type="primary"
-                  style={{ padding: "0 16px" }}
+                  style={{
+                    padding: isMobile ? "0 8px" : "0 16px",
+                    fontSize: isMobile ? "14px" : "16px",
+                  }}
                   onClick={() => navigate("/login")}
                 >
-                  <CircleUserRoundIcon style={{ marginRight: "8px" }} />
-                  Đăng nhập
+                  <CircleUserRoundIcon
+                    style={{ marginRight: isMobile ? "4px" : "8px" }}
+                    size={isMobile ? 16 : 20}
+                  />
+                  <span style={{ display: isMobile ? "none" : "inline" }}>
+                    Đăng nhập
+                  </span>
                 </Button>
               )}
             </Col>
           </Row>
         </Header>
 
+        {/* Layout chính */}
         <Layout style={{ marginTop: "64px" }}>
-          <Sider
-            collapsed={collapsed}
-            style={{
-              position: "fixed",
-              height: "calc(100vh - 64px)",
-              left: 0,
-              top: "64px",
-              overflow: "auto",
-              background: "#fff",
-              scrollbarWidth: "none",
-              borderRight: "1px solid #e8e8e8",
-            }}
-          >
-            <div style={{ padding: "16px", textAlign: "center" }}>
-              <Avatar
-                src={avatarSrc || <CircleUserRound />}
-                size={collapsed ? 40 : 100}
-                style={{ marginBottom: "8px" }}
+          {/* Sider hoặc Drawer */}
+          {isMobile ? (
+            <Drawer
+              placement="left"
+              onClose={() => setCollapsed(true)}
+              open={!collapsed}
+              width={200}
+              bodyStyle={{ padding: 0 }}
+            >
+              <div style={{ padding: "16px", textAlign: "center" }}>
+                <Avatar
+                  src={avatarSrc || <CircleUserRound />}
+                  size={100}
+                  style={{ marginBottom: "8px" }}
+                />
+                <div style={{ fontWeight: "bold", fontSize: 16 }}>
+                  Kênh của bạn
+                </div>
+                <div style={{ fontSize: "14px", color: "#6a6a6a" }}>
+                  {nickname || "Người dùng"}
+                </div>
+              </div>
+              <Menu
+                mode="inline"
+                selectedKeys={[selectedKey]}
+                items={menuItems}
+                style={{ height: "100%", borderRight: 0 }}
               />
-              {!collapsed && (
-                <>
-                  <div style={{ fontWeight: "bold", fontSize: 16 }}>
-                    Kênh của bạn
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "14px",
-                      color: "#6a6a6a",
-                    }}
-                  >
-                    {nickname || "Người dùng"}
-                  </div>
-                </>
-              )}
-            </div>
-            <Menu
-              mode="inline"
-              selectedKeys={[selectedKey]}
-              items={menuItems}
-              style={{ height: "100%", borderRight: 0 }}
-            />
-          </Sider>
+            </Drawer>
+          ) : (
+            <Sider
+              collapsed={collapsed}
+              style={{
+                position: "fixed",
+                height: "calc(100vh - 64px)",
+                left: 0,
+                top: "64px",
+                overflow: "auto",
+                background: "#fff",
+                scrollbarWidth: "none",
+                borderRight: "1px solid #e8e8e8",
+              }}
+            >
+              <div style={{ padding: "16px", textAlign: "center" }}>
+                <Avatar
+                  src={avatarSrc || <CircleUserRound />}
+                  size={collapsed ? 40 : 100}
+                  style={{ marginBottom: "8px" }}
+                />
+                {!collapsed && (
+                  <>
+                    <div style={{ fontWeight: "bold", fontSize: 16 }}>
+                      Kênh của bạn
+                    </div>
+                    <div style={{ fontSize: "14px", color: "#6a6a6a" }}>
+                      {nickname || "Người dùng"}
+                    </div>
+                  </>
+                )}
+              </div>
+              <Menu
+                mode="inline"
+                selectedKeys={[selectedKey]}
+                items={menuItems}
+                style={{ height: "100%", borderRight: 0 }}
+              />
+            </Sider>
+          )}
 
+          {/* Content */}
           <Content
             style={{
-              marginLeft: collapsed ? "80px" : "200px",
-              padding: "24px",
+              marginLeft: isMobile ? 0 : collapsed ? "80px" : "200px",
+              padding: isMobile ? "8px" : "24px",
               minHeight: "calc(100vh - 64px)",
               transition: "margin-left 0.2s",
               background: "#fff",

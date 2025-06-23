@@ -42,9 +42,7 @@ function App() {
   const location = useLocation();
   const isUserLoggedIn = auth?.isAuthenticated;
   const playlistPathRegex = /^\/playlist\/[^/]+\/[^/]+$/;
-  const [drawerVisible, setDrawerVisible] = useState(
-    isUserLoggedIn ? false : true
-  );
+  const [drawerVisible, setDrawerVisible] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [collapsed, setCollapsed] = useState(
     playlistPathRegex.test(pathname) ? true : isUserLoggedIn ? false : true
@@ -56,6 +54,18 @@ function App() {
   const [openKeys, setOpenKeys] = useState(
     playlistPathRegex.test(pathname) ? [] : ["subscriptions"]
   );
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [isSearchFocused, setSearchFocused] = useState(false);
+
+  // Theo dõi thay đổi kích thước màn hình
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Define menu items
   const getMenuItems = () => {
@@ -68,23 +78,26 @@ function App() {
             e.preventDefault();
             window.location.href = `/channel/${channel.channelId}`;
           }}
-          style={{ paddingLeft: 0 }}
+          style={{ paddingLeft: 0, display: "flex", alignItems: "center" }}
         >
           <Avatar
             src={channel.channelAvatar}
             size="small"
             style={{ marginRight: 8 }}
           />
-          {channel.channelNickname}
+          {windowWidth >= 1024 && <p>{channel.channelNickname}</p>}
         </Link>
       ) : (
-        <Link to={`/channel/${channel.channelId}`} style={{ paddingLeft: 0 }}>
+        <Link
+          to={`/channel/${channel.channelId}`}
+          style={{ paddingLeft: 0, display: "flex", alignItems: "center" }}
+        >
           <Avatar
             src={channel.channelAvatar}
             size="small"
             style={{ marginRight: 8 }}
           />
-          {channel.channelNickname}
+          {windowWidth >= 1024 && <p>{channel.channelNickname}</p>}
         </Link>
       ),
     }));
@@ -181,7 +194,7 @@ function App() {
           ) : (
             <Link to="/playlist">Danh sách phát</Link>
           ),
-          path: "/playlist", // Added for consistency
+          path: "/playlist",
         },
         {
           key: "subscriptions",
@@ -214,7 +227,6 @@ function App() {
 
   const menuItems = getMenuItems();
 
-  // Updated function to handle playlist paths
   const getSelectedKey = () => {
     if (isVideoWatchPage) {
       return "video";
@@ -235,19 +247,18 @@ function App() {
   useEffect(() => {
     setSelectedKey(getSelectedKey());
 
-    // Update collapsed and openKeys when pathname changes
     if (playlistPathRegex.test(location.pathname)) {
       setCollapsed(true);
       setOpenKeys([]);
     } else {
-      setCollapsed(isUserLoggedIn ? false : true);
+      setCollapsed(isUserLoggedIn && windowWidth >= 700 ? false : true);
       setOpenKeys(["subscriptions"]);
     }
 
-    if (isVideoWatchPage) {
+    if (isVideoWatchPage || windowWidth < 700) {
       setDrawerVisible(false);
     }
-  }, [location.pathname, isUserLoggedIn, isVideoWatchPage]);
+  }, [location.pathname, isUserLoggedIn, isVideoWatchPage, windowWidth]);
 
   const avatarSrc = isUserLoggedIn ? auth.user?.avatar : null;
   const displayName = isUserLoggedIn ? auth.user?.user_name : "";
@@ -287,7 +298,7 @@ function App() {
   };
 
   const toggleMenu = () => {
-    if (isVideoWatchPage) {
+    if (isVideoWatchPage || windowWidth < 700) {
       showDrawer();
     } else {
       setCollapsed(!collapsed);
@@ -331,93 +342,125 @@ function App() {
           }}
         >
           <Row align="middle" justify="space-between">
-            <Col span={1}>
-              <Button
-                icon={<MenuOutlined />}
-                onClick={toggleMenu}
-                style={{
-                  border: "none",
-                  fontSize: "18px",
-                  marginRight: "16px",
-                }}
-              />
-            </Col>
-            <Col span={5}>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  flex: 1,
-                  cursor: "pointer",
-                  width: "fit-content",
-                }}
-                onClick={handleLogoClick}
-              >
-                <img
-                  src={logo}
-                  style={{ height: "30px", width: "auto", marginRight: "8px" }}
-                  alt="logo"
+            {!isSearchFocused && (
+              <Col span={1}>
+                <Button
+                  icon={<MenuOutlined />}
+                  onClick={toggleMenu}
+                  style={{
+                    border: "none",
+                    fontSize: windowWidth < 600 ? "14px" : "18px",
+                    marginRight: "16px",
+                  }}
                 />
-                <Typography.Text
-                  style={{ fontSize: "18px", fontWeight: "bold" }}
+              </Col>
+            )}
+            {!isSearchFocused && windowWidth > 600 && (
+              <Col span={windowWidth < 600 ? 2 : 5}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    flex: 1,
+                    cursor: "pointer",
+                    width: "fit-content",
+                    gap: "8px",
+                  }}
+                  onClick={handleLogoClick}
                 >
-                  CUSC Tube
-                </Typography.Text>
-              </div>
-            </Col>
+                  <img
+                    src={logo}
+                    style={{
+                      height: windowWidth < 720 ? 25 : 35,
+                      width: "auto",
+                    }}
+                    alt="logo"
+                  />
+                  <Typography.Text
+                    style={{
+                      fontSize: windowWidth < 720 ? 14 : 18,
+                      fontWeight: "bold",
+                      display: windowWidth < 600 ? "none" : "block",
+                    }}
+                  >
+                    CUSC Tube
+                  </Typography.Text>
+                </div>
+              </Col>
+            )}
             <Col
-              span={12}
+              span={isSearchFocused ? 24 : 12}
               style={{ display: "flex", justifyContent: "center" }}
             >
-              <SearchBar />
+              <SearchBar
+                setSearchFocused={setSearchFocused}
+                isSearchFocused={isSearchFocused}
+              />
             </Col>
-            <Col span={3} style={{ display: "flex", justifyContent: "end" }}>
-              <Button
-                color="primary"
-                variant="outlined"
-                style={{
-                  fontSize: "16px",
-                  marginLeft: "16px",
-                }}
-                onClick={handleUploadClick}
+            {!isSearchFocused && (
+              <Col
+                sm={3}
+                md={3}
+                lg={windowWidth < 1100 ? 2 : 3}
+                xl={3}
+                style={{ display: "flex", justifyContent: "center" }}
               >
-                <PlusOutlined /> Đăng tải
-              </Button>
-            </Col>
-            <Col
-              span={3}
-              style={{ display: "flex", justifyContent: "flex-end" }}
-            >
-              {isUserLoggedIn ? (
-                <Dropdown overlay={userMenu} trigger={["click"]}>
-                  <Space style={{ cursor: "pointer" }}>
-                    <Avatar
-                      src={avatarSrc}
-                      icon={!avatarSrc && <CircleUserRound />}
-                    />
-                    <span>{displayName}</span>
-                  </Space>
-                </Dropdown>
-              ) : (
                 <Button
-                  type="primary"
-                  style={{ padding: "0 16px" }}
-                  onClick={() =>
-                    isVideoWatchPage
-                      ? (window.location.href = "/login")
-                      : navigate("/login")
-                  }
+                  size={windowWidth < 700 ? "small" : "middle"}
+                  color="primary"
+                  variant="outlined"
+                  style={{
+                    fontSize: "16px",
+                    marginLeft: "16px",
+                  }}
+                  onClick={handleUploadClick}
                 >
-                  <CircleUserRound style={{ marginRight: "8px" }} />
-                  Đăng nhập
+                  <PlusOutlined />
+                  {windowWidth > 1100 && "Đăng tải"}
                 </Button>
-              )}
-            </Col>
+              </Col>
+            )}
+            {!isSearchFocused && (
+              <Col
+                sm={2}
+                md={2}
+                lg={windowWidth < 1100 ? 2 : 3}
+                xl={3}
+                style={{ display: "flex", justifyContent: "flex-end" }}
+              >
+                {isUserLoggedIn ? (
+                  <Dropdown overlay={userMenu} trigger={["click"]}>
+                    <Space style={{ cursor: "pointer" }}>
+                      <Avatar
+                        src={avatarSrc}
+                        icon={!avatarSrc && <CircleUserRound />}
+                      />
+                      <span style={{ display: windowWidth < 1100 && "none" }}>
+                        {displayName}
+                      </span>
+                    </Space>
+                  </Dropdown>
+                ) : (
+                  <Button
+                    type="primary"
+                    style={{ padding: "0 16px" }}
+                    onClick={() =>
+                      isVideoWatchPage
+                        ? (window.location.href = "/login")
+                        : navigate("/login")
+                    }
+                  >
+                    <CircleUserRound style={{ marginRight: "8px" }} />
+                    Đăng nhập
+                  </Button>
+                )}
+              </Col>
+            )}
           </Row>
         </Header>
 
         <Layout style={{ marginTop: "64px" }}>
-          {!isVideoWatchPage && (
+          {!(isVideoWatchPage || windowWidth < 700) && (
             <Sider
               collapsed={collapsed}
               width={200}
@@ -441,7 +484,7 @@ function App() {
             </Sider>
           )}
 
-          {isVideoWatchPage && (
+          {(isVideoWatchPage || windowWidth < 700) && (
             <Drawer
               title={
                 <div
@@ -490,11 +533,12 @@ function App() {
 
           <Content
             style={{
-              marginLeft: isVideoWatchPage
-                ? "0px"
-                : collapsed
-                ? "80px"
-                : "200px",
+              marginLeft:
+                isVideoWatchPage || windowWidth < 700
+                  ? "0px"
+                  : collapsed
+                  ? "80px"
+                  : "200px",
               padding: "8px",
               minHeight: "calc(100vh - 64px)",
               transition: "margin-left 0.2s",
