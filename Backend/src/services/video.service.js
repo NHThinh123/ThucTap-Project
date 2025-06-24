@@ -269,7 +269,14 @@ const getInteractionDataService = async () => {
     throw new Error(`Error fetching interaction data: ${error.message}`);
   }
 };
-
+const getAllVideoIdsService = async () => {
+  try {
+    const videoIds = await Video.find().distinct("_id");
+    return videoIds.map((id) => id.toString());
+  } catch (error) {
+    throw new Error(`Error fetching video IDs: ${error.message}`);
+  }
+};
 const searchVideosService = async (query) => {
   try {
     const { q } = query;
@@ -450,4 +457,5 @@ module.exports = {
   countVideoOfUserIdService,
   updateVideoAdminService,
   deleteVideoAdminService,
+  getAllVideoIdsService,
 };
