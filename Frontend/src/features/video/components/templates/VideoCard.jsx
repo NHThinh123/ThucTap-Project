@@ -182,7 +182,7 @@ const VideoCard = ({ video, isShow = true, watchDuration }) => {
                   borderRadius: hoveredItemId === video.id ? "50%" : "none",
                   padding: 4,
                   display: "flex",
-                  marginRight: -5,
+                  marginRight: 0,
                   cursor: "pointer",
                 }}
                 onMouseEnter={() => setHoveredItemId(video.id)}

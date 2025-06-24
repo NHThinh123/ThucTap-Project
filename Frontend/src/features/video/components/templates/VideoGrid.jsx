@@ -31,7 +31,7 @@ const VideoGrid = ({ videos, xxl, isShow }) => {
           key={video?.id}
           xs={24}
           sm={24}
-          md={8}
+          md={12}
           lg={8}
           xl={xxl || 8}
           xxl={xxl || 6}
