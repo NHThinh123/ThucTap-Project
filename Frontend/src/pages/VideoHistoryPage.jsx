@@ -58,12 +58,19 @@ const VideoHistoryPage = () => {
   };
 
   return (
-    <div style={{ padding: "16px" }}>
+    <div style={{ padding: "clamp(0px, 2.5vw, 40px)" }}>
       <Row style={{}}>
-        <Col span={6}>
-          <Title level={2}>Lịch sử xem video</Title>
+        <Col xs={22} sm={19} md={14} lg={10} xl={8} xxl={6}>
+          <Title
+            level={2}
+            style={{
+              fontSize: "clamp(20px, 2.5vw, 30px)",
+            }}
+          >
+            Lịch sử xem video
+          </Title>
         </Col>
-        <Col span={17}></Col>
+        <Col xs={1} sm={4} md={9} lg={13} xl={15} xxl={17}></Col>
         <Col span={1}>
           <Button
             type="primary"
@@ -71,8 +78,9 @@ const VideoHistoryPage = () => {
             onClick={showClearModal}
             style={{
               width: "fit-content",
-              height: "40px",
-              fontSize: "16px",
+              height: "fit-content",
+              alignItems: "flex-start",
+              fontSize: "clamp(8px, 2vw, 16px)",
               borderRadius: "8px",
               color: "#000",
               backgroundColor: "#fff",
@@ -86,13 +94,16 @@ const VideoHistoryPage = () => {
         </Col>
       </Row>
       <Row>
-        <Col span={12}>
+        <Col xs={24} sm={22} md={19} lg={16} xl={13} xxl={9}>
           {dataLength === 0 ? (
             <div>Danh sách này không có video nào</div>
           ) : (
             Histories.map((item) => (
               <div key={item.date} style={{ marginBottom: "32px" }}>
-                <Title level={4}>{formatDateLabel(item.date)}</Title>
+                {" "}
+                <Title level={4} style={{ fontSize: "clamp(15px, 3vw, 22px)" }}>
+                  {formatDateLabel(item.date)}
+                </Title>
                 {item.videos
                   .filter((videoItem) => videoItem.video_id !== null) // Bỏ video đã bị xóa
                   .map((videoItem) => (
@@ -107,7 +118,7 @@ const VideoHistoryPage = () => {
             ))
           )}
         </Col>
-        <Col span={12}></Col>
+        <Col xs={0} sm={2} md={5} lg={8} xl={11} xxl={15} />
       </Row>
       <Modal
         title="Xác nhận xóa nhật ký xem"

@@ -475,7 +475,6 @@ const VideoWatch = ({ video }) => {
       ref={playerContainerRef}
       style={{
         width: "100%",
-        height: "70vh",
         position: "relative",
         backgroundColor: "#000",
         overflow: "hidden",
