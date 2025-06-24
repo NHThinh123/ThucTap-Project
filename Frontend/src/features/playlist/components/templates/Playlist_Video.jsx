@@ -166,13 +166,14 @@ const PlayList_Video = () => {
 
     return (
       <List.Item
-        actions={[
+        style={{ display: "flex", flexWrap: "nowrap", gap: 16 }}
+        extra={
           <Button
             danger
             icon={<DeleteOutlined />}
             onClick={() => handleOpenDeleteVideoModal(video.video_id)}
-          />,
-        ]}
+          />
+        }
       >
         <Card
           style={{ width: "100%", marginBottom: 8 }}
@@ -180,7 +181,7 @@ const PlayList_Video = () => {
         >
           <div style={{ display: "flex", gap: 16 }}>
             {/* Thumbnail */}
-            <div style={{ minWidth: 160, height: 90, position: "relative" }}>
+            <div style={{ minWidth: 120, height: 90, position: "relative" }}>
               {videoData?.thumbnail_video ? (
                 <img
                   src={videoData.thumbnail_video}
@@ -371,6 +372,7 @@ const PlayList_Video = () => {
           </div>
         ) : (
           <List
+            itemLayout="horizontal"
             dataSource={videoDetails}
             renderItem={(video) => (
               <VideoItem video={video} playlistId={selectedPlaylistId} />

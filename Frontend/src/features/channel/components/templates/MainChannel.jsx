@@ -1,5 +1,5 @@
 import { Col, Divider, Row, Typography } from "antd";
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import HorizontalListVideo from "../organisms/HorizontalListVideo";
 import useVideosByUserId from "../../../video/hooks/useVideosByUserId";
 import { formatViews } from "../../../../constants/formatViews";
@@ -17,7 +17,17 @@ const MainChannel = ({ channelId }) => {
     auth?.user?.id
   );
   const { videoList, isLoading, isError, error } = useVideosByUserId(channelId);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
+  // Theo dõi thay đổi kích thước màn hình
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   // Hàm tìm watch_duration từ HistoryData theo video.id
   const getWatchDuration = (videoId) => {
     if (!HistoryData?.data?.histories) return 0;
@@ -74,11 +84,12 @@ const MainChannel = ({ channelId }) => {
             <div
               style={{
                 position: "relative",
-                width: "420px",
-                height: "230px",
+                maxWidth: "420px",
+                maxHeight: "230px",
                 borderRadius: 10,
                 overflow: "hidden",
                 objectFit: "cover",
+                aspectRatio: "16/9",
               }}
             >
               <img
@@ -86,11 +97,11 @@ const MainChannel = ({ channelId }) => {
                 alt={latestVideo?.title}
                 loading="lazy"
                 style={{
-                  width: "420px",
-                  height: "230px",
+                  width: "100%",
                   borderRadius: "8px",
                   objectFit: "cover",
-                  overflow: "hidden",
+
+                  aspectRatio: "16/9",
                 }}
               />
               <div className="video-card__duration">
@@ -114,14 +125,18 @@ const MainChannel = ({ channelId }) => {
             </div>
           </Link>
         </Col>
-        <Col span={9}>
+
+        <Col
+          span={windowWidth < 700 ? 24 : 9}
+          style={{ maxWidth: windowWidth < 1100 ? "420px" : "100%" }}
+        >
           <p
             style={{
               margin: 0,
               overflow: "hidden",
               textOverflow: "ellipsis",
               display: "-webkit-box",
-              WebkitLineClamp: 2,
+              WebkitLineClamp: windowWidth < 1100 ? 1 : 2,
               WebkitBoxOrient: "vertical",
             }}
           >
@@ -152,7 +167,7 @@ const MainChannel = ({ channelId }) => {
           <p
             style={{
               marginTop: "10px",
-              display: "-webkit-box",
+              display: windowWidth < 700 ? "none" : "-webkit-box",
               WebkitLineClamp: 6,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
@@ -163,18 +178,19 @@ const MainChannel = ({ channelId }) => {
             {latestVideo?.description_video}
           </p>
         </Col>
+
         <Col span={5}></Col>
       </Row>
 
       <Divider />
-      <Title level={3}>Video mới nhất</Title>
+      <Title level={windowWidth < 700 ? 4 : 3}>Video mới nhất</Title>
       <Row style={{ marginTop: "16px" }}>
         <Col span={24}>
           <HorizontalListVideo videos={latestVideos} />
         </Col>
       </Row>
       <Divider />
-      <Title level={3}>Video phổ biến</Title>
+      <Title level={windowWidth < 700 ? 4 : 3}>Video phổ biến</Title>
       <Row style={{ marginTop: "16px" }}>
         <Col span={24}>
           <HorizontalListVideo videos={popularVideos} />

@@ -85,7 +85,7 @@ function App() {
             size="small"
             style={{ marginRight: 8 }}
           />
-          {windowWidth >= 1024 && <p>{channel.channelNickname}</p>}
+          <p>{channel.channelNickname}</p>
         </Link>
       ) : (
         <Link
@@ -97,7 +97,7 @@ function App() {
             size="small"
             style={{ marginRight: 8 }}
           />
-          {windowWidth >= 1024 && <p>{channel.channelNickname}</p>}
+          <p>{channel.channelNickname}</p>
         </Link>
       ),
     }));
@@ -251,11 +251,11 @@ function App() {
       setCollapsed(true);
       setOpenKeys([]);
     } else {
-      setCollapsed(isUserLoggedIn && windowWidth >= 700 ? false : true);
+      setCollapsed(isUserLoggedIn && windowWidth >= 1000 ? false : true);
       setOpenKeys(["subscriptions"]);
     }
 
-    if (isVideoWatchPage || windowWidth < 700) {
+    if (isVideoWatchPage || windowWidth < 1000) {
       setDrawerVisible(false);
     }
   }, [location.pathname, isUserLoggedIn, isVideoWatchPage, windowWidth]);
@@ -298,7 +298,7 @@ function App() {
   };
 
   const toggleMenu = () => {
-    if (isVideoWatchPage || windowWidth < 700) {
+    if (isVideoWatchPage || windowWidth < 1000) {
       showDrawer();
     } else {
       setCollapsed(!collapsed);
@@ -460,7 +460,7 @@ function App() {
         </Header>
 
         <Layout style={{ marginTop: "64px" }}>
-          {!(isVideoWatchPage || windowWidth < 700) && (
+          {!(isVideoWatchPage || windowWidth < 1000) && (
             <Sider
               collapsed={collapsed}
               width={200}
@@ -484,7 +484,7 @@ function App() {
             </Sider>
           )}
 
-          {(isVideoWatchPage || windowWidth < 700) && (
+          {(isVideoWatchPage || windowWidth < 1000) && (
             <Drawer
               title={
                 <div
@@ -534,7 +534,7 @@ function App() {
           <Content
             style={{
               marginLeft:
-                isVideoWatchPage || windowWidth < 700
+                isVideoWatchPage || windowWidth < 1000
                   ? "0px"
                   : collapsed
                   ? "80px"

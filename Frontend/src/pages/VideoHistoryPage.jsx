@@ -80,7 +80,7 @@ const VideoHistoryPage = () => {
               width: "fit-content",
               height: "fit-content",
               alignItems: "flex-start",
-              fontSize: "clamp(8px, 2vw, 16px)",
+              fontSize: "clamp(8px, 2vw, 12px)",
               borderRadius: "8px",
               color: "#000",
               backgroundColor: "#fff",
@@ -89,7 +89,7 @@ const VideoHistoryPage = () => {
             loading={isClearLoading}
             disabled={isClearLoading}
           >
-            <Trash2 />
+            <Trash2 style={{ padding: "clamp(2px, 2px, 0px)" }} />
           </Button>
         </Col>
       </Row>
