@@ -1,6 +1,6 @@
 import { Button, Modal, message } from "antd";
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useSubscribe from "../../../channel/hooks/useSubscribe";
 import useUnsubscribe from "../../../channel/hooks/useUnsubscribe";
 
@@ -14,6 +14,46 @@ const SubscribeButton = ({
   const { mutate: subscribe, isLoading: isSubscribing } = useSubscribe();
   const { mutate: unsubscribe, isLoading: isUnsubscribing } = useUnsubscribe();
   const [isSubscribed, setIsSubscribed] = useState(initialIsSubscribed);
+  const [buttonAntdSize, setButtonAntSize] = useState(18);
+
+  // Cập nhật kích thước dựa trên kích thước màn hình
+  useEffect(() => {
+    const updateDimensions = () => {
+      const width = window.innerWidth;
+      const breakpoints = {
+        xs: 576,
+        sm: 576,
+        md: 768,
+        lg: 992,
+        xl: 1200,
+        xxl: 1600,
+      };
+
+      if (width < breakpoints.sm) {
+        // xs
+        setButtonAntSize(12);
+      } else if (width < breakpoints.md) {
+        // sm
+        setButtonAntSize(13);
+      } else if (width < breakpoints.lg) {
+        // md
+        setButtonAntSize(14);
+      } else if (width < breakpoints.xl) {
+        // lg
+        setButtonAntSize(15);
+      } else if (width < breakpoints.xxl) {
+        // xl
+        setButtonAntSize(16);
+      } else {
+        // xxl
+        setButtonAntSize(16);
+      }
+    };
+
+    updateDimensions();
+    window.addEventListener("resize", updateDimensions);
+    return () => window.removeEventListener("resize", updateDimensions);
+  }, []);
 
   const handleClick = () => {
     if (!userId) {
@@ -77,7 +117,7 @@ const SubscribeButton = ({
           color: "#fff",
           background: isSubscribed ? "#000" : "#FF0000",
           border: "none",
-          fontSize: 16,
+          fontSize: buttonAntdSize,
           fontWeight: 500,
           padding: isSubscribed ? "0 20px 0 20px" : "0 20px",
           height: 40,
