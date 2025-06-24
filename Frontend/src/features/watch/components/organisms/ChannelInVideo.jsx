@@ -1,4 +1,4 @@
-import { Avatar, Button, Space } from "antd";
+import { Avatar, Space } from "antd";
 import { Link } from "react-router-dom";
 import SubscribeButton from "../molecules/SubscribeButton";
 import { AuthContext } from "../../../../contexts/auth.context";
@@ -12,6 +12,12 @@ const ChannelInVideo = ({ channelId }) => {
   const { auth } = useContext(AuthContext);
   const userId = auth.isAuthenticated ? auth.user.id : null;
   const [subscriptionCount, setSubscriptionCount] = useState(0);
+  const [dimensions, setDimensions] = useState({
+    avatarSize: 45,
+    nickNameFontSize: 15,
+    subscriberFontSize: 13,
+    buttonSize: "large",
+  });
 
   // Lấy thông tin channel
   const { data: channelData, isLoading: isLoadingChannel } =
@@ -31,6 +37,75 @@ const ChannelInVideo = ({ channelId }) => {
     }
   }, [subscriptionCountData]);
 
+  // Cập nhật kích thước dựa trên kích thước màn hình
+  useEffect(() => {
+    const updateDimensions = () => {
+      const width = window.innerWidth;
+      const breakpoints = {
+        xs: 576,
+        sm: 576,
+        md: 768,
+        lg: 992,
+        xl: 1200,
+        xxl: 1600,
+      };
+
+      if (width < breakpoints.sm) {
+        // xs
+        setDimensions({
+          avatarSize: 30,
+          nickNameFontSize: 12,
+          subscriberFontSize: 11,
+          buttonSize: "small",
+        });
+      } else if (width < breakpoints.md) {
+        // sm
+        setDimensions({
+          avatarSize: 32,
+          nickNameFontSize: 13,
+          subscriberFontSize: 11,
+          buttonSize: "middle",
+        });
+      } else if (width < breakpoints.lg) {
+        // md
+        setDimensions({
+          avatarSize: 35,
+          nickNameFontSize: 13,
+          subscriberFontSize: 12,
+          buttonSize: "middle",
+        });
+      } else if (width < breakpoints.xl) {
+        // lg
+        setDimensions({
+          avatarSize: 38,
+          nickNameFontSize: 14,
+          subscriberFontSize: 12,
+          buttonSize: "large",
+        });
+      } else if (width < breakpoints.xxl) {
+        // xl
+        setDimensions({
+          avatarSize: 42,
+          nickNameFontSize: 14,
+          subscriberFontSize: 13,
+          buttonSize: "large",
+        });
+      } else {
+        // xxl
+        setDimensions({
+          avatarSize: 45,
+          nickNameFontSize: 15,
+          subscriberFontSize: 13,
+          buttonSize: "large",
+        });
+      }
+    };
+
+    updateDimensions();
+    window.addEventListener("resize", updateDimensions);
+    return () => window.removeEventListener("resize", updateDimensions);
+  }, []);
+
   // Dữ liệu channel từ API
   const channelInfo = channelData?.data || {};
   const isSubscribed = subscriptionData?.data?.isSubscribed || false;
@@ -39,6 +114,7 @@ const ChannelInVideo = ({ channelId }) => {
   if (isLoadingChannel || isLoadingSubscription) {
     return <div>Đang tải...</div>;
   }
+
   return (
     <Space>
       <Link
@@ -53,10 +129,10 @@ const ChannelInVideo = ({ channelId }) => {
             channelInfo.avatar ||
             "https://res.cloudinary.com/nienluan/image/upload/v1747707203/avaMacDinh_jxwsog.jpg"
           }
-          size={45}
+          size={dimensions.avatarSize}
         />
       </Link>
-      <div style={{ marginLeft: 5, fontSize: 14, paddingRight: 20 }}>
+      <div style={{ marginLeft: 5, paddingRight: 20 }}>
         <Link
           to={`/channel/${channelId}`}
           onClick={(e) => {
@@ -67,7 +143,7 @@ const ChannelInVideo = ({ channelId }) => {
           <p
             style={{
               fontWeight: "bold",
-              fontSize: 15,
+              fontSize: dimensions.nickNameFontSize,
               color: "#000",
             }}
           >
@@ -77,7 +153,7 @@ const ChannelInVideo = ({ channelId }) => {
         <p
           style={{
             fontWeight: 400,
-            fontSize: 13,
+            fontSize: dimensions.subscriberFontSize,
             color: "#606060",
           }}
         >
@@ -91,6 +167,7 @@ const ChannelInVideo = ({ channelId }) => {
           channelId={channelId}
           userId={userId}
           isSubscribed={isSubscribed}
+          size={dimensions.buttonSize}
           setSubscriptionCount={setSubscriptionCount}
         />
       )}

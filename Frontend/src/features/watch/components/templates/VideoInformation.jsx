@@ -1,4 +1,4 @@
-import { Typography, Space } from "antd";
+import { Typography, Space, Row, Col } from "antd";
 import VideoDescription from "../organisms/VideoDescription";
 import ChannelInVideo from "../organisms/ChannelInVideo";
 import InteractButton from "../organisms/InteractButton";
@@ -19,7 +19,7 @@ const VideoInformation = ({ video, isLoading }) => {
           style={{
             margin: 0,
             fontWeight: 600,
-            fontSize: 25,
+            fontSize: 22,
             padding: "16px 0",
           }}
         >

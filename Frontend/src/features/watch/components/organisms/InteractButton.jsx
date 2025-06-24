@@ -15,13 +15,14 @@ import { useModal } from "../../../../contexts/modal.context";
 import { useParams, useNavigate } from "react-router-dom";
 import useCountLikeVideo from "../../hooks/useCountLikeVideo";
 import { formatLikes } from "../../../../constants/formatLikes";
-import { Button, Divider, Space, message } from "antd";
+import { Button, Divider, Dropdown, Menu, Space, message } from "antd";
 import {
   LikeOutlined,
   LikeFilled,
   DislikeOutlined,
   DislikeFilled,
   ShareAltOutlined,
+  MoreOutlined,
 } from "@ant-design/icons";
 import { Bookmark } from "lucide-react";
 import PlaylistModalContent from "../../../playlist/components/templates/PlaylistModalContent";
@@ -36,7 +37,72 @@ const InteractButton = () => {
   const [isClickedLike, setIsClickedLike] = useState(false);
   const [isClickedDislike, setIsClickedDislike] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [isSmallScreen, setIsSmallScreen] = useState(
+    window.innerWidth < 768 || window.innerWidth > 992
+  );
   const navigate = useNavigate();
+
+  const [dimensions, setDimensions] = useState({
+    fontSize: 23,
+  });
+  const [buttonAntdSize, setButtonAntSize] = useState(18);
+
+  // Cập nhật kích thước dựa trên kích thước màn hình
+  useEffect(() => {
+    const updateDimensions = () => {
+      const width = window.innerWidth;
+      const breakpoints = {
+        xs: 576,
+        sm: 576,
+        md: 768,
+        lg: 992,
+        xl: 1200,
+        xxl: 1600,
+      };
+
+      if (width < breakpoints.sm) {
+        // xs
+        setDimensions({
+          fontSize: 14,
+        });
+        setButtonAntSize(14);
+      } else if (width < breakpoints.md) {
+        // sm
+        setDimensions({
+          fontSize: 16,
+        });
+        setButtonAntSize(15);
+      } else if (width < breakpoints.lg) {
+        // md
+        setDimensions({
+          fontSize: 18,
+        });
+        setButtonAntSize(16);
+      } else if (width < breakpoints.xl) {
+        // lg
+        setDimensions({
+          fontSize: 20,
+        });
+        setButtonAntSize(17);
+      } else if (width < breakpoints.xxl) {
+        // xl
+        setDimensions({
+          fontSize: 23,
+        });
+        setButtonAntSize(18);
+      } else {
+        // xxl
+        setDimensions({
+          fontSize: 23,
+        });
+        setButtonAntSize(18);
+      }
+    };
+
+    updateDimensions();
+    window.addEventListener("resize", updateDimensions);
+    return () => window.removeEventListener("resize", updateDimensions);
+  }, []);
 
   // Cập nhật likeCount khi data từ API thay đổi
   useEffect(() => {
@@ -44,6 +110,20 @@ const InteractButton = () => {
       setLikeCount(data); // Giả sử API trả về { count: number }
     }
   }, [data]);
+
+  // Kiểm tra kích thước màn hình
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSmallScreen(
+        (window.innerWidth < 768 && window.innerWidth > 1200) ||
+          (window.innerWidth > 992 && window.innerWidth < 1100) ||
+          window.innerWidth < 768
+      );
+    };
+    window.addEventListener("resize", handleResize);
+    handleResize(); // Gọi lần đầu khi component mount
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Fetch initial like count
   useEffect(() => {
@@ -155,6 +235,24 @@ const InteractButton = () => {
     }
   };
 
+  // Dropdown menu cho nút ba chấm
+  const menu = (
+    <Menu>
+      <Menu.Item key="share" onClick={handleClickShare}>
+        <Space>
+          <ShareAltOutlined size={buttonAntdSize} strokeWidth={1.75} />
+          Chia sẻ
+        </Space>
+      </Menu.Item>
+      <Menu.Item key="bookmark" onClick={handleClickBookmark}>
+        <Space>
+          <Bookmark size={buttonAntdSize} strokeWidth={1.75} />
+          Lưu
+        </Space>
+      </Menu.Item>
+    </Menu>
+  );
+
   return (
     <Space>
       <div
@@ -169,7 +267,7 @@ const InteractButton = () => {
             border: "none",
             boxShadow: "none",
             padding: "0 5px 0 16px",
-            fontSize: 23,
+            fontSize: dimensions,
           }}
           size="large"
           onClick={handleClickLike}
@@ -187,40 +285,61 @@ const InteractButton = () => {
             border: "none",
             boxShadow: "none",
             padding: "0 16px 0 5px",
-            fontSize: 23,
+            fontSize: dimensions,
           }}
           size="large"
           onClick={handleClickDislike}
         ></Button>
       </div>
-      <div style={{ border: "1px solid #d9d9d9", borderRadius: 50 }}>
-        <Button
-          icon={<ShareAltOutlined />}
-          style={{
-            border: "none",
-            boxShadow: "none",
-            padding: "0 16px 0 16px",
-          }}
-          size="large"
-          onClick={handleClickShare}
-        >
-          <p style={{ fontSize: 16, fontWeight: 500 }}>Chia sẻ</p>
-        </Button>
-      </div>
-      <div style={{ border: "1px solid #d9d9d9", borderRadius: 50 }}>
-        <Button
-          icon={<Bookmark size={22} strokeWidth={1.75} />}
-          style={{
-            border: "none",
-            boxShadow: "none",
-            padding: "0 16px 0 16px",
-          }}
-          size="large"
-          onClick={handleClickBookmark}
-        >
-          <p style={{ fontSize: 16, fontWeight: 500 }}>Lưu</p>
-        </Button>
-      </div>
+      {!isSmallScreen ? (
+        <>
+          <div style={{ border: "1px solid #d9d9d9", borderRadius: 50 }}>
+            <Button
+              icon={
+                <ShareAltOutlined size={buttonAntdSize} strokeWidth={1.75} />
+              }
+              style={{
+                border: "none",
+                boxShadow: "none",
+                padding: "0 16px 0 16px",
+              }}
+              size="large"
+              onClick={handleClickShare}
+            >
+              <p style={{ fontSize: 16, fontWeight: 500 }}>Chia sẻ</p>
+            </Button>
+          </div>
+          <div style={{ border: "1px solid #d9d9d9", borderRadius: 50 }}>
+            <Button
+              icon={<Bookmark size={buttonAntdSize} strokeWidth={1.75} />}
+              style={{
+                border: "none",
+                boxShadow: "none",
+                padding: "0 16px 0 16px",
+              }}
+              size="large"
+              onClick={handleClickBookmark}
+            >
+              <p style={{ fontSize: 16, fontWeight: 500 }}>Lưu</p>
+            </Button>
+          </div>
+        </>
+      ) : (
+        <div style={{ border: "1px solid #d9d9d9", borderRadius: 50 }}>
+          <Dropdown overlay={menu} trigger={["click"]}>
+            <Button
+              icon={<MoreOutlined size={buttonAntdSize} strokeWidth={1.75} />}
+              style={{
+                border: "none",
+                boxShadow: "none",
+                padding: "0 16px",
+                fontSize: dimensions,
+              }}
+              size="large"
+            />
+          </Dropdown>
+        </div>
+      )}
     </Space>
   );
 };

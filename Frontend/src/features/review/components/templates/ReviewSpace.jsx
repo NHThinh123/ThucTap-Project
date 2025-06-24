@@ -16,6 +16,10 @@ const ReviewSpace = () => {
   const { auth } = useContext(AuthContext);
   const user_id = auth.isAuthenticated ? auth.user.id : null;
   const [value, setValue] = useState(0);
+  const [dimensions, setDimensions] = useState({
+    fontSize: 18,
+    margin: 10,
+  });
 
   const { data: videoAverage } = useGetVideoAverageRating(video_id);
   const createOrUpdateReviewMutation = useCreateOrUpdateReview();
@@ -47,6 +51,63 @@ const ReviewSpace = () => {
       });
     }
   };
+
+  // Cập nhật kích thước dựa trên kích thước màn hình
+  useEffect(() => {
+    const updateDimensions = () => {
+      const width = window.innerWidth;
+      const breakpoints = {
+        xs: 576,
+        sm: 576,
+        md: 768,
+        lg: 992,
+        xl: 1200,
+        xxl: 1600,
+      };
+
+      if (width < breakpoints.sm) {
+        // xs
+        setDimensions({
+          fontSize: 14,
+          margin: 6,
+        });
+      } else if (width < breakpoints.md) {
+        // sm
+        setDimensions({
+          fontSize: 15,
+          margin: 7,
+        });
+      } else if (width < breakpoints.lg) {
+        // md
+        setDimensions({
+          fontSize: 16,
+          margin: 8,
+        });
+      } else if (width < breakpoints.xl) {
+        // lg
+        setDimensions({
+          fontSize: 17,
+          margin: 9,
+        });
+      } else if (width < breakpoints.xxl) {
+        // xl
+        setDimensions({
+          fontSize: 18,
+          margin: 10,
+        });
+      } else {
+        // xxl
+        setDimensions({
+          fontSize: 18,
+          margin: 10,
+        });
+      }
+    };
+
+    updateDimensions();
+    window.addEventListener("resize", updateDimensions);
+    return () => window.removeEventListener("resize", updateDimensions);
+  }, []);
   return (
     <div
       style={{
@@ -65,7 +126,14 @@ const ReviewSpace = () => {
           }}
         >
           {" "}
-          <span style={{ fontSize: 20, marginRight: 10 }}>{average}</span>
+          <span
+            style={{
+              fontSize: dimensions.fontSize,
+              marginRight: dimensions.margin,
+            }}
+          >
+            {average}
+          </span>
           <Rate
             tooltips={desc}
             onChange={handleRatingChange}
@@ -74,7 +142,12 @@ const ReviewSpace = () => {
               createOrUpdateReviewMutation.isPending || isLoadingUserReview
             }
           />
-          <span style={{ fontSize: 18, marginLeft: 10 }}>
+          <span
+            style={{
+              fontSize: dimensions.fontSize,
+              marginLeft: dimensions.margin,
+            }}
+          >
             ({review_count} đánh giá)
           </span>
         </div>

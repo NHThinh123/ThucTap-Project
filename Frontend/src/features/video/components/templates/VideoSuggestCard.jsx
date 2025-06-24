@@ -17,6 +17,60 @@ const VideoSuggestCard = ({ video, watchDuration }) => {
   const [hoveredItemId, setHoveredItemId] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  const [dimensions, setDimensions] = useState({
+    marginTop: 10,
+  });
+
+  // Cập nhật kích thước dựa trên kích thước màn hình
+  useEffect(() => {
+    const updateDimensions = () => {
+      const width = window.innerWidth;
+      const breakpoints = {
+        xs: 576,
+        sm: 576,
+        md: 768,
+        lg: 992,
+        xl: 1200,
+        xxl: 1600,
+      };
+
+      if (width < breakpoints.sm) {
+        // xs
+        setDimensions({
+          marginTop: 10,
+        });
+      } else if (width < breakpoints.md) {
+        // sm
+        setDimensions({
+          marginTop: 15,
+        });
+      } else if (width < breakpoints.lg) {
+        // md
+        setDimensions({
+          marginTop: 15,
+        });
+      } else if (width < breakpoints.xl) {
+        // lg
+        setDimensions({
+          marginTop: 15,
+        });
+      } else if (width < breakpoints.xxl) {
+        // xl
+        setDimensions({
+          marginTop: 0,
+        });
+      } else {
+        // xxl
+        setDimensions({
+          marginTop: 0,
+        });
+      }
+    };
+
+    updateDimensions();
+    window.addEventListener("resize", updateDimensions);
+    return () => window.removeEventListener("resize", updateDimensions);
+  }, []);
 
   // Lắng nghe custom event để đóng menu
   useEffect(() => {
@@ -132,6 +186,7 @@ const VideoSuggestCard = ({ video, watchDuration }) => {
         width: "100%",
         backgroundColor: "#fff",
         padding: "0 16px 16px",
+        marginTop: dimensions.marginTop,
       }}
     >
       <Row
@@ -148,10 +203,10 @@ const VideoSuggestCard = ({ video, watchDuration }) => {
           <div
             style={{
               width: "100%",
-              height: 100,
               borderRadius: 10,
               position: "relative",
               overflow: "hidden",
+              aspectRatio: "16 / 9",
             }}
           >
             <img
