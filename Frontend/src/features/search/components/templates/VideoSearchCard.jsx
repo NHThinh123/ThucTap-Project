@@ -2,11 +2,93 @@ import { Link } from "react-router-dom";
 import { formatTime } from "../../../../constants/formatTime";
 import { formatViews } from "../../../../constants/formatViews";
 import { formatDuration } from "../../../../constants/formatDuration";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Avatar, Col, Row } from "antd";
 
 const VideoSearchCard = ({ video, watchDuration }) => {
   const [hoveredItemId, setHoveredItemId] = useState(null);
+  const [dimensions, setDimensions] = useState({
+    fontsizeViewNickname: 13,
+    fontsizeDescrip: 14,
+    sizeAvatar: 30,
+    fontsizeTitle: 18,
+    padding: "16px 0",
+  });
+
+  // Cập nhật kích thước dựa trên kích thước màn hình
+  useEffect(() => {
+    const updateDimensions = () => {
+      const width = window.innerWidth;
+      const breakpoints = {
+        xs: 576,
+        sm: 576,
+        md: 768,
+        lg: 992,
+        xl: 1200,
+        xxl: 1600,
+      };
+
+      if (width < breakpoints.sm) {
+        // xs
+        setDimensions({
+          fontsizeViewNickname: 10,
+          fontsizeDescrip: 11,
+          sizeAvatar: 26,
+          fontsizeTitle: 14,
+          padding: "3px 0",
+        });
+      } else if (width < breakpoints.md) {
+        // sm
+        setDimensions({
+          fontsizeViewNickname: 12,
+          fontsizeDescrip: 13,
+          sizeAvatar: 28,
+          fontsizeTitle: 16,
+          padding: "7px 0",
+        });
+      } else if (width < breakpoints.lg) {
+        // md
+        setDimensions({
+          fontsizeViewNickname: 13,
+          fontsizeDescrip: 14,
+          sizeAvatar: 30,
+          fontsizeTitle: 18,
+          padding: "10px 0",
+        });
+      } else if (width < breakpoints.xl) {
+        // lg
+        setDimensions({
+          fontsizeViewNickname: 12,
+          fontsizeDescrip: 13,
+          sizeAvatar: 28,
+          fontsizeTitle: 16,
+          padding: "15px 0",
+        });
+      } else if (width < breakpoints.xxl) {
+        // xl
+        setDimensions({
+          fontsizeViewNickname: 13,
+          fontsizeDescrip: 14,
+          sizeAvatar: 30,
+          fontsizeTitle: 18,
+          padding: "16px 0",
+        });
+      } else {
+        // xxl
+        setDimensions({
+          fontsizeViewNickname: 13,
+          fontsizeDescrip: 14,
+          sizeAvatar: 30,
+          fontsizeTitle: 18,
+          padding: "16px 0",
+        });
+      }
+    };
+
+    updateDimensions();
+    window.addEventListener("resize", updateDimensions);
+    return () => window.removeEventListener("resize", updateDimensions);
+  }, []);
 
   const handleRowClick = () => {
     window.location.href = `/watch/${video._id}`; // Navigate to the video page
@@ -35,10 +117,10 @@ const VideoSearchCard = ({ video, watchDuration }) => {
         onClick={handleRowClick}
       >
         <Col
-          span={10}
+          span={9}
           style={{
-            width: "80%",
-            height: "40vh",
+            width: "100%",
+            aspectRatio: "16/9",
             borderRadius: 10,
             position: "relative",
             overflow: "hidden",
@@ -86,7 +168,7 @@ const VideoSearchCard = ({ video, watchDuration }) => {
           </div>
         </Col>
         <Col
-          span={13}
+          span={14}
           style={{
             display: "flex",
             alignItems: "flex-start",
@@ -106,7 +188,7 @@ const VideoSearchCard = ({ video, watchDuration }) => {
                 style={{
                   margin: 0,
                   color: "#0f0f0f",
-                  fontSize: 18,
+                  fontSize: dimensions.fontsizeTitle,
                   fontWeight: 530,
                   display: "-webkit-box",
                   WebkitLineClamp: 2,
@@ -125,7 +207,7 @@ const VideoSearchCard = ({ video, watchDuration }) => {
                 fontWeight: 400,
                 alignItems: "center",
                 gap: 4,
-                fontSize: 13,
+                fontSize: dimensions.fontsizeViewNickname,
                 color: "#606060",
                 marginTop: 4,
               }}
@@ -134,14 +216,14 @@ const VideoSearchCard = ({ video, watchDuration }) => {
               <span>•</span>
               <span>{formatTime(video.createdAt) || "None date"}</span>
             </div>
-            <div style={{ padding: "16px 0" }}>
+            <div style={{ padding: dimensions.padding }}>
               <Link
                 to={`/channel/${video?.user_id._id}`}
                 onClick={handleLinkClick}
               >
                 <Avatar
                   src="https://pbs.twimg.com/media/F_vO2geW0AE1mmW.jpg"
-                  size={30}
+                  size={dimensions.sizeAvatar}
                 />
               </Link>
               <Link
@@ -152,7 +234,7 @@ const VideoSearchCard = ({ video, watchDuration }) => {
                 <span
                   style={{
                     fontWeight: 400,
-                    fontSize: 13,
+                    fontSize: dimensions.fontsizeViewNickname,
                     color: "#606060",
                     marginTop: 4,
                     marginLeft: 5,
@@ -164,7 +246,7 @@ const VideoSearchCard = ({ video, watchDuration }) => {
             </div>
             <div
               style={{
-                fontSize: 14,
+                fontSize: dimensions.fontsizeDescrip,
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
