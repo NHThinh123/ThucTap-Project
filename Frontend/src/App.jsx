@@ -46,7 +46,7 @@ function App() {
   const [collapsed, setCollapsed] = useState(isUserLoggedIn ? false : true);
   const isVideoWatchPage = location.pathname.startsWith("/watch/");
   const { data } = useUserSubscriptions(auth?.user?.id);
-  const userSubscriptionsList = data?.data.channels || [];
+  const userSubscriptionsList = data?.data?.channels || [];
   const [showAllChannels, setShowAllChannels] = useState(false);
 
   // Định nghĩa menu items
@@ -55,10 +55,10 @@ function App() {
       key: channel.channelId,
       label: isVideoWatchPage ? (
         <Link
-          to={`/channel/${channel.channelId}`}
+          to={`/channel/${channel?.channelId}`}
           onClick={(e) => {
             e.preventDefault();
-            window.location.href = `/channel/${channel.channelId}`;
+            window.location.href = `/channel/${channel?.channelId}`;
           }}
           style={{ paddingLeft: 0 }}
         >
@@ -70,7 +70,7 @@ function App() {
           {channel.channelNickname}
         </Link>
       ) : (
-        <Link to={`/channel/${channel.channelId}`} style={{ paddingLeft: 0 }}>
+        <Link to={`/channel/${channel?.channelId}`} style={{ paddingLeft: 0 }}>
           <Avatar
             src={channel.channelAvatar}
             size="small"

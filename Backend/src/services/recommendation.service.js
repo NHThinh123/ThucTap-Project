@@ -1,12 +1,12 @@
 require("dotenv").config({ path: ".env.local" });
 const { PythonShell } = require("python-shell");
-const { getInteractionDataService } = require("./video.service");
+const { getInteractionDataServiceImproved, getAllUserVideoInteractions } = require("./video_improved.service");
 const Video = require("../models/video.model");
 
 const getRecommendationsService = async (userId) => {
   try {
     console.time("Fetch interaction data");
-    const interactionData = await getInteractionDataService();
+    const interactionData = await getInteractionDataServiceImproved();
     console.timeEnd("Fetch interaction data");
     console.log(`Interaction data size: ${interactionData.length}`);
     console.log(
@@ -22,7 +22,7 @@ const getRecommendationsService = async (userId) => {
         .populate("user_id");
       console.log(`Total videos in fallback: ${popularVideos.length}`);
       return {
-        message: "No interaction data, returning all videos sorted by views",
+        message: "No interaction data, returning all videos sorted by views (unwatched only)",
         data: {
           videos: popularVideos,
           total: popularVideos.length,
@@ -34,6 +34,10 @@ const getRecommendationsService = async (userId) => {
 
     const allVideoIds = await Video.find().distinct("_id");
     console.log(`Total video IDs in database: ${allVideoIds.length}`);
+
+    // Lấy danh sách video đã xem trước khi gọi Python
+    const actualWatchedVideos = await getAllUserVideoInteractions(userId);
+    console.log(`Actual watched videos from DB: ${actualWatchedVideos.length}`);
 
     const data = JSON.stringify(interactionData);
     const options = {
@@ -49,7 +53,7 @@ const getRecommendationsService = async (userId) => {
         reject(new Error("Python script timed out"));
       }, 30000);
 
-      PythonShell.run("recommend.py", options, (err, results) => {
+      PythonShell.run("recommend_improved.py", options, (err, results) => {
         clearTimeout(timeout);
         if (err) {
           console.error("Python script error:", err);
@@ -98,37 +102,79 @@ const getRecommendationsService = async (userId) => {
             `Number of video IDs from Python: ${parsedResults.length}`
           );
           console.log(
-            `Video IDs from Python: ${JSON.stringify(
-              parsedResults.map((rec) => rec.video_id)
-            )}`
+            `Video recommendations from Python: ${parsedResults.length} total`
           );
-          const videoIds = parsedResults.map((rec) => rec.video_id);
-          Video.find({ _id: { $in: videoIds } })
+          
+          // Fetch TẤT CẢ videos từ database  
+          Video.find({})
             .populate("user_id")
-            .then((videos) => {
-              console.log(`Found videos: ${videos.length}`);
-              const sortedVideos = parsedResults
-                .map((rec) => {
-                  const video = videos.find(
-                    (v) => v._id.toString() === rec.video_id
-                  );
-                  return video
-                    ? {
-                        ...video.toObject(),
-                        predicted_rating: rec.predicted_rating,
-                      }
-                    : null;
+            .then((allVideos) => {
+              console.log(`Found all videos: ${allVideos.length}`);
+              
+              // Tạo map cho quick lookup của recommendation data
+              const recommendationMap = new Map();
+              parsedResults.forEach((rec) => {
+                recommendationMap.set(rec.video_id, rec);
+              });
+              
+              // CHỈ lấy video chưa xem từ recommendations
+              const unwatchedVideoIds = parsedResults
+                .filter(rec => !rec.is_watched) // Chỉ lấy video chưa xem
+                .map(rec => rec.video_id);
+              
+              console.log(`Unwatched video recommendations: ${unwatchedVideoIds.length} videos`);
+              
+              // Kết hợp video data với recommendation data (chỉ video chưa xem)
+              const videosWithRecommendations = allVideos
+                .filter(video => {
+                  const videoId = video._id.toString();
+                  const recommendation = recommendationMap.get(videoId);
+                  const isWatchedInDB = actualWatchedVideos.includes(videoId);
+                  
+                  // Chỉ giữ video có trong recommendations VÀ THỰC SỰ chưa xem
+                  return recommendation && !recommendation.is_watched && !isWatchedInDB;
                 })
-                .filter((v) => v);
+                .map((video) => {
+                  const videoId = video._id.toString();
+                  const recommendation = recommendationMap.get(videoId);
+                  
+                  return {
+                    ...video.toObject(),
+                    predicted_rating: recommendation.predicted_rating,
+                    is_top_recommended: recommendation.is_top_recommended,
+                    is_watched: false, // Tất cả đều chưa xem
+                    popularity_score: recommendation.popularity_score
+                  };
+                });
+              
+              // Sắp xếp theo thứ tự từ Python recommendations (đã được sắp xếp)
+              const videoOrder = parsedResults.map(rec => rec.video_id);
+              const sortedVideos = videosWithRecommendations.sort((a, b) => {
+                const indexA = videoOrder.indexOf(a._id.toString());
+                const indexB = videoOrder.indexOf(b._id.toString());
+                return indexA - indexB;
+              });
+              
               console.log(`Final sorted videos: ${sortedVideos.length}`);
-              console.log(
-                sortedVideos.map((v) => ({
-                  video_id: v._id,
-                  predicted_rating: v.predicted_rating,
-                }))
-              );
+              console.log(`🎯 PERSONALIZED RESULTS for User ${userId}:`);
+              console.log(`Top 5 videos:`, sortedVideos.slice(0, 5).map(v => ({
+                video_id: v._id,
+                title: v.title,
+                predicted_rating: v.predicted_rating,
+                is_top_recommended: v.is_top_recommended,
+                popularity_score: v.popularity_score || 0
+              })));
+              
+              // Log personalization metrics
+              const topRecommended = sortedVideos.filter(v => v.is_top_recommended);
+              const aiPredicted = sortedVideos.filter(v => v.predicted_rating > 0);
+              console.log(`📊 Personalization metrics for User ${userId}:`);
+              console.log(`  - Top recommended: ${topRecommended.length}`);
+              console.log(`  - AI predicted: ${aiPredicted.length}`);
+              console.log(`  - Watched videos excluded: ${actualWatchedVideos.length}`);
+              
               resolve({
-                message: "Videos retrieved successfully",
+                message: "Unwatched videos retrieved successfully with AI recommendations",
                 data: {
                   videos: sortedVideos,
                   total: sortedVideos.length,

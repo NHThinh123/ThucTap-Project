@@ -117,7 +117,7 @@ def get_recommendations(user_id, interaction_data, all_video_ids=None):
 
 if __name__ == "__main__":
     user_id = sys.argv[1]
-    interaction_data = json.loads(sys.stdin)  # Đọc interaction_data từ stdin
-    all_video_ids = json.loads(sys.argv[2]) if len(sys.argv) > 2 else None
+    interaction_data = json.loads(sys.argv[2])  # Fix: đọc từ args thay vì stdin
+    all_video_ids = json.loads(sys.argv[3]) if len(sys.argv) > 3 else None
     recs = get_recommendations(user_id, interaction_data, all_video_ids)
     print(json.dumps(recs))
