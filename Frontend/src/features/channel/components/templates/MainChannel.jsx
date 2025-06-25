@@ -1,16 +1,46 @@
 import { Col, Divider, Row, Typography } from "antd";
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import HorizontalListVideo from "../organisms/HorizontalListVideo";
 import useVideosByUserId from "../../../video/hooks/useVideosByUserId";
 import { formatViews } from "../../../../constants/formatViews";
 import { formatTime } from "../../../../constants/formatTime";
 import { Link } from "react-router-dom";
 import { formatDuration } from "../../../../constants/formatDuration";
+import { AuthContext } from "../../../../contexts/auth.context";
+import useHistory from "../../../history/hooks/useHistory";
 
 const { Title, Text } = Typography;
 
 const MainChannel = ({ channelId }) => {
+  const { auth } = useContext(AuthContext);
+  const { HistoryData, isLoading: isLoadingHistory } = useHistory(
+    auth?.user?.id
+  );
   const { videoList, isLoading, isError, error } = useVideosByUserId(channelId);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // Theo dõi thay đổi kích thước màn hình
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+  // Hàm tìm watch_duration từ HistoryData theo video.id
+  const getWatchDuration = (videoId) => {
+    if (!HistoryData?.data?.histories) return 0;
+
+    for (const history of HistoryData.data.histories) {
+      for (const vid of history.videos) {
+        if (vid?.video_id?._id === videoId) {
+          return vid.watch_duration;
+        }
+      }
+    }
+    return 0;
+  };
 
   // Lấy video mới nhất
   const latestVideo =
@@ -26,7 +56,9 @@ const MainChannel = ({ channelId }) => {
   ); // Sắp xếp theo ngày tạo (mới nhất)
   const popularVideos = [...videoList].sort((a, b) => b.views - a.views); // Sắp xếp theo lượt xem (phổ biến)
 
-  if (isLoading) {
+  const watchDurationLatestVideo = getWatchDuration(latestVideo?._id);
+
+  if (isLoading && isLoadingHistory) {
     return <div>Đang tải video...</div>;
   }
 
@@ -49,32 +81,62 @@ const MainChannel = ({ channelId }) => {
                 : (window.location.href = "#");
             }}
           >
-            <div style={{ position: "relative" }}>
+            <div
+              style={{
+                position: "relative",
+                maxWidth: "420px",
+                maxHeight: "230px",
+                borderRadius: 10,
+                overflow: "hidden",
+                objectFit: "cover",
+                aspectRatio: "16/9",
+              }}
+            >
               <img
                 src={latestVideo?.thumbnail_video}
                 alt={latestVideo?.title}
+                loading="lazy"
                 style={{
-                  width: "420px",
-                  height: "230px",
+                  width: "100%",
                   borderRadius: "8px",
                   objectFit: "cover",
-                  overflow: "hidden",
+
+                  aspectRatio: "16/9",
                 }}
               />
               <div className="video-card__duration">
-                {formatDuration(latestVideo.duration)}
+                {formatDuration(latestVideo?.duration)}
               </div>
+              {watchDurationLatestVideo !== 0 && (
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    height: 6,
+                    backgroundColor: "red",
+                    width: `${Math.min(
+                      (watchDurationLatestVideo / latestVideo?.duration) * 100,
+                      100
+                    )}%`,
+                  }}
+                />
+              )}
             </div>
           </Link>
         </Col>
-        <Col span={9}>
+
+        <Col
+          span={windowWidth < 700 ? 24 : 9}
+          style={{ maxWidth: windowWidth < 1100 ? "420px" : "100%" }}
+        >
           <p
             style={{
               margin: 0,
               overflow: "hidden",
               textOverflow: "ellipsis",
               display: "-webkit-box",
-              WebkitLineClamp: 2,
+              WebkitLineClamp: windowWidth < 1100 ? 1 : 2,
               WebkitBoxOrient: "vertical",
             }}
           >
@@ -99,13 +161,13 @@ const MainChannel = ({ channelId }) => {
             </Link>
           </p>
           <Text style={{ fontSize: 13, marginTop: 10, color: "#606060" }}>
-            {formatViews(latestVideo.views)} lượt xem •{" "}
-            {formatTime(latestVideo.createdAt)}
+            {formatViews(latestVideo?.views)} lượt xem •{" "}
+            {formatTime(latestVideo?.createdAt)}
           </Text>
           <p
             style={{
               marginTop: "10px",
-              display: "-webkit-box",
+              display: windowWidth < 700 ? "none" : "-webkit-box",
               WebkitLineClamp: 6,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
@@ -116,18 +178,19 @@ const MainChannel = ({ channelId }) => {
             {latestVideo?.description_video}
           </p>
         </Col>
+
         <Col span={5}></Col>
       </Row>
 
       <Divider />
-      <Title level={3}>Video mới nhất</Title>
+      <Title level={windowWidth < 700 ? 4 : 3}>Video mới nhất</Title>
       <Row style={{ marginTop: "16px" }}>
         <Col span={24}>
           <HorizontalListVideo videos={latestVideos} />
         </Col>
       </Row>
       <Divider />
-      <Title level={3}>Video phổ biến</Title>
+      <Title level={windowWidth < 700 ? 4 : 3}>Video phổ biến</Title>
       <Row style={{ marginTop: "16px" }}>
         <Col span={24}>
           <HorizontalListVideo videos={popularVideos} />

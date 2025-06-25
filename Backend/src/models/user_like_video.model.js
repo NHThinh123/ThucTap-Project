@@ -16,8 +16,7 @@ const user_like_videoSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-user_like_videoSchema.index({ user_id: 1, video_id: 1 });
-
+user_like_videoSchema.index({ user_id: 1, video_id: 1 }, { unique: true });
 const User_Like_Video = mongoose.model(
   "User_Like_Video",
   user_like_videoSchema

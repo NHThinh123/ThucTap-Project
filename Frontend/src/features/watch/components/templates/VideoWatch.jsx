@@ -13,6 +13,10 @@ const VideoWatch = ({ video }) => {
   const { incrementView, isLoading } = useIncrementView();
   const [historyId, setHistoryId] = useState(null);
   const [hasCreatedHistory, setHasCreatedHistory] = useState(false);
+  const [dimensions, setDimensions] = useState({
+    width: "100%",
+    height: "auto",
+  });
   const { createHistory } = useCreateHistory();
   const { updateWatchDuration } = useUpdateWatchDuration();
   const { HistoryData, isLoading: isLoadingHistory } = useHistory(userId);
@@ -51,6 +55,52 @@ const VideoWatch = ({ video }) => {
   const [isCursorHidden, setIsCursorHidden] = useState(false);
   const [watchTime, setWatchTime] = useState(0);
   const [hasIncrementedView, setHasIncrementedView] = useState(false);
+
+  // Hàm xác định kích thước dựa trên breakpoint
+  const updateDimensions = () => {
+    const width = window.innerWidth;
+
+    // Breakpoints của Ant Design
+    const breakpoints = {
+      xs: 576,
+      sm: 576,
+      md: 768,
+      lg: 992,
+      xl: 1200,
+      xxl: 1600,
+    };
+
+    // Logic thay đổi kích thước dựa trên màn hình
+    if (width < breakpoints.sm) {
+      // xs: < 576px
+      setDimensions({ width: "100%", height: "270px" }); // Ví dụ: chiều cao nhỏ
+    } else if (width < breakpoints.md) {
+      // sm: ≥ 576px và < 768px
+      setDimensions({ width: "100%", height: "350px" });
+    } else if (width < breakpoints.lg) {
+      // md: ≥ 768px và < 992px
+      setDimensions({ width: "100%", height: "410px" });
+    } else if (width < breakpoints.xl) {
+      // lg: ≥ 992px và < 1200px
+      setDimensions({ width: "100%", height: "460px" });
+    } else if (width < breakpoints.xxl) {
+      // xl: ≥ 1200px và < 1600px
+      setDimensions({ width: "100%", height: "450px" });
+    } else {
+      // xxl: ≥ 1600px
+      setDimensions({ width: "100%", height: "460px" });
+    }
+  };
+
+  // Theo dõi thay đổi kích thước màn hình
+  useEffect(() => {
+    updateDimensions(); // Cập nhật lần đầu khi component mount
+    window.addEventListener("resize", updateDimensions); // Cập nhật khi resize
+
+    return () => {
+      window.removeEventListener("resize", updateDimensions); // Cleanup
+    };
+  }, []);
 
   const saveWatchHistory = () => {
     const current = videoRef.current?.currentTime || 0;
@@ -474,8 +524,8 @@ const VideoWatch = ({ video }) => {
     <div
       ref={playerContainerRef}
       style={{
-        width: "100%",
-        height: "70vh",
+        width: dimensions.width,
+        height: dimensions.height,
         position: "relative",
         backgroundColor: "#000",
         overflow: "hidden",
@@ -516,7 +566,7 @@ const VideoWatch = ({ video }) => {
               left: 0,
               right: 0,
               background: "linear-gradient(transparent, rgba(0, 0, 0, 0.8))",
-              padding: "20px",
+              padding: "5px",
               opacity: showControls ? 1 : 0,
               pointerEvents: showControls ? "auto" : "none",
               transition: "opacity 0.3s ease",
@@ -533,7 +583,7 @@ const VideoWatch = ({ video }) => {
                 backgroundColor: "rgba(255, 255, 255, 0.3)",
                 cursor: "pointer",
                 borderRadius: "3px",
-                marginBottom: "15px",
+                marginBottom: "10px",
                 position: "relative",
               }}
               onMouseDown={handleProgressMouseDown}
@@ -571,6 +621,7 @@ const VideoWatch = ({ video }) => {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
+                marginBottom: "5px",
               }}
             >
               <div
@@ -588,8 +639,8 @@ const VideoWatch = ({ video }) => {
                     color: "white",
                     margin: "0 5px",
                     cursor: "pointer",
-                    width: "40px",
-                    height: "40px",
+                    width: "30px",
+                    height: "30px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -654,8 +705,8 @@ const VideoWatch = ({ video }) => {
                       color: "white",
                       margin: "0 5px",
                       cursor: "pointer",
-                      width: "40px",
-                      height: "40px",
+                      width: "30px",
+                      height: "30px",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -740,8 +791,8 @@ const VideoWatch = ({ video }) => {
                     color: "white",
                     margin: "0 5px",
                     cursor: "pointer",
-                    width: "40px",
-                    height: "40px",
+                    width: "30px",
+                    height: "30px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",

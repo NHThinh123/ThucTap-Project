@@ -1,5 +1,5 @@
-import { Button, Col, Row, Space, Tabs, Typography } from "antd";
-import React from "react";
+import { Col, Row, Tabs } from "antd";
+
 import MainChannel from "../features/channel/components/templates/MainChannel";
 import VideoChannel from "../features/channel/components/templates/VideoChannel";
 import ChannelInformation from "../features/channel/components/templates/ChannelInformation";
@@ -20,17 +20,16 @@ const ChannelPage = () => {
     },
   ];
   return (
-    <Row>
-      <Col span={2}></Col>
-      <Col span={20}>
+    <Row justify={"center"}>
+      <Col sm={24} md={22} lg={20}>
         <ChannelInformation channelId={id} />
+
         <Row style={{ marginTop: "16px", width: "100%" }}>
           <Col span={24}>
             <Tabs defaultActiveKey="1" items={tabs} />
           </Col>
         </Row>
       </Col>
-      <Col span={2}></Col>
     </Row>
   );
 };

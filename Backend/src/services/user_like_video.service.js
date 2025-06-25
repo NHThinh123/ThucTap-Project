@@ -5,7 +5,7 @@ const AppError = require("../utils/AppError");
 const User_Like_Video = require("../models/user_like_video.model");
 const User_Dislike_Video = require("../models/user_dislike_video.model");
 const User = require("../models/user.model");
-const VideoStats = require("../models/video_stats.model");
+const Video = require("../models/video.model");
 
 const likeVideoService = async (id, video_id) => {
   if (
@@ -23,40 +23,37 @@ const likeVideoService = async (id, video_id) => {
     throw new AppError("User not found", 404);
   }
 
-  // Check and remove existing dislike
-  const existingDislike = await User_Dislike_Video.findOneAndDelete({
-    user_id: objectId,
-    video_id,
-  });
-
-  // Create like record
-  const likeData = {
-    user_id: objectId,
-    video_id,
-  };
-
-  // Check if already liked
-  const existingLike = await User_Like_Video.findOne(likeData);
-  if (existingLike) {
-    throw new AppError("Video already liked by this user", 400);
+  // Check if video exists
+  const video = await Video.findById(video_id);
+  if (!video) {
+    throw new AppError("Video not found", 404);
   }
 
-  let result = await User_Like_Video.create(likeData);
+  const session = await mongoose.startSession();
+  try {
+    let result;
+    await session.withTransaction(async () => {
+      // Check and remove existing dislike
+      await User_Dislike_Video.findOneAndDelete(
+        { user_id: objectId, video_id },
+        { session }
+      );
 
-  // Thống kê số lượng like cho video
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const updateStats = { $inc: { likes: 1 } };
-  if (existingDislike) {
-    updateStats.$inc.dislikes = -1;
+      // Create like record
+      const likeData = { user_id: objectId, video_id };
+      try {
+        result = await User_Like_Video.create([likeData], { session });
+      } catch (error) {
+        if (error.code === 11000) {
+          throw new AppError("Video already liked by this user", 400);
+        }
+        throw error;
+      }
+    });
+    return result[0];
+  } finally {
+    session.endSession();
   }
-
-  await VideoStats.findOneAndUpdate({ video_id, date: today }, updateStats, {
-    upsert: true,
-  });
-  //
-  return result;
 };
 
 const unlikeVideoService = async (id, video_id) => {
@@ -80,22 +77,22 @@ const unlikeVideoService = async (id, video_id) => {
     video_id,
   };
 
-  // Xóa bản ghi like
-  const result = await User_Like_Video.findOneAndDelete(unlikeCondition);
-  if (!result) {
-    throw new AppError("Không tìm thấy lượt thích để xóa", 404);
+  const session = await mongoose.startSession();
+  try {
+    let result;
+    await session.withTransaction(async () => {
+      // Xóa bản ghi like
+      result = await User_Like_Video.findOneAndDelete(unlikeCondition, {
+        session,
+      });
+      if (!result) {
+        throw new AppError("Không tìm thấy lượt thích để xóa", 404);
+      }
+    });
+    return result;
+  } finally {
+    session.endSession();
   }
-
-  // Cập nhật thống kê video
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  await VideoStats.findOneAndUpdate(
-    { video_id, date: today },
-    { $inc: { likes: -1 } },
-    { upsert: true }
-  );
-  return result;
 };
 
 const getUserLikeVideoService = async (video_id) => {

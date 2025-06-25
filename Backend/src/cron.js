@@ -5,6 +5,7 @@ const Comment = require("./models/comment.model");
 const Review = require("./models/review.model");
 const User_Like_Video = require("./models/user_like_video.model");
 const User_Dislike_Video = require("./models/user_dislike_video.model");
+const mongoose = require("mongoose");
 
 // Hàm tổng hợp dữ liệu cho một ngày cụ thể (sử dụng UTC)
 const aggregateStatsForDay = async (targetDate) => {
@@ -22,57 +23,164 @@ const aggregateStatsForDay = async (targetDate) => {
     const endOfDay = new Date(utcDate);
     endOfDay.setUTCDate(endOfDay.getUTCDate() + 1);
 
-    const videos = await Video.find({});
-
-    for (const video of videos) {
-      // Lấy số lượt view của ngày hiện tại từ VideoStats
-      const currentStats = await VideoStats.findOne({
-        video_id: video._id,
-        date: startOfDay,
-      });
-
-      // Nếu không có stats cho ngày hiện tại, lượt view sẽ là 0
-      const dailyViews = currentStats ? currentStats.views : 0;
-
-      const comments = await Comment.countDocuments({
-        video_id: video._id,
-        createdAt: { $gte: startOfDay, $lt: endOfDay },
-      });
-
-      const reviews = await Review.find({
-        video_id: video._id,
-        createdAt: { $gte: startOfDay, $lt: endOfDay },
-      });
-      const reviewCount = reviews.length;
-      const average_rating =
-        reviewCount > 0
-          ? reviews.reduce((sum, r) => sum + r.review_rating, 0) / reviewCount
-          : 0;
-
-      const likes = await User_Like_Video.countDocuments({
-        video_id: video._id,
-        createdAt: { $gte: startOfDay, $lt: endOfDay },
-      });
-
-      const dislikes = await User_Dislike_Video.countDocuments({
-        video_id: video._id,
-        createdAt: { $gte: startOfDay, $lt: endOfDay },
-      });
-
-      await VideoStats.findOneAndUpdate(
-        { video_id: video._id, date: startOfDay },
-        {
-          $set: {
-            views: dailyViews, // Lưu số lượt view từ VideoStats
-            comments,
-            reviews: reviewCount,
-            average_rating,
-            likes,
-            dislikes,
-          },
+    // Sử dụng aggregation pipeline để tổng hợp dữ liệu
+    const statsAggregation = await Video.aggregate([
+      {
+        $lookup: {
+          from: "videostats",
+          let: { videoId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$video_id", "$$videoId"] },
+                    { $eq: ["$date", startOfDay] },
+                  ],
+                },
+              },
+            },
+            { $project: { views: 1 } },
+          ],
+          as: "stats",
         },
-        { upsert: true, new: true }
-      );
+      },
+      {
+        $lookup: {
+          from: "comments",
+          let: { videoId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$video_id", "$$videoId"] },
+                    { $gte: ["$createdAt", startOfDay] },
+                    { $lt: ["$createdAt", endOfDay] },
+                  ],
+                },
+              },
+            },
+            { $count: "count" },
+          ],
+          as: "comments",
+        },
+      },
+      {
+        $lookup: {
+          from: "reviews",
+          let: { videoId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$video_id", "$$videoId"] },
+                    { $gte: ["$createdAt", startOfDay] },
+                    { $lt: ["$createdAt", endOfDay] },
+                  ],
+                },
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                count: { $sum: 1 },
+                totalRating: { $sum: "$review_rating" },
+              },
+            },
+          ],
+          as: "reviews",
+        },
+      },
+      {
+        $lookup: {
+          from: "user_like_videos",
+          let: { videoId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$video_id", "$$videoId"] },
+                    { $gte: ["$createdAt", startOfDay] },
+                    { $lt: ["$createdAt", endOfDay] },
+                  ],
+                },
+              },
+            },
+            { $count: "count" },
+          ],
+          as: "likes",
+        },
+      },
+      {
+        $lookup: {
+          from: "user_dislike_videos",
+          let: { videoId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$video_id", "$$videoId"] },
+                    { $gte: ["$createdAt", startOfDay] },
+                    { $lt: ["$createdAt", endOfDay] },
+                  ],
+                },
+              },
+            },
+            { $count: "count" },
+          ],
+          as: "dislikes",
+        },
+      },
+      {
+        $project: {
+          video_id: "$_id",
+          views: { $ifNull: [{ $arrayElemAt: ["$stats.views", 0] }, 0] },
+          comments: { $ifNull: [{ $arrayElemAt: ["$comments.count", 0] }, 0] },
+          reviews: { $ifNull: [{ $arrayElemAt: ["$reviews.count", 0] }, 0] },
+          average_rating: {
+            $cond: [
+              { $gt: [{ $arrayElemAt: ["$reviews.count", 0] }, 0] },
+              {
+                $divide: [
+                  { $arrayElemAt: ["$reviews.totalRating", 0] },
+                  { $arrayElemAt: ["$reviews.count", 0] },
+                ],
+              },
+              0,
+            ],
+          },
+          likes: { $ifNull: [{ $arrayElemAt: ["$likes.count", 0] }, 0] },
+          dislikes: { $ifNull: [{ $arrayElemAt: ["$dislikes.count", 0] }, 0] },
+        },
+      },
+    ]);
+
+    const session = await mongoose.startSession();
+    try {
+      await session.withTransaction(async () => {
+        for (const stat of statsAggregation) {
+          await VideoStats.findOneAndUpdate(
+            { video_id: stat.video_id, date: startOfDay },
+            {
+              $set: {
+                views: stat.views,
+                comments: stat.comments,
+                reviews: stat.reviews,
+                average_rating: stat.average_rating,
+                likes: stat.likes,
+                dislikes: stat.dislikes,
+              },
+            },
+            { upsert: true, new: true, session }
+          );
+        }
+      });
+    } finally {
+      session.endSession();
     }
 
     console.log(
@@ -81,7 +189,10 @@ const aggregateStatsForDay = async (targetDate) => {
   } catch (error) {
     console.error(
       `Error aggregating stats for ${targetDate.toISOString().split("T")[0]}:`,
-      error
+      {
+        error: error.message,
+        stack: error.stack,
+      }
     );
   }
 };
@@ -133,7 +244,10 @@ const catchUpMissedDays = async () => {
       "missed days."
     );
   } catch (error) {
-    console.error("Error during catch-up:", error);
+    console.error("Error during catch-up:", {
+      error: error.message,
+      stack: error.stack,
+    });
   }
 };
 

@@ -20,9 +20,10 @@ import {
   PlusOutlined,
   HistoryOutlined,
   YoutubeOutlined,
+  DownOutlined,
 } from "@ant-design/icons";
 import logo from "./assets/logo/logo.png";
-import { useState, useContext, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "./contexts/auth.context";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -37,19 +38,36 @@ function App() {
   const navigate = useNavigate();
   const { openModal } = useModal();
   const { auth, setAuth } = useContext(AuthContext);
+  const { pathname } = useLocation();
   const location = useLocation();
   const isUserLoggedIn = auth?.isAuthenticated;
-  const [drawerVisible, setDrawerVisible] = useState(
-    isUserLoggedIn ? false : true
-  );
+  const playlistPathRegex = /^\/playlist\/[^/]+\/[^/]+$/;
+  const [drawerVisible, setDrawerVisible] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [collapsed, setCollapsed] = useState(isUserLoggedIn ? false : true);
+  const [collapsed, setCollapsed] = useState(
+    playlistPathRegex.test(pathname) ? true : isUserLoggedIn ? false : true
+  );
   const isVideoWatchPage = location.pathname.startsWith("/watch/");
   const { data } = useUserSubscriptions(auth?.user?.id);
   const userSubscriptionsList = data?.data?.channels || [];
   const [showAllChannels, setShowAllChannels] = useState(false);
+  const [openKeys, setOpenKeys] = useState(
+    playlistPathRegex.test(pathname) ? [] : ["subscriptions"]
+  );
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [isSearchFocused, setSearchFocused] = useState(false);
 
-  // Định nghĩa menu items
+  // Theo dõi thay đổi kích thước màn hình
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Define menu items
   const getMenuItems = () => {
     let subscriptionChildren = userSubscriptionsList.map((channel) => ({
       key: channel.channelId,
@@ -60,26 +78,30 @@ function App() {
             e.preventDefault();
             window.location.href = `/channel/${channel?.channelId}`;
           }}
-          style={{ paddingLeft: 0 }}
+          style={{ paddingLeft: 0, display: "flex", alignItems: "center" }}
         >
           <Avatar
             src={channel.channelAvatar}
             size="small"
             style={{ marginRight: 8 }}
           />
-          {channel.channelNickname}
+          <p>{channel.channelNickname}</p>
         </Link>
       ) : (
-        <Link to={`/channel/${channel?.channelId}`} style={{ paddingLeft: 0 }}>
+        <Link
+          to={`/channel/${channel.channelId}`}
+          style={{ paddingLeft: 0, display: "flex", alignItems: "center" }}
+        >
           <Avatar
             src={channel.channelAvatar}
             size="small"
             style={{ marginRight: 8 }}
           />
-          {channel.channelNickname}
+          <p>{channel.channelNickname}</p>
         </Link>
       ),
     }));
+
     if (userSubscriptionsList.length > 5 && !showAllChannels) {
       subscriptionChildren = subscriptionChildren.slice(0, 5);
       subscriptionChildren.push({
@@ -106,15 +128,15 @@ function App() {
               window.location.href = "/";
             }}
           >
-            Home
+            Trang chủ
           </Link>
         ) : (
-          <Link to="/">Home</Link>
+          <Link to="/">Trang chủ</Link>
         ),
         path: "/",
       },
     ];
-    // Chỉ thêm "Quản lý kênh" nếu đã đăng nhập
+
     if (isUserLoggedIn) {
       menuItems.push(
         {
@@ -154,6 +176,7 @@ function App() {
           ) : (
             <Link to={`/channel/${auth.user.id}`}>Kênh của bạn</Link>
           ),
+          path: `/channel/${auth.user.id}`,
         },
         {
           key: "playlist",
@@ -171,6 +194,7 @@ function App() {
           ) : (
             <Link to="/playlist">Danh sách phát</Link>
           ),
+          path: "/playlist",
         },
         {
           key: "subscriptions",
@@ -202,16 +226,19 @@ function App() {
   };
 
   const menuItems = getMenuItems();
-  // Xác định key được chọn dựa trên đường dẫn hiện tại
+
   const getSelectedKey = () => {
+    if (isVideoWatchPage) {
+      return "video";
+    }
+    if (playlistPathRegex.test(location.pathname)) {
+      return "playlist";
+    }
     const currentItem = menuItems.find(
       (item) =>
         location.pathname === item.path ||
         location.pathname.startsWith(`${item.path}/`)
     );
-    if (isVideoWatchPage) {
-      return "video";
-    }
     return currentItem ? currentItem.key : "home";
   };
 
@@ -219,13 +246,19 @@ function App() {
 
   useEffect(() => {
     setSelectedKey(getSelectedKey());
-  }, [location.pathname]);
 
-  useEffect(() => {
-    if (isVideoWatchPage) {
+    if (playlistPathRegex.test(location.pathname)) {
+      setCollapsed(true);
+      setOpenKeys([]);
+    } else {
+      setCollapsed(isUserLoggedIn && windowWidth >= 1000 ? false : true);
+      setOpenKeys(["subscriptions"]);
+    }
+
+    if (isVideoWatchPage || windowWidth < 1000) {
       setDrawerVisible(false);
     }
-  }, [location.pathname, isVideoWatchPage]);
+  }, [location.pathname, isUserLoggedIn, isVideoWatchPage, windowWidth]);
 
   const avatarSrc = isUserLoggedIn ? auth.user?.avatar : null;
   const displayName = isUserLoggedIn ? auth.user?.user_name : "";
@@ -265,7 +298,7 @@ function App() {
   };
 
   const toggleMenu = () => {
-    if (isVideoWatchPage) {
+    if (isVideoWatchPage || windowWidth < 1000) {
       showDrawer();
     } else {
       setCollapsed(!collapsed);
@@ -274,11 +307,15 @@ function App() {
 
   const handleUploadClick = () => {
     isVideoWatchPage ? (window.location.href = "/studio") : navigate("/studio");
-    openModal(<UploadPage />);
+    openModal(<UploadPage navigate={navigate} />);
   };
 
   const handleLogoClick = () => {
     window.location.href = "/";
+  };
+
+  const onOpenChange = (keys) => {
+    setOpenKeys(keys);
   };
 
   return (
@@ -305,93 +342,125 @@ function App() {
           }}
         >
           <Row align="middle" justify="space-between">
-            <Col span={1}>
-              <Button
-                icon={<MenuOutlined />}
-                onClick={toggleMenu}
-                style={{
-                  border: "none",
-                  fontSize: "18px",
-                  marginRight: "16px",
-                }}
-              />
-            </Col>
-            <Col span={5}>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  flex: 1,
-                  cursor: "pointer",
-                  width: "fit-content",
-                }}
-                onClick={handleLogoClick}
-              >
-                <img
-                  src={logo}
-                  style={{ height: "30px", width: "auto", marginRight: "8px" }}
-                  alt="logo"
+            {!isSearchFocused && (
+              <Col span={1}>
+                <Button
+                  icon={<MenuOutlined />}
+                  onClick={toggleMenu}
+                  style={{
+                    border: "none",
+                    fontSize: windowWidth < 600 ? "14px" : "18px",
+                    marginRight: "16px",
+                  }}
                 />
-                <Typography.Text
-                  style={{ fontSize: "18px", fontWeight: "bold" }}
+              </Col>
+            )}
+            {!isSearchFocused && windowWidth > 600 && (
+              <Col span={windowWidth < 600 ? 2 : 5}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    flex: 1,
+                    cursor: "pointer",
+                    width: "fit-content",
+                    gap: "8px",
+                  }}
+                  onClick={handleLogoClick}
                 >
-                  CUSC Tube
-                </Typography.Text>
-              </div>
-            </Col>
+                  <img
+                    src={logo}
+                    style={{
+                      height: windowWidth < 720 ? 25 : 35,
+                      width: "auto",
+                    }}
+                    alt="logo"
+                  />
+                  <Typography.Text
+                    style={{
+                      fontSize: windowWidth < 720 ? 14 : 18,
+                      fontWeight: "bold",
+                      display: windowWidth < 600 ? "none" : "block",
+                    }}
+                  >
+                    CUSC Tube
+                  </Typography.Text>
+                </div>
+              </Col>
+            )}
             <Col
-              span={12}
+              span={isSearchFocused ? 24 : 12}
               style={{ display: "flex", justifyContent: "center" }}
             >
-              <SearchBar />
+              <SearchBar
+                setSearchFocused={setSearchFocused}
+                isSearchFocused={isSearchFocused}
+              />
             </Col>
-            <Col span={3} style={{ display: "flex", justifyContent: "end" }}>
-              <Button
-                color="primary"
-                variant="outlined"
-                style={{
-                  fontSize: "16px",
-                  marginLeft: "16px",
-                }}
-                onClick={handleUploadClick}
+            {!isSearchFocused && (
+              <Col
+                sm={3}
+                md={3}
+                lg={windowWidth < 1100 ? 2 : 3}
+                xl={3}
+                style={{ display: "flex", justifyContent: "center" }}
               >
-                <PlusOutlined /> Đăng tải
-              </Button>
-            </Col>
-            <Col
-              span={3}
-              style={{ display: "flex", justifyContent: "flex-end" }}
-            >
-              {isUserLoggedIn ? (
-                <Dropdown overlay={userMenu} trigger={["click"]}>
-                  <Space style={{ cursor: "pointer" }}>
-                    <Avatar
-                      src={avatarSrc}
-                      icon={!avatarSrc && <CircleUserRound />}
-                    />
-                    <span>{displayName}</span>
-                  </Space>
-                </Dropdown>
-              ) : (
                 <Button
-                  type="primary"
-                  style={{ padding: "0 16px" }}
-                  onClick={() =>
-                    isVideoWatchPage
-                      ? (window.location.href = "/login")
-                      : navigate("/login")
-                  }
+                  size={windowWidth < 700 ? "small" : "middle"}
+                  color="primary"
+                  variant="outlined"
+                  style={{
+                    fontSize: "16px",
+                    marginLeft: "16px",
+                  }}
+                  onClick={handleUploadClick}
                 >
-                  <CircleUserRound style={{ marginRight: "8px" }} />
-                  Đăng nhập
+                  <PlusOutlined />
+                  {windowWidth > 1100 && "Đăng tải"}
                 </Button>
-              )}
-            </Col>
+              </Col>
+            )}
+            {!isSearchFocused && (
+              <Col
+                sm={2}
+                md={2}
+                lg={windowWidth < 1100 ? 2 : 3}
+                xl={3}
+                style={{ display: "flex", justifyContent: "flex-end" }}
+              >
+                {isUserLoggedIn ? (
+                  <Dropdown overlay={userMenu} trigger={["click"]}>
+                    <Space style={{ cursor: "pointer" }}>
+                      <Avatar
+                        src={avatarSrc}
+                        icon={!avatarSrc && <CircleUserRound />}
+                      />
+                      <span style={{ display: windowWidth < 1100 && "none" }}>
+                        {displayName}
+                      </span>
+                    </Space>
+                  </Dropdown>
+                ) : (
+                  <Button
+                    type="primary"
+                    style={{ padding: "0 16px" }}
+                    onClick={() =>
+                      isVideoWatchPage
+                        ? (window.location.href = "/login")
+                        : navigate("/login")
+                    }
+                  >
+                    <CircleUserRound style={{ marginRight: "8px" }} />
+                    Đăng nhập
+                  </Button>
+                )}
+              </Col>
+            )}
           </Row>
         </Header>
 
         <Layout style={{ marginTop: "64px" }}>
-          {!isVideoWatchPage && (
+          {!(isVideoWatchPage || windowWidth < 1000) && (
             <Sider
               collapsed={collapsed}
               width={200}
@@ -407,14 +476,15 @@ function App() {
               <Menu
                 mode="inline"
                 selectedKeys={[selectedKey]}
-                defaultOpenKeys={["subscriptions"]}
+                openKeys={openKeys}
+                onOpenChange={onOpenChange}
                 items={menuItems}
                 style={{ height: "100%", borderRight: 0 }}
               />
             </Sider>
           )}
 
-          {isVideoWatchPage && (
+          {(isVideoWatchPage || windowWidth < 1000) && (
             <Drawer
               title={
                 <div
@@ -453,7 +523,8 @@ function App() {
               <Menu
                 mode="inline"
                 selectedKeys={[selectedKey]}
-                defaultOpenKeys={["subscriptions"]}
+                openKeys={openKeys}
+                onOpenChange={onOpenChange}
                 items={menuItems}
                 style={{ borderRight: 0 }}
               />
@@ -462,11 +533,12 @@ function App() {
 
           <Content
             style={{
-              marginLeft: isVideoWatchPage
-                ? "0px"
-                : collapsed
-                ? "80px"
-                : "200px",
+              marginLeft:
+                isVideoWatchPage || windowWidth < 1000
+                  ? "0px"
+                  : collapsed
+                  ? "80px"
+                  : "200px",
               padding: "8px",
               minHeight: "calc(100vh - 64px)",
               transition: "margin-left 0.2s",

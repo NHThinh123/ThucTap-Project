@@ -1,4 +1,5 @@
 const History = require("../models/history.model");
+const User = require("../models/user.model");
 const AppError = require("../utils/AppError");
 
 const createHistoryService = async (data) => {
@@ -81,17 +82,37 @@ const updateWatchDurationService = async (id, watch_duration) => {
 };
 
 const deleteHistoryService = async (historyId) => {
-  const history = await History.findOne({ _id: historyId });
+  const history = await History.findByIdAndDelete(historyId);
   if (!history) {
     throw new AppError("History record not found", 404);
   }
-  await history.delete();
   return history;
 };
 
 const deleteAllHistoriesService = async (userId) => {
   const result = await History.deleteMany({ user_id: userId });
   return result;
+};
+
+const togglePauseHistoryService = async (userId) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  // Nếu isPauseHistory chưa tồn tại, thêm với giá trị true
+  // Nếu đã tồn tại, đảo ngược trạng thái
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    {
+      $set: {
+        isPauseHistory: !user.isPauseHistory || true,
+      },
+    },
+    { new: true, runValidators: true }
+  );
+
+  return updatedUser;
 };
 
 module.exports = {
@@ -101,4 +122,5 @@ module.exports = {
   updateWatchDurationService,
   deleteHistoryService,
   deleteAllHistoriesService,
+  togglePauseHistoryService,
 };

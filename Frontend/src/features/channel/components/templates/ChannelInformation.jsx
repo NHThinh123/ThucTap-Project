@@ -11,6 +11,17 @@ import { formatLikes } from "../../../../constants/formatLikes";
 import useVideoCountByUserId from "../../../video/hooks/useVideoCountByUserId";
 
 const ChannelInformation = ({ channelId }) => {
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // Theo dõi thay đổi kích thước màn hình
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const { auth } = useContext(AuthContext);
   const userId = auth.isAuthenticated ? auth.user.id : null;
   const [subscriptionCount, setSubscriptionCount] = useState(0);
@@ -42,12 +53,19 @@ const ChannelInformation = ({ channelId }) => {
     <Row align={"middle"} gutter={16}>
       <Col>
         <div>
-          <Avatar src={channelInfo?.avatar} alt="Avatar" size={100} />
+          <Avatar
+            src={channelInfo?.avatar}
+            alt="Avatar"
+            size={windowWidth < 1000 ? (windowWidth < 700 ? 100 : 100) : 125}
+          />
         </div>
       </Col>
       <Col>
         <div>
-          <Typography.Title level={1} style={{ margin: 0 }}>
+          <Typography.Title
+            level={windowWidth < 1000 ? (windowWidth < 700 ? 3 : 2) : 1}
+            style={{ margin: 0 }}
+          >
             {channelInfo?.nickName}
           </Typography.Title>
           <Typography.Text>

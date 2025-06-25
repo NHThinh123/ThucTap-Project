@@ -16,7 +16,7 @@ const user_dislike_videoSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-user_dislike_videoSchema.index({ user_id: 1, video_id: 1 });
+user_dislike_videoSchema.index({ user_id: 1, video_id: 1 }, { unique: true });
 
 const User_Dislike_Video = mongoose.model(
   "User_Dislike_Video",

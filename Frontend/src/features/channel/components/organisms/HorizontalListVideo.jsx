@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useEffect, useState, useMemo } from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -7,103 +7,244 @@ import { formatTime } from "../../../../constants/formatTime";
 import { formatViews } from "../../../../constants/formatViews";
 import { Link } from "react-router-dom";
 import { formatDuration } from "../../../../constants/formatDuration";
+import useHistory from "../../../history/hooks/useHistory";
+import { AuthContext } from "../../../../contexts/auth.context";
+import { debounce } from "lodash"; // Cần cài đặt lodash: npm install lodash
 
-// CSS tùy chỉnh cho mũi tên và căn trái video
-const arrowStyles = (videoCount) => `
+const { Title, Text } = Typography;
+
+// CSS động dựa trên kích thước màn hình
+const arrowStyles = (windowWidth) => `
   .slick-prev, .slick-next {
-    width: 40px;
-    height: 40px;
+    width: ${windowWidth < 768 ? "24px" : "32px"};
+    height: ${windowWidth < 768 ? "24px" : "32px"};
     background: #fff;
     border-radius: 50%;
     z-index: 100;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
-    top: 50% !important;
-    transform: translateY(-100%);
+   
+    top: 40%;
+    transform: translateY(-70%);
+    transition: background 0.3s ease;
   }
 
   .slick-prev:hover, .slick-next:hover {
-    background: #f0f0f0;
+    background: #e0e0e0;
   }
 
   .slick-prev {
-    left: -5px;
+    left: -6px;
   }
 
   .slick-next {
-    right: -5px;
+    right: -6px;
   }
 
   .slick-prev:before, .slick-next:before {
-    font-size: 24px;
-    color: #000;
+    font-size: ${windowWidth < 768 ? "16px" : "20px"};
+    color: #333;
   }
 
   .video-grid {
     display: flex;
     justify-content: flex-start;
-    gap: 16px;
+    gap: ${windowWidth < 768 ? "8px" : "16px"};
     flex-wrap: nowrap;
   }
 
-  /* Căn trái các slide */
   .slick-track {
     display: flex !important;
     justify-content: flex-start !important;
   }
 
-  /* Đặt kích thước cho slide dựa trên số lượng video */
   .slick-slide > div {
-    width: 240px !important;
-    margin-right: 4px !important;
+    width: ${
+      windowWidth < 768 ? "180px" : windowWidth < 1024 ? "200px" : "240px"
+    } !important;
+    margin-right: ${windowWidth < 768 ? "8px" : "12px"} !important;
+  }
+
+`;
+
+const styles = `
+  .video-card {
+    width: 100%;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+  }
+
+  .video-card__thumbnail-container {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .video-card__thumbnail {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+
+  .video-card__duration {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    font-weight: 510;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .video-card__progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background-color: #f00;
+    transition: width 0.3s ease;
+  }
+
+  .video-card__info {
+    margin-top: 8px;
+  }
+
+  .video-card__title {
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f0f0f;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  .video-card__meta {
+    font-family: 'Roboto', sans-serif;
+    font-size: 12px;
+    color: #606060;
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  @media (max-width: 768px) {
+    .video-card__title {
+      font-size: 13px;
+    }
+    .video-card__meta {
+      font-size: 11px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .video-card__title {
+      font-size: 12px;
+    }
+    .video-card__meta {
+      font-size: 10px;
+    }
   }
 `;
 
-const { Title, Text } = Typography;
-
 const HorizontalListVideo = ({ videos = [] }) => {
+  const { auth } = useContext(AuthContext);
+  const { HistoryData, isLoading } = useHistory(auth?.user?.id);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // Debounce resize handler để tối ưu hiệu suất
+  useEffect(() => {
+    const handleResize = debounce(() => {
+      setWindowWidth(window.innerWidth);
+    }, 100);
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      handleResize.cancel(); // Hủy debounce khi unmount
+    };
+  }, []);
+
+  // Memo hóa getWatchDuration để tránh tính toán lại
+  const getWatchDuration = useMemo(() => {
+    return (videoId) => {
+      if (!HistoryData?.data?.histories) return 0;
+      for (const history of HistoryData.data.histories) {
+        for (const vid of history.videos) {
+          if (vid?.video_id?._id === videoId) {
+            return vid?.watch_duration || 0;
+          }
+        }
+      }
+      return 0;
+    };
+  }, [HistoryData]);
+
+  // Cấu hình slider
   const settings = {
     dots: false,
     infinite: false,
     speed: 500,
-    slidesToShow: Math.min(videos.length, 5), // Không vượt quá số video thực tế
-    slidesToScroll: 2,
-    arrows: true,
+    slidesToShow: Math.min(
+      videos.length,
+      windowWidth < 480 ? 1 : windowWidth < 768 ? 2 : windowWidth < 1024 ? 3 : 3
+    ),
+    slidesToScroll: 1,
+    arrows: videos.length > (windowWidth < 480 ? 1 : windowWidth < 768 ? 2 : 3),
     variableWidth: true,
     responsive: [
       {
         breakpoint: 1024,
         settings: {
           slidesToShow: Math.min(videos.length, 3),
+          slidesToScroll: 1,
         },
       },
       {
         breakpoint: 768,
         settings: {
           slidesToShow: Math.min(videos.length, 2),
+          slidesToScroll: 1,
         },
       },
       {
         breakpoint: 480,
         settings: {
           slidesToShow: 1,
+          slidesToScroll: 1,
         },
       },
     ],
   };
 
+  if (isLoading) {
+    return (
+      <div className="slider-container" style={{ padding: "0 8px" }}>
+        <Text>Đang tải...</Text>
+      </div>
+    );
+  }
+
   return (
     <>
-      {/* Chèn CSS tùy chỉnh dựa trên số lượng video */}
-      <style>{arrowStyles(videos.length)}</style>
+      <style>{arrowStyles(windowWidth)}</style>
       <style>{styles}</style>
       <div
         className="slider-container"
         style={{
-          padding: videos.length >= 5 ? "0 8px" : 0,
-          maxWidth: "100%",
+          padding: videos.length > 3 ? "0 8px" : "0",
+          width: "100%",
           overflow: "hidden",
         }}
       >
@@ -113,7 +254,7 @@ const HorizontalListVideo = ({ videos = [] }) => {
           <Slider {...settings}>
             {videos.map((video) => (
               <div key={video._id}>
-                <div style={{ marginRight: 16 }}>
+                <div className="video-card">
                   <Link
                     to={`/watch/${video._id}`}
                     onClick={(e) => {
@@ -121,28 +262,30 @@ const HorizontalListVideo = ({ videos = [] }) => {
                       window.location.href = `/watch/${video._id}`;
                     }}
                   >
-                    <div style={{ position: "relative" }}>
+                    <div className="video-card__thumbnail-container">
                       <img
                         src={video.thumbnail_video}
                         alt={video.title}
-                        style={{
-                          width: videos.length >= 5 ? "100%" : "220px", // Width động
-                          height: "120px",
-                          borderRadius: "8px",
-                          objectFit: "cover",
-                        }}
+                        className="video-card__thumbnail"
                       />
                       <div className="video-card__duration">
-                        {formatDuration(video.duration)}
+                        {formatDuration(video?.duration)}
                       </div>
+                      {getWatchDuration(video?._id) !== 0 && (
+                        <div
+                          className="video-card__progress"
+                          style={{
+                            width: `${Math.min(
+                              (getWatchDuration(video._id) / video?.duration) *
+                                100,
+                              100
+                            )}%`,
+                          }}
+                        />
+                      )}
                     </div>
                   </Link>
-                  <div
-                    style={{
-                      marginTop: "8px",
-                      width: videos.length >= 5 ? "100%" : "220px",
-                    }}
-                  >
+                  <div className="video-card__info">
                     <Link
                       to={`/watch/${video._id}`}
                       onClick={(e) => {
@@ -150,24 +293,9 @@ const HorizontalListVideo = ({ videos = [] }) => {
                         window.location.href = `/watch/${video._id}`;
                       }}
                     >
-                      <p
-                        style={{
-                          fontFamily: "sans-serif",
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          margin: 0,
-                          fontWeight: "700",
-                          color: "#0f0f0f",
-                          fontSize: 14,
-                        }}
-                      >
-                        {video.title}
-                      </p>
+                      <p className="video-card__title">{video.title}</p>
                     </Link>
-                    <p style={{ fontSize: "13px", marginTop: 5 }}>
+                    <p className="video-card__meta">
                       {formatViews(video.views)} lượt xem •{" "}
                       {formatTime(video.createdAt)}
                     </p>
@@ -181,126 +309,5 @@ const HorizontalListVideo = ({ videos = [] }) => {
     </>
   );
 };
-const styles = `
-  .video-card {
-    width: 100%;
-    height: 100%;
-    background: #fff;
-    cursor: pointer;
-    border: none;
-    padding: 0;
-  }
 
-  .video-card__thumbnail-container {
-    position: relative;
-  }
-
-  .video-card__duration {
-    position: absolute;
-    bottom: 6px;
-    right: 6px;
-    background: rgba(0, 0, 0, 0.6);
-    color: #fff;
-    font-family: 'Roboto', Arial, sans-serif;
-    font-size: 12px;
-    font-weight: 510;
-    padding: 2px 6px;
-    border-radius: 4px;
-  }
-
-  .video-card__cover {
-  width: 100%;
-  height: auto; 
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-  border-radius: 10px;
-}
-
-  .video-card__content {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding-top: 8px;
-  }
-
-  .video-card__avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-
-  .video-card__info {
-    flex: 1;
-    min-width: 0;
-  }
-  .video-card__title-container {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 8px;
-  }
-
-  .video-card__title {
-    font-family: 'Roboto', Arial, sans-serif;
-    margin: 0;
-    color: #0f0f0f;
-    font-size: 17px;
-    font-weight: 600;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.4;
-  }
-
-  .video-card__more-btn {
-    background: none;
-    border: none;
-    padding: 4px;
-    display: flex;
-    margin-right: -5px;
-    cursor: pointer;
-  }
-
-  .video-card__more-btn:hover {
-    background:rgb(196, 196, 196);
-    border-color: black 1px solid;
-    border-radius: 50%;
-  }
-
-  .video-card__more-icon {
-    width: 20px;
-    height: 20px;
-    fill: #606060;
-  }
-
-  .video-card__channel {
-  font-family: 'Roboto', Arial, sans-serif;
-  font-weight: 400;
-  font-size: 14px;
-  color: #606060;
-  display: inline-block; /* Thay từ display: block */
-  white-space: nowrap; /* Ngăn ngắt dòng để chiều dài đúng với nội dung */
-}
-
-  .video-card__meta {
-  font-family: 'Roboto', Arial, sans-serif;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: 4px;
-  }
-
-  .video-card__meta span {
-    font-weight: 400;
-    font-size: 14px;
-    color: #606060;
-  }
-
-  .video-card__meta .dot {
-    line-height: 1;
-  }
-`;
 export default HorizontalListVideo;

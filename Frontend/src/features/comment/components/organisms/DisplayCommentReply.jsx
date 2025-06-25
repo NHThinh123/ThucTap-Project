@@ -4,22 +4,18 @@ import ReplyButton from "../organisms/ReplyButton";
 import NestedRepliesSection from "../organisms/NestedRepliesSection";
 import { formatTime } from "../../../../constants/formatTime";
 import { AuthContext } from "../../../../contexts/auth.context";
-import useVideoReplyComments from "../../hooks/useGetReplyComment";
 
 const DisplayCommentReply = ({
-  commentId,
   renderCommentContent,
   handleAddReply,
   toggleCommentExpansion,
   expandedComments,
   level = 1,
+  sortType,
+  replies,
 }) => {
   const { auth } = useContext(AuthContext);
   const [visibleNestedReplies, setVisibleNestedReplies] = useState({});
-
-  // Lấy danh sách reply cho comment hiện tại
-  const { data: repliesData } = useVideoReplyComments(commentId);
-  const replies = repliesData || [];
 
   const toggleNestedRepliesVisibility = (replyId) => {
     setVisibleNestedReplies((prev) => ({
@@ -65,7 +61,7 @@ const DisplayCommentReply = ({
               }}
             >
               <div style={{ flex: "0 0 auto" }}>
-                <Avatar src={reply.user.avatar} size={32} />
+                <Avatar src={reply.user?.avatar} size={32} />
               </div>
               <div
                 style={{
@@ -77,7 +73,7 @@ const DisplayCommentReply = ({
               >
                 <div>
                   <span style={{ fontWeight: "bold", margin: 0, fontSize: 14 }}>
-                    {reply.user.nickname || "Ẩn danh"}
+                    {reply.user?.nickname || "Ẩn danh"}
                   </span>
                   <span
                     style={{
@@ -91,7 +87,7 @@ const DisplayCommentReply = ({
                 </div>
                 {renderCommentContent(reply)}
 
-                {auth.isAuthenticated && (
+                {auth?.isAuthenticated && (
                   <ReplyButton
                     commentId={reply._id}
                     currentUserAvatar={auth.user?.avatar}
@@ -109,6 +105,7 @@ const DisplayCommentReply = ({
                   toggleCommentExpansion={toggleCommentExpansion}
                   expandedComments={expandedComments}
                   level={level}
+                  sortType={sortType}
                 />
               </div>
 

@@ -7,6 +7,7 @@ const {
   updateWatchDuration,
   deleteHistory,
   deleteAllHistories,
+  togglePauseHistory,
 } = require("../controllers/history.controller");
 
 router.route("/").post(createHistory);
@@ -18,5 +19,7 @@ router
   .get(getHistory)
   .patch(updateWatchDuration)
   .delete(deleteHistory);
+
+router.route("/pause/:id/").patch(togglePauseHistory);
 
 module.exports = router;

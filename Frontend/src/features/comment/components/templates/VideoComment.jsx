@@ -8,6 +8,7 @@ import useCreateComment from "../../hooks/useCreateComment";
 import { formatTime } from "../../../../constants/formatTime";
 import CommentRepliesSection from "../organisms/CommentRepliesSection";
 import useVideoCommentsCount from "../../hooks/useVideoCommentCount";
+import ArrangeButton from "../organisms/ArrangeButton";
 
 const { TextArea } = Input;
 
@@ -21,6 +22,7 @@ const VideoComment = ({ video, isLoading }) => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [expandedComments, setExpandedComments] = useState({});
   const [visibleReplies, setVisibleReplies] = useState({});
+  const [sortType, setSortType] = useState("newest");
   const charLimit = 300;
 
   const { data: commentsData } = useVideoComments(videoId);
@@ -30,6 +32,22 @@ const VideoComment = ({ video, isLoading }) => {
   const totalCommentsCount = commentsCountData?.totalCount || 0;
 
   const createCommentMutation = useCreateComment();
+
+  // Hàm sắp xếp bình luận
+  const sortComments = (comments) => {
+    return [...comments].sort((a, b) => {
+      if (sortType === "newest") {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      } else if (sortType === "oldest") {
+        return new Date(a.createdAt) - new Date(b.createdAt);
+      } else if (sortType === "mostCommented") {
+        return (b.replyCount || 0) - (a.replyCount || 0);
+      }
+      return 0;
+    });
+  };
+
+  const sortedComments = sortComments(comments);
 
   // Thêm comment mới
   const handleAddComment = async () => {
@@ -68,6 +86,13 @@ const VideoComment = ({ video, isLoading }) => {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey && newComment.trim()) {
+      e.preventDefault();
+      handleAddComment();
+    }
+  };
+
   const handleCancel = () => {
     setNewComment("");
     setIsInputFocused(false);
@@ -90,8 +115,8 @@ const VideoComment = ({ video, isLoading }) => {
   const renderCommentContent = (comment) => {
     const isExpanded = expandedComments[comment._id];
     const truncatedContent =
-      comment.comment_content.length > charLimit
-        ? comment.comment_content.slice(0, charLimit) + "..."
+      comment.comment_content?.length > charLimit
+        ? comment.comment_content?.slice(0, charLimit) + "..."
         : comment.comment_content;
 
     return (
@@ -99,7 +124,7 @@ const VideoComment = ({ video, isLoading }) => {
         <span style={{ margin: "4px 0 0 0", display: "flex", width: "95%" }}>
           {isExpanded ? comment.comment_content : truncatedContent}
         </span>
-        {!isExpanded && comment.comment_content.length > charLimit && (
+        {!isExpanded && comment.comment_content?.length > charLimit && (
           <span
             style={{
               color: "#606060",
@@ -115,7 +140,7 @@ const VideoComment = ({ video, isLoading }) => {
             Đọc thêm
           </span>
         )}
-        {isExpanded && comment.content.length > charLimit && (
+        {isExpanded && comment.content?.length > charLimit && (
           <span
             style={{
               color: "#606060",
@@ -146,18 +171,12 @@ const VideoComment = ({ video, isLoading }) => {
         <h4 style={{ margin: 0, marginRight: 16 }}>
           {totalCommentsCount} bình luận
         </h4>
-        <Button
-          type="default"
-          style={{ fontSize: 14, border: "none", padding: 0 }}
-        >
-          <ChartBarDecreasing size={25} strokeWidth={1} />
-          Sắp xếp theo
-        </Button>
+        <ArrangeButton onSortChange={setSortType} sortType={sortType} />
       </div>
       <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
         <Avatar
           src={
-            auth.user.avatar ||
+            auth.user?.avatar ||
             "https://res.cloudinary.com/nienluan/image/upload/v1747707203/avaMacDinh_jxwsog.jpg"
           }
           size={45}
@@ -166,6 +185,7 @@ const VideoComment = ({ video, isLoading }) => {
           <TextArea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
+            onKeyDown={handleKeyDown}
             autoSize={{ minRows: 1 }}
             placeholder="Viết bình luận..."
             onFocus={() => setIsInputFocused(true)}
@@ -200,11 +220,11 @@ const VideoComment = ({ video, isLoading }) => {
           )}
         </div>
       </div>
-      {comments.length > 0 && (
+      {sortedComments?.length > 0 && (
         <List
           bordered={false}
           itemLayout="horizontal"
-          dataSource={comments}
+          dataSource={sortedComments}
           loading={isLoading}
           renderItem={(item) => (
             <List.Item style={{ borderBottom: "none", padding: "8px 0" }}>
@@ -229,7 +249,7 @@ const VideoComment = ({ video, isLoading }) => {
                   }}
                 >
                   <div style={{ flex: "0 0 auto" }}>
-                    <Avatar src={item.user.avatar} size={45} />
+                    <Avatar src={item.user?.avatar} size={45} />
                   </div>
                   <div
                     style={{
@@ -243,7 +263,7 @@ const VideoComment = ({ video, isLoading }) => {
                       <span
                         style={{ fontWeight: "bold", margin: 0, fontSize: 14 }}
                       >
-                        {item.user.nickname || "Ẩn danh"}
+                        {item.user?.nickname || "Ẩn danh"}
                       </span>
                       <span
                         style={{
@@ -270,6 +290,7 @@ const VideoComment = ({ video, isLoading }) => {
                       expandedComments={expandedComments}
                       visibleReplies={visibleReplies}
                       toggleRepliesVisibility={toggleRepliesVisibility}
+                      sortType={sortType}
                     />
                   </div>
                   {/* <div

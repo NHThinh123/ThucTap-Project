@@ -155,13 +155,13 @@ const VideoList = ({ userId }) => {
   const columns = [
     {
       title: (
-        <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           Video
           <SearchInput
             placeholder="Tìm kiếm theo tiêu đề"
             allowClear
             onChange={(e) => handleSearch(e.target.value)}
-            style={{ width: 200, marginLeft: 8 }}
+            style={{ width: "100%", maxWidth: "200px" }}
           />
         </div>
       ),
@@ -171,8 +171,8 @@ const VideoList = ({ userId }) => {
       minWidth: 200,
       sorter: (a, b) => a.video.title.localeCompare(b.video.title),
       render: (video) => (
-        <Row gutter={16} align={"middle"}>
-          <Col span={6}>
+        <Row gutter={[12, 8]} align="middle">
+          <Col xs={8} sm={6} md={6} lg={6}>
             <img
               alt={video.title}
               src={video.thumbnailUrl}
@@ -184,7 +184,7 @@ const VideoList = ({ userId }) => {
               }}
             />
           </Col>
-          <Col span={18}>
+          <Col xs={16} sm={18} md={18} lg={18}>
             <p
               style={{
                 display: "-webkit-box",
@@ -194,11 +194,12 @@ const VideoList = ({ userId }) => {
                 textOverflow: "ellipsis",
                 margin: 0,
                 fontWeight: "700",
+                fontSize: "clamp(14px, 3.5vw, 16px)",
               }}
             >
               {video.title}
             </p>
-            <Row align={"middle"}>
+            <Row align="middle">
               <p
                 style={{
                   display: "-webkit-box",
@@ -207,7 +208,7 @@ const VideoList = ({ userId }) => {
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   margin: 0,
-                  fontSize: 14,
+                  fontSize: "clamp(12px, 3vw, 14px)",
                   color: "gray",
                 }}
               >
@@ -224,21 +225,35 @@ const VideoList = ({ userId }) => {
       dataIndex: "video",
       sorter: (a, b) =>
         new Date(a.video.createdAt) - new Date(b.video.createdAt),
-      render: (video) => <p>{formatDate(video.createdAt)}</p>,
+      render: (video) => (
+        <p style={{ fontSize: "clamp(12px, 3vw, 14px)" }}>
+          {formatDate(video.createdAt)}
+        </p>
+      ),
+      responsive: ["sm"], // Ẩn trên màn hình nhỏ hơn sm
     },
     {
       title: "Lượt xem",
       dataIndex: "video",
       key: "views",
       sorter: (a, b) => a.video.views - b.video.views,
-      render: (video) => <p>{formatViews(video.views)}</p>,
+      render: (video) => (
+        <p style={{ fontSize: "clamp(12px, 3vw, 14px)" }}>
+          {formatViews(video.views)}
+        </p>
+      ),
     },
     {
       title: "Số bình luận",
       dataIndex: "video",
       key: "comment",
       sorter: (a, b) => a.video.commentCount - b.video.commentCount,
-      render: (video) => <p>{video.commentCount}</p>,
+      render: (video) => (
+        <p style={{ fontSize: "clamp(12px, 3vw, 14px)" }}>
+          {video.commentCount}
+        </p>
+      ),
+      responsive: ["md"], // Ẩn trên màn hình nhỏ hơn md
     },
     {
       title: "Lượt thích(%)",
@@ -278,16 +293,25 @@ const VideoList = ({ userId }) => {
                 showInfo={false}
                 style={{ maxWidth: "120px" }}
               />
-              <span style={{ color: "black", fontSize: 14 }}>
+              <span
+                style={{ color: "black", fontSize: "clamp(12px, 3vw, 14px)" }}
+              >
                 {percent === 100 ? "100%" : `${percent}%`}
               </span>
             </div>
-            <p style={{ color: "grey", fontSize: 14, textAlign: "end" }}>
+            <p
+              style={{
+                color: "grey",
+                fontSize: "clamp(12px, 3vw, 14px)",
+                textAlign: "end",
+              }}
+            >
               {like} lượt thích
             </p>
           </>
         );
       },
+      responsive: ["md"], // Ẩn trên màn hình nhỏ hơn md
     },
     {
       title: "Hành động",
@@ -328,6 +352,7 @@ const VideoList = ({ userId }) => {
           showSizeChanger: false,
           position: ["bottomRight"],
         }}
+        scroll={{ x: 800 }} // Cho phép cuộn ngang trên màn hình nhỏ
       />
       <Modal
         title="Chỉnh sửa video"
@@ -338,6 +363,8 @@ const VideoList = ({ userId }) => {
         cancelText="Hủy"
         centered
         confirmLoading={isEditing || isUploadingThumbnail}
+        width="90%"
+        style={{ maxWidth: "600px" }}
       >
         <Form form={form} layout="vertical">
           <Form.Item
@@ -351,7 +378,8 @@ const VideoList = ({ userId }) => {
                   src={thumbnailPreview}
                   alt="Thumbnail Preview"
                   style={{
-                    width: "70%",
+                    width: "100%",
+                    maxWidth: "400px",
                     aspectRatio: "16/9",
                     borderRadius: "8px",
                     objectFit: "cover",
@@ -398,6 +426,8 @@ const VideoList = ({ userId }) => {
         cancelText="Hủy"
         okButtonProps={{ danger: true }}
         confirmLoading={isDeleting}
+        width="90%"
+        style={{ maxWidth: "400px" }}
       >
         <p>
           Bạn có chắc chắn muốn xóa video "
