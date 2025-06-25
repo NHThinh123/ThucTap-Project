@@ -72,10 +72,10 @@ const PlayListSuggestCard = ({ video, watchDuration, playlist_id }) => {
           <div
             style={{
               width: "100%",
-              height: 100,
               borderRadius: 10,
               position: "relative",
               overflow: "hidden",
+              aspectRatio: "16/9",
             }}
           >
             <img

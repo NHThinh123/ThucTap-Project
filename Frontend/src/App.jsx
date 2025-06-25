@@ -307,7 +307,7 @@ function App() {
 
   const handleUploadClick = () => {
     isVideoWatchPage ? (window.location.href = "/studio") : navigate("/studio");
-    openModal(<UploadPage />);
+    openModal(<UploadPage navigate={navigate} />);
   };
 
   const handleLogoClick = () => {
