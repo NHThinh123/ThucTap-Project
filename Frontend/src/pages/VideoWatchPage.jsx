@@ -9,7 +9,7 @@ import useVideoById from "../features/video/hooks/useVideoById";
 
 const VideoWatchPage = () => {
   const { data, isLoading, isError } = useChannelVideo();
-  const videoList = data?.data.videos;
+  const videoList = data?.data?.videos;
   const { id } = useParams();
   const { videoData, isLoading: isLoadingVideoById } = useVideoById(id);
   const { video } = videoData;

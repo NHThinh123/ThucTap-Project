@@ -1,11 +1,11 @@
-// hooks/useVideos.js
 import { useQuery } from "@tanstack/react-query";
 import { getVideoChannel } from "../services/channelApi";
 
-export const useChannelVideo = (params) => {
+export const useChannelVideo = (userId) => {
   return useQuery({
-    queryKey: ["videos", params],
-    queryFn: () => getVideoChannel(params),
-    staleTime: 1000 * 60, // cache 1 phút
+    queryKey: ["videos", userId || "popular"],
+    queryFn: () => getVideoChannel(userId),
+    staleTime: 1000 * 60,
+    enabled: true,
   });
 };
