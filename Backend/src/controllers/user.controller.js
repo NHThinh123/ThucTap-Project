@@ -227,7 +227,8 @@ const signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Xử lý upload ảnh lên Cloudinary
-    let avatarUrl = null;
+    let avatarUrl =
+      "https://res.cloudinary.com/nienluan/image/upload/v1747707203/avaMacDinh_jxwsog.jpg";
     if (req.file) {
       avatarUrl = req.file.path;
     }

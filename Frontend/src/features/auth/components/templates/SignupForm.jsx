@@ -110,7 +110,7 @@ const SignupForm = () => {
               },
             ]}
           >
-            <Input size="large" placeholder="Truetube" />
+            <Input size="large" placeholder="CUSCTube" />
           </Form.Item>
 
           <Form.Item
