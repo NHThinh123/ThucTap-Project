@@ -20,19 +20,6 @@ const VideoWatch = ({ video }) => {
   const { createHistory } = useCreateHistory();
   const { updateWatchDuration } = useUpdateWatchDuration();
   const { HistoryData, isLoading: isLoadingHistory } = useHistory(userId);
-  useEffect(() => {
-    if (HistoryData?.data?.histories && !isLoadingHistory) {
-      let found = false;
-      HistoryData.data.histories.forEach((history) => {
-        history.videos.forEach((vid) => {
-          if (vid.video_id?._id === video._id) {
-            found = true;
-          }
-        });
-      });
-      setHasCreatedHistory(found);
-    }
-  }, [HistoryData, isLoadingHistory, video._id]);
 
   const videoRef = useRef(null);
   const prevPathRef = useRef(location.pathname);
@@ -43,6 +30,7 @@ const VideoWatch = ({ video }) => {
   const lastUpdateTimeRef = useRef(0);
   const saveHistoryTimeoutRef = useRef(null);
   const watchTimeRef = useRef(0);
+  const isCreatingHistoryRef = useRef(false);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -55,6 +43,30 @@ const VideoWatch = ({ video }) => {
   const [isCursorHidden, setIsCursorHidden] = useState(false);
   const [watchTime, setWatchTime] = useState(0);
   const [hasIncrementedView, setHasIncrementedView] = useState(false);
+
+  useEffect(() => {
+    if (isLoadingHistory || !HistoryData?.data?.histories) return;
+
+    let found = null;
+    for (const group of HistoryData.data.histories) {
+      for (const item of group.videos) {
+        if (item.video_id?._id === video._id) {
+          found = item;
+          break;
+        }
+      }
+      if (found) break;
+    }
+
+    if (found) {
+      setHistoryId(found._id);
+      setHasCreatedHistory(true);
+      if (found.watch_duration > 0) {
+        videoRef.current.currentTime = found.watch_duration;
+        console.log("Tua đến thời gian đã xem:", found.watch_duration);
+      }
+    }
+  }, [HistoryData, isLoadingHistory, video._id]);
 
   // Hàm xác định kích thước dựa trên breakpoint
   const updateDimensions = () => {
@@ -103,23 +115,27 @@ const VideoWatch = ({ video }) => {
   }, []);
 
   const saveWatchHistory = () => {
+    if (isLoadingHistory) return;
     const current = videoRef.current?.currentTime || 0;
     if (!video?._id || current <= 0) return;
 
     const payload = {
       user_id: userId,
       video_id: video._id,
-      watch_duration: Math.floor(current),
+      watch_duration: current,
     };
 
     if (!hasCreatedHistory) {
+      isCreatingHistoryRef.current = true;
       createHistory(payload, {
         onSuccess: (data) => {
           setHistoryId(data?._id);
           setHasCreatedHistory(true);
+          isCreatingHistoryRef.current = false;
           console.log("Đã tạo lịch sử:", data);
         },
         onError: (err) => {
+          isCreatingHistoryRef.current = false;
           if (
             err?.response?.data?.message ===
             "This video already exists in the user's history"
@@ -133,7 +149,7 @@ const VideoWatch = ({ video }) => {
       updateWatchDuration(
         {
           id: historyId,
-          watch_duration: Math.floor(current),
+          watch_duration: current,
         },
         {
           onSuccess: (data) => {
@@ -402,7 +418,8 @@ const VideoWatch = ({ video }) => {
 
     const handleEnded = () => {
       setIsPlaying(false);
-      saveWatchHistory();
+      // saveWatchHistory();
+      clearInterval(saveHistoryTimeoutRef.current);
     };
 
     video.addEventListener("timeupdate", handleTimeUpdate);
@@ -428,7 +445,6 @@ const VideoWatch = ({ video }) => {
     if (!videoEl || !video || !HistoryData?.data?.histories) return;
 
     let found = null;
-
     for (const group of HistoryData.data.histories) {
       for (const item of group.videos) {
         if (item.video_id && item.video_id._id === video._id) {
@@ -439,16 +455,51 @@ const VideoWatch = ({ video }) => {
       if (found) break;
     }
 
-    if (found?.watch_duration > 0) {
-      videoEl.currentTime = found.watch_duration;
-      console.log("Tua đến thời gian đã xem:", found.watch_duration);
-      setWatchTime(0);
+    const handleLoadedMetadata = () => {
+      const duration = videoEl.duration;
+      console.log("Thời lượng video: ", duration);
+      console.log("Thời lượng xem trong lịch sử: ", found?.watch_duration);
+      console.log(
+        "found?.watch_duration === duration: ",
+        found?.watch_duration === duration
+      );
+
+      if (
+        found?.watch_duration &&
+        duration &&
+        found.watch_duration === duration
+      ) {
+        videoEl.currentTime = 0;
+        console.log("Reset thời lượng xem:", found.watch_duration);
+        setWatchTime(0);
+      } else if (
+        found?.watch_duration > 0 &&
+        duration &&
+        found.watch_duration !== duration
+      ) {
+        videoEl.currentTime = found.watch_duration;
+        console.log("Tua đến thời gian đã xem:", found.watch_duration);
+        setWatchTime(0);
+      }
+
+      if (found?._id) {
+        setHistoryId(found._id);
+        setHasCreatedHistory(true);
+      }
+    };
+
+    // Đăng ký sự kiện loadedmetadata
+    videoEl.addEventListener("loadedmetadata", handleLoadedMetadata);
+
+    // Kiểm tra nếu metadata đã được tải sẵn
+    if (videoEl.readyState >= 1) {
+      handleLoadedMetadata();
     }
 
-    if (found?._id) {
-      setHistoryId(found._id);
-      setHasCreatedHistory(true);
-    }
+    // Cleanup
+    return () => {
+      videoEl.removeEventListener("loadedmetadata", handleLoadedMetadata);
+    };
   }, [HistoryData, video]);
 
   // Kiểm tra thời gian xem để tăng lượt view
@@ -485,7 +536,7 @@ const VideoWatch = ({ video }) => {
     return () => {
       saveWatchHistory(); // lưu lần cuối khi rời khỏi trang
     };
-  }, []);
+  }, [video._id]);
 
   useEffect(() => {
     const prevPath = prevPathRef.current;
