@@ -49,7 +49,7 @@ function App() {
   );
   const isVideoWatchPage = location.pathname.startsWith("/watch/");
   const { data } = useUserSubscriptions(auth?.user?.id);
-  const userSubscriptionsList = data?.data.channels || [];
+  const userSubscriptionsList = data?.data?.channels || [];
   const [showAllChannels, setShowAllChannels] = useState(false);
   const [openKeys, setOpenKeys] = useState(
     playlistPathRegex.test(pathname) ? [] : ["subscriptions"]
