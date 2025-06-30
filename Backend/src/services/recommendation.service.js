@@ -8,21 +8,42 @@ const getRecommendationsService = async (userId) => {
     console.time("Fetch interaction data");
     const interactionData = await getInteractionDataService();
     console.timeEnd("Fetch interaction data");
-    console.log(`Interaction data size: ${interactionData.length}`);
     console.log(
-      `Unique video IDs in interaction data: ${
-        [...new Set(interactionData.map((item) => item.video_id))].length
+      `Interaction data size (before filtering): ${interactionData.length}`
+    );
+
+    // Lấy danh sách video_id hợp lệ từ collection videos
+    const validVideoIds = await Video.find().distinct("_id").lean();
+    const validVideoIdsSet = new Set(validVideoIds.map((id) => id.toString()));
+    console.log(
+      `Valid video IDs in database: ${validVideoIds.length}`,
+      validVideoIds.map((id) => id.toString())
+    );
+
+    // Lọc interaction_data để chỉ giữ lại các video_id hợp lệ
+    const filteredInteractionData = interactionData.filter((item) =>
+      validVideoIdsSet.has(item.video_id)
+    );
+    console.log(
+      `Interaction data size (after filtering): ${filteredInteractionData.length}`
+    );
+    console.log(
+      `Unique video IDs in filtered interaction data: ${
+        [...new Set(filteredInteractionData.map((item) => item.video_id))]
+          .length
       }`
     );
 
-    if (!interactionData || interactionData.length === 0) {
-      console.warn("No interaction data available");
+    if (!filteredInteractionData || filteredInteractionData.length === 0) {
+      console.warn("No valid interaction data available after filtering");
       const popularVideos = await Video.find()
         .sort({ views: -1 })
-        .populate("user_id");
+        .populate("user_id")
+        .lean();
       console.log(`Total videos in fallback: ${popularVideos.length}`);
       return {
-        message: "No interaction data, returning all videos sorted by views",
+        message:
+          "No valid interaction data, returning all videos sorted by views",
         data: {
           videos: popularVideos,
           total: popularVideos.length,
@@ -32,30 +53,31 @@ const getRecommendationsService = async (userId) => {
       };
     }
 
-    const allVideoIds = await Video.find().distinct("_id");
+    const allVideoIds = validVideoIds; // Sử dụng danh sách validVideoIds
     console.log(`Total video IDs in database: ${allVideoIds.length}`);
 
-    const data = JSON.stringify(interactionData);
+    const data = JSON.stringify(filteredInteractionData);
     const options = {
       mode: "text",
       pythonPath: process.env.PYTHON_PATH,
       pythonOptions: ["-u"],
       scriptPath: "./recommendation",
-      args: [userId, data, JSON.stringify(allVideoIds)],
+      args: [String(userId), data, JSON.stringify(allVideoIds)],
     };
 
     const result = await new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error("Python script timed out"));
-      }, 30000);
+      }, 60000); // Tăng timeout lên 60 giây để xử lý dữ liệu lớn hơn
 
       PythonShell.run("recommend.py", options, (err, results) => {
         clearTimeout(timeout);
         if (err) {
-          console.error("Python script error:", err);
+          console.error("Python script error details:", err);
           Video.find()
             .sort({ views: -1 })
             .populate("user_id")
+            .lean()
             .then((popularVideos) => {
               console.log(
                 `Total videos in error fallback: ${popularVideos.length}`
@@ -105,6 +127,7 @@ const getRecommendationsService = async (userId) => {
           const videoIds = parsedResults.map((rec) => rec.video_id);
           Video.find({ _id: { $in: videoIds } })
             .populate("user_id")
+            .lean()
             .then((videos) => {
               console.log(`Found videos: ${videos.length}`);
               const sortedVideos = parsedResults
@@ -114,17 +137,20 @@ const getRecommendationsService = async (userId) => {
                   );
                   return video
                     ? {
-                        ...video.toObject(),
+                        ...video,
                         predicted_rating: rec.predicted_rating,
+                        is_top_recommended: rec.is_top_recommended,
                       }
                     : null;
                 })
                 .filter((v) => v);
               console.log(`Final sorted videos: ${sortedVideos.length}`);
               console.log(
+                `Final recommendations:`,
                 sortedVideos.map((v) => ({
                   video_id: v._id,
                   predicted_rating: v.predicted_rating,
+                  is_top_recommended: v.is_top_recommended,
                 }))
               );
               resolve({
@@ -145,6 +171,7 @@ const getRecommendationsService = async (userId) => {
           Video.find()
             .sort({ views: -1 })
             .populate("user_id")
+            .lean()
             .then((popularVideos) => {
               console.log(
                 `Total videos in parse error fallback: ${popularVideos.length}`
@@ -172,7 +199,8 @@ const getRecommendationsService = async (userId) => {
     console.error("Recommendation service error:", error);
     const popularVideos = await Video.find()
       .sort({ views: -1 })
-      .populate("user_id");
+      .populate("user_id")
+      .lean();
     console.log(`Total videos in catch fallback: ${popularVideos.length}`);
     return {
       message:
