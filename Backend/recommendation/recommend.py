@@ -29,7 +29,7 @@ def train_and_save_model(data):
     return algo
 
 def get_recommendations(user_id, interaction_data, all_video_ids=None):
-    """Tạo đề xuất video cho người dùng, đảm bảo chỉ đề xuất video chưa xem."""
+    """Tạo đề xuất video cho người dùng, ưu tiên video chưa xem hoặc xem dưới 70%."""
     try:
         # Chuyển dữ liệu tương tác thành DataFrame
         data = pd.DataFrame(interaction_data)
@@ -44,7 +44,7 @@ def get_recommendations(user_id, interaction_data, all_video_ids=None):
         ]
         print(f"Số dòng dữ liệu tương tác đã lọc: {len(data)}", file=sys.stderr)
         
-        # Sử dụng all_video_ids nếu được cung cấp, nếu không lấy từ interaction_data
+        # Sử dụng all_video_ids nếu được cung cấp
         all_videos = [str(vid) for vid in all_video_ids] if all_video_ids else data["video_id"].astype(str).unique().tolist()
         print(f"Tổng số video: {len(all_videos)}", file=sys.stderr)
         
@@ -52,8 +52,8 @@ def get_recommendations(user_id, interaction_data, all_video_ids=None):
         if len(data) < 10 or len(all_videos) < 2:
             print("Không đủ dữ liệu, trả về tất cả video với predicted_rating 0", file=sys.stderr)
             recommendations = [
-                {"video_id": str(vid), "predicted_rating": 0, "is_top_recommended": i < TOP_RECOMMENDATIONS}
-                for i, vid in enumerate(all_videos)
+                {"video_id": str(vid), "predicted_rating": 0, "is_top_recommended": False}
+                for vid in all_videos
             ]
             return recommendations
         
@@ -65,27 +65,24 @@ def get_recommendations(user_id, interaction_data, all_video_ids=None):
             print("Huấn luyện mô hình mới", file=sys.stderr)
             algo = train_and_save_model(data)
         
-        # Lấy danh sách video đã tương tác
+        # Lấy danh sách video đã tương tác từ interaction_data
         rated_videos = data[data["user_id"] == str(user_id)]["video_id"].astype(str).unique().tolist()
         print(f"Video đã tương tác của người dùng {user_id}: {rated_videos}", file=sys.stderr)
         
-        # Đảm bảo chỉ xem xét video chưa xem
-        unrated_videos = [vid for vid in all_videos if vid not in rated_videos]
-        print(f"Video chưa xem của người dùng {user_id}: {unrated_videos}", file=sys.stderr)
-        
-        # Dự đoán điểm cho video chưa xem
+        # Dự đoán điểm cho tất cả video
         recommendations = []
-        if unrated_videos:
-            predictions = [algo.predict(str(user_id), vid) for vid in unrated_videos]
-            recommendations = [
-                {"video_id": str(pred.iid), "predicted_rating": pred.est, "is_top_recommended": False}
-                for pred in predictions
-            ]
+        for vid in all_videos:
+            pred = algo.predict(str(user_id), vid)
+            recommendations.append({
+                "video_id": str(pred.iid),
+                "predicted_rating": pred.est,
+                "is_top_recommended": False
+            })
         
         # Sắp xếp theo predicted_rating giảm dần
         recommendations = sorted(recommendations, key=lambda x: x["predicted_rating"], reverse=True)
         
-        # Đánh dấu 5 video hàng đầu
+        # Đánh dấu 5 video hàng đầu (sẽ được điều chỉnh trong recommendation.service.js để ưu tiên video chưa xem/xem dưới 70%)
         for i, rec in enumerate(recommendations[:TOP_RECOMMENDATIONS]):
             rec["is_top_recommended"] = True
         
@@ -97,8 +94,8 @@ def get_recommendations(user_id, interaction_data, all_video_ids=None):
     except Exception as e:
         print(f"Lỗi trong đề xuất: {str(e)}", file=sys.stderr)
         recommendations = [
-            {"video_id": str(vid), "predicted_rating": 0, "is_top_recommended": i < TOP_RECOMMENDATIONS}
-            for i, vid in enumerate(all_videos)
+            {"video_id": str(vid), "predicted_rating": 0, "is_top_recommended": False}
+            for vid in all_videos
         ]
         return recommendations
 
