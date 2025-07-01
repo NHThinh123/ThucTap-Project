@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const path = require("path");
 const { PythonShell } = require("python-shell");
 const { getInteractionDataService } = require("./video.service");
@@ -6,6 +7,39 @@ const History = require("../models/history.model");
 
 const getRecommendationsService = async (userId) => {
   try {
+    // Xử lý trường hợp người dùng đăng xuất (userId là null)
+    if (!userId) {
+      console.log(
+        "Người dùng đăng xuất, trả về tất cả video sắp xếp theo lượt xem"
+      );
+      const allVideos = await Video.find()
+        .sort({ views: -1 })
+        .populate("user_id")
+        .lean();
+      console.log(`Tổng số video trả về: ${allVideos.length}`);
+      const sortedVideos = allVideos.map((video, index) => ({
+        ...video,
+        predicted_rating: 0,
+        is_top_recommended: index < 5,
+      }));
+      return {
+        message:
+          "Người dùng đăng xuất, trả về tất cả video sắp xếp theo lượt xem",
+        data: {
+          videos: sortedVideos,
+          total: sortedVideos.length,
+          page: 1,
+          pages: 1,
+        },
+      };
+    }
+
+    // Kiểm tra userId hợp lệ cho người dùng đăng nhập
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new Error("Invalid userId");
+    }
+
+    // Logic cho người dùng đăng nhập
     console.time("Lấy dữ liệu tương tác");
     const interactionData = await getInteractionDataService();
     console.timeEnd("Lấy dữ liệu tương tác");
@@ -56,7 +90,7 @@ const getRecommendationsService = async (userId) => {
       }`
     );
 
-    // Tạo danh sách video để đề xuất (bao gồm tất cả video, kể cả xem trên 70%)
+    // Tạo danh sách video để đề xuất
     const allVideoIds = validVideoIds.map((id) => id.toString());
     console.log(`Tổng số video ID: ${allVideoIds.length}`);
 
@@ -71,15 +105,15 @@ const getRecommendationsService = async (userId) => {
           ...video,
           predicted_rating: watchedOver70VideoIds.has(video._id.toString())
             ? 0
-            : video.views / 1000, // Giảm rating cho video xem trên 70%
+            : video.views / 1000,
           is_top_recommended: false,
         }))
         .sort((a, b) => {
           const aWatched = watchedOver70VideoIds.has(a._id.toString());
           const bWatched = watchedOver70VideoIds.has(b._id.toString());
-          if (aWatched && !bWatched) return 1; // Đẩy video xem trên 70% xuống dưới
+          if (aWatched && !bWatched) return 1;
           if (!aWatched && bWatched) return -1;
-          return b.predicted_rating - a.predicted_rating; // Sắp xếp theo rating
+          return b.predicted_rating - a.predicted_rating;
         });
       console.log(`Tổng số video trong dự phòng: ${sortedVideos.length}`);
       return {
@@ -204,7 +238,7 @@ const getRecommendationsService = async (userId) => {
                         predicted_rating: watchedOver70VideoIds.has(
                           video._id.toString()
                         )
-                          ? Math.min(rec.predicted_rating, 0.5) // Giảm rating cho video xem trên 70%
+                          ? Math.min(rec.predicted_rating, 0.5)
                           : rec.predicted_rating,
                         is_top_recommended: rec.is_top_recommended,
                       }
@@ -214,12 +248,12 @@ const getRecommendationsService = async (userId) => {
                 .sort((a, b) => {
                   const aWatched = watchedOver70VideoIds.has(a._id.toString());
                   const bWatched = watchedOver70VideoIds.has(b._id.toString());
-                  if (aWatched && !bWatched) return 1; // Đẩy video xem trên 70% xuống dưới
+                  if (aWatched && !bWatched) return 1;
                   if (!aWatched && bWatched) return -1;
-                  return b.predicted_rating - a.predicted_rating; // Sắp xếp theo rating
+                  return b.predicted_rating - a.predicted_rating;
                 });
 
-              // Đảm bảo chỉ top 5 video không xem trên 70% được đánh dấu is_top_recommended
+              // Đảm bảo chỉ top 5 video chưa xem được đánh dấu là top recommended
               let topCount = 0;
               for (let video of sortedVideos) {
                 video.is_top_recommended =
@@ -302,21 +336,11 @@ const getRecommendationsService = async (userId) => {
       .sort({ views: -1 })
       .populate("user_id")
       .lean();
-    const sortedVideos = videos
-      .map((video) => ({
-        ...video,
-        predicted_rating: watchedOver70VideoIds.has(video._id.toString())
-          ? 0
-          : video.views / 1000,
-        is_top_recommended: false,
-      }))
-      .sort((a, b) => {
-        const aWatched = watchedOver70VideoIds.has(a._id.toString());
-        const bWatched = watchedOver70VideoIds.has(b._id.toString());
-        if (aWatched && !bWatched) return 1;
-        if (!aWatched && bWatched) return -1;
-        return b.predicted_rating - a.predicted_rating;
-      });
+    const sortedVideos = videos.map((video) => ({
+      ...video,
+      predicted_rating: 0,
+      is_top_recommended: false,
+    }));
     console.log(`Tổng số video trong dự phòng catch: ${sortedVideos.length}`);
     return {
       message:
