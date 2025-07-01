@@ -165,23 +165,7 @@ Một số thư viện (`scipy`, `scikit-surprise`) yêu cầu công cụ xây d
    pip install wheel
    ```
 
-### Bước 8: Khởi tạo dữ liệu (nếu cần)
-
-- Nếu dự án yêu cầu dữ liệu mẫu (video, người dùng, đánh giá):
-  1. Kiểm tra thư mục `Backend` để tìm script khởi tạo (ví dụ: `init-db.js` hoặc `ratings.csv`).
-  2. Chạy script khởi tạo cơ sở dữ liệu:
-     ```bash
-     mongo video_sharing init-db.js
-     ```
-     - Nếu dùng MongoDB Atlas, sử dụng MongoDB Compass hoặc lệnh `mongo` với URI.
-  3. Import dữ liệu cho lọc cộng tác:
-     ```bash
-     cd Backend
-     python import_data.py
-     ```
-     - Đảm bảo file dữ liệu (ví dụ: `ratings.csv`) có định dạng: `user_id`, `item_id`, `rating`.
-
-### Bước 9: Chạy dự án
+### Bước 8: Chạy dự án
 
 1. **Khởi động MongoDB**:
 
@@ -207,27 +191,13 @@ Một số thư viện (`scipy`, `scikit-surprise`) yêu cầu công cụ xây d
 
    - Ứng dụng sẽ mở trên `http://localhost:5173`.
 
-4. **Chạy Python (lọc cộng tác)**:
-
-   - Nếu dùng Flask API:
-     ```bash
-     cd Backend
-     python app.py
-     ```
-     - API chạy trên `http://localhost:5001`.
-   - Nếu dùng script độc lập:
-     ```bash
-     cd Backend
-     python recommendation_engine.py
-     ```
-
-5. **Kiểm tra FFmpeg**:
+4. **Kiểm tra FFmpeg**:
    - Gọi API xử lý video (nếu có) bằng Postman hoặc curl:
      ```bash
      curl http://localhost:3000/api/videos
      ```
 
-### Bước 10: Xử lý lỗi phổ biến
+### Bước 9: Xử lý lỗi phổ biến
 
 - **MongoDB**:
   - "Connection refused": Kiểm tra `mongod` đang chạy hoặc `MONGO_URI` đúng.
@@ -237,29 +207,8 @@ Một số thư viện (`scipy`, `scikit-surprise`) yêu cầu công cụ xây d
 - **Python**:
   - "Module not found": Cài lại dependencies bằng `pip install -r requirements.txt`.
   - Lỗi biên dịch: Cài Microsoft Visual C++ Build Tools.
-  - Cổng xung đột: Đảm bảo cổng 5001 (Python) không bị chiếm dụng.
 - **FFmpeg**:
   - "ffmpeg is not recognized": Kiểm tra PATH hoặc cài lại FFmpeg.
   - Lỗi định dạng video: Đảm bảo video đầu vào là MP4, AVI, hoặc định dạng tương thích.
 - **Cloudinary/Upstash**:
   - Lỗi kết nối: Kiểm tra thông tin trong `.env` (Cloudinary, Upstash Redis).
-
-### Bước 11: Kiểm tra toàn bộ hệ thống
-
-1. Mở trình duyệt và truy cập `http://localhost:5173` để kiểm tra frontend.
-2. Gọi API backend (ví dụ: `http://localhost:3000/api/videos`) để kiểm tra kết nối.
-3. Gọi API Python (nếu có, ví dụ: `http://localhost:5001/recommend?user_id=1`) để kiểm tra đề xuất.
-
-### Lưu ý triển khai
-
-- **Bảo mật**: Không đẩy file `.env` lên GitHub. Sử dụng `.env.example` để hướng dẫn cấu hình.
-- **Dữ liệu mẫu**: Cung cấp file `ratings.csv` hoặc `init-db.js` nếu cần.
-- **Triển khai server**: Nếu triển khai trên server (không phải local), cài `gunicorn` cho Python:
-  ```bash
-  pip install gunicorn
-  gunicorn -w 4 app:app
-  ```
-
-### Liên hệ
-
-Nếu gặp vấn đề, liên hệ qua email: <your-email@example.com>.
