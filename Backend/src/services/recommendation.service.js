@@ -1,106 +1,137 @@
-require("dotenv").config({ path: ".env.local" });
+const path = require("path");
 const { PythonShell } = require("python-shell");
 const { getInteractionDataService } = require("./video.service");
 const Video = require("../models/video.model");
+const History = require("../models/history.model"); // Thêm model History
 
 const getRecommendationsService = async (userId) => {
   try {
-    console.time("Fetch interaction data");
+    console.time("Lấy dữ liệu tương tác");
     const interactionData = await getInteractionDataService();
-    console.timeEnd("Fetch interaction data");
+    console.timeEnd("Lấy dữ liệu tương tác");
     console.log(
-      `Interaction data size (before filtering): ${interactionData.length}`
+      `Kích thước dữ liệu tương tác (trước khi lọc): ${interactionData.length}`
     );
 
-    // Lấy danh sách video_id hợp lệ từ collection videos
+    // Lấy lịch sử xem của người dùng
+    console.time("Lấy lịch sử người dùng");
+    const userHistory = await History.find({ user_id: userId })
+      .select("video_id")
+      .lean();
+    const watchedVideoIds = new Set(
+      userHistory.map((h) => h.video_id.toString())
+    );
+    console.timeEnd("Lấy lịch sử người dùng");
+    console.log(
+      `Video đã xem của người dùng ${userId}: ${watchedVideoIds.size}`
+    );
+
+    // Lấy danh sách video_id hợp lệ từ bộ sưu tập videos
     const validVideoIds = await Video.find().distinct("_id").lean();
     const validVideoIdsSet = new Set(validVideoIds.map((id) => id.toString()));
-    console.log(
-      `Valid video IDs in database: ${validVideoIds.length}`,
-      validVideoIds.map((id) => id.toString())
-    );
+    console.log(`Video ID hợp lệ trong cơ sở dữ liệu: ${validVideoIds.length}`);
 
-    // Lọc interaction_data để chỉ giữ lại các video_id hợp lệ
-    const filteredInteractionData = interactionData.filter((item) =>
-      validVideoIdsSet.has(item.video_id)
+    // Lọc interaction_data để chỉ giữ video_id hợp lệ và loại bỏ video đã xem
+    const filteredInteractionData = interactionData.filter(
+      (item) =>
+        validVideoIdsSet.has(item.video_id) &&
+        !watchedVideoIds.has(item.video_id)
     );
     console.log(
-      `Interaction data size (after filtering): ${filteredInteractionData.length}`
+      `Kích thước dữ liệu tương tác (sau khi lọc): ${filteredInteractionData.length}`
     );
     console.log(
-      `Unique video IDs in filtered interaction data: ${
+      `Số video ID duy nhất trong dữ liệu tương tác đã lọc: ${
         [...new Set(filteredInteractionData.map((item) => item.video_id))]
           .length
       }`
     );
 
-    if (!filteredInteractionData || filteredInteractionData.length === 0) {
-      console.warn("No valid interaction data available after filtering");
-      const popularVideos = await Video.find()
+    // Lọc allVideoIds để loại bỏ video đã xem
+    const unwatchedVideoIds = validVideoIds.filter(
+      (id) => !watchedVideoIds.has(id.toString())
+    );
+    console.log(`Video ID chưa xem: ${unwatchedVideoIds.length}`);
+
+    if (
+      !filteredInteractionData ||
+      filteredInteractionData.length === 0 ||
+      unwatchedVideoIds.length === 0
+    ) {
+      console.warn("Không có video chưa xem hợp lệ sau khi lọc");
+      const popularUnwatchedVideos = await Video.find({
+        _id: { $nin: Array.from(watchedVideoIds) },
+      })
         .sort({ views: -1 })
         .populate("user_id")
         .lean();
-      console.log(`Total videos in fallback: ${popularVideos.length}`);
+      console.log(
+        `Tổng số video chưa xem trong dự phòng: ${popularUnwatchedVideos.length}`
+      );
       return {
         message:
-          "No valid interaction data, returning all videos sorted by views",
+          "Không có video chưa xem hợp lệ, trả về video chưa xem phổ biến sắp xếp theo lượt xem",
         data: {
-          videos: popularVideos,
-          total: popularVideos.length,
+          videos: popularUnwatchedVideos,
+          total: popularUnwatchedVideos.length,
           page: 1,
           pages: 1,
         },
       };
     }
 
-    const allVideoIds = validVideoIds; // Sử dụng danh sách validVideoIds
-    console.log(`Total video IDs in database: ${allVideoIds.length}`);
-
     const data = JSON.stringify(filteredInteractionData);
     const options = {
       mode: "text",
-      pythonPath: process.env.PYTHON_PATH,
+      pythonPath: path.join(
+        __dirname,
+        "..",
+        "..",
+        "venv",
+        "Scripts",
+        "python.exe"
+      ),
       pythonOptions: ["-u"],
       scriptPath: "./recommendation",
-      args: [String(userId), data, JSON.stringify(allVideoIds)],
+      args: [String(userId), data, JSON.stringify(unwatchedVideoIds)],
     };
 
     const result = await new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
-        reject(new Error("Python script timed out"));
-      }, 60000); // Tăng timeout lên 60 giây để xử lý dữ liệu lớn hơn
+        reject(new Error("Script Python hết thời gian"));
+      }, 60000);
 
       PythonShell.run("recommend.py", options, (err, results) => {
         clearTimeout(timeout);
         if (err) {
-          console.error("Python script error details:", err);
-          Video.find()
+          console.error("Chi tiết lỗi script Python:", err);
+          Video.find({ _id: { $nin: Array.from(watchedVideoIds) } })
             .sort({ views: -1 })
             .populate("user_id")
             .lean()
-            .then((popularVideos) => {
+            .then((popularUnwatchedVideos) => {
               console.log(
-                `Total videos in error fallback: ${popularVideos.length}`
+                `Tổng số video chưa xem trong dự phòng lỗi: ${popularUnwatchedVideos.length}`
               );
               resolve({
                 message:
-                  "Error in recommendation engine, returning all videos sorted by views",
+                  "Lỗi trong công cụ đề xuất, trả về video chưa xem sắp xếp theo lượt xem",
                 data: {
-                  videos: popularVideos,
-                  total: popularVideos.length,
+                  videos: popularUnwatchedVideos,
+                  total: popularUnwatchedVideos.length,
                   page: 1,
                   pages: 1,
                 },
               });
             })
             .catch((fallbackErr) => {
-              reject(new Error(`Fallback error: ${fallbackErr.message}`));
+              reject(new Error(`Lỗi dự phòng: ${fallbackErr.message}`));
             });
           return;
         }
         try {
           if (!results || results.length === 0) {
-            throw new Error("No results returned from Python script");
+            throw new Error("Không có kết quả từ script Python");
           }
           let parsedResults = null;
           for (const result of results) {
@@ -114,22 +145,34 @@ const getRecommendationsService = async (userId) => {
             }
           }
           if (!parsedResults || !Array.isArray(parsedResults)) {
-            throw new Error("Python script did not return a valid JSON array");
+            throw new Error("Script Python không trả về mảng JSON hợp lệ");
           }
+          console.log(`Số video ID từ Python: ${parsedResults.length}`);
           console.log(
-            `Number of video IDs from Python: ${parsedResults.length}`
-          );
-          console.log(
-            `Video IDs from Python: ${JSON.stringify(
+            `Video ID từ Python: ${JSON.stringify(
               parsedResults.map((rec) => rec.video_id)
             )}`
           );
-          const videoIds = parsedResults.map((rec) => rec.video_id);
+
+          // Kiểm tra xem có video đã xem nào trong đề xuất không
+          const recommendedVideoIds = parsedResults.map((rec) => rec.video_id);
+          const watchedInRecommendations = recommendedVideoIds.filter((id) =>
+            watchedVideoIds.has(id)
+          );
+          if (watchedInRecommendations.length > 0) {
+            console.warn(
+              `Phát hiện video đã xem trong đề xuất: ${watchedInRecommendations}`
+            );
+          }
+
+          const videoIds = recommendedVideoIds.filter((id) =>
+            validVideoIdsSet.has(id)
+          );
           Video.find({ _id: { $in: videoIds } })
             .populate("user_id")
             .lean()
             .then((videos) => {
-              console.log(`Found videos: ${videos.length}`);
+              console.log(`Tìm thấy video: ${videos.length}`);
               const sortedVideos = parsedResults
                 .map((rec) => {
                   const video = videos.find(
@@ -144,9 +187,9 @@ const getRecommendationsService = async (userId) => {
                     : null;
                 })
                 .filter((v) => v);
-              console.log(`Final sorted videos: ${sortedVideos.length}`);
+              console.log(`Video cuối cùng đã sắp xếp: ${sortedVideos.length}`);
               console.log(
-                `Final recommendations:`,
+                `Đề xuất cuối cùng:`,
                 sortedVideos.map((v) => ({
                   video_id: v._id,
                   predicted_rating: v.predicted_rating,
@@ -154,7 +197,7 @@ const getRecommendationsService = async (userId) => {
                 }))
               );
               resolve({
-                message: "Videos retrieved successfully",
+                message: "Lấy video thành công",
                 data: {
                   videos: sortedVideos,
                   total: sortedVideos.length,
@@ -164,31 +207,31 @@ const getRecommendationsService = async (userId) => {
               });
             })
             .catch((queryErr) => {
-              reject(new Error(`Video query error: ${queryErr.message}`));
+              reject(new Error(`Lỗi truy vấn video: ${queryErr.message}`));
             });
         } catch (parseErr) {
-          console.error("JSON parse error:", parseErr);
-          Video.find()
+          console.error("Lỗi phân tích JSON:", parseErr);
+          Video.find({ _id: { $nin: Array.from(watchedVideoIds) } })
             .sort({ views: -1 })
             .populate("user_id")
             .lean()
-            .then((popularVideos) => {
+            .then((popularUnwatchedVideos) => {
               console.log(
-                `Total videos in parse error fallback: ${popularVideos.length}`
+                `Tổng số video chưa xem trong dự phòng lỗi phân tích: ${popularUnwatchedVideos.length}`
               );
               resolve({
                 message:
-                  "Error parsing recommendation results, returning all videos sorted by views",
+                  "Lỗi phân tích kết quả đề xuất, trả về video chưa xem sắp xếp theo lượt xem",
                 data: {
-                  videos: popularVideos,
-                  total: popularVideos.length,
+                  videos: popularUnwatchedVideos,
+                  total: popularUnwatchedVideos.length,
                   page: 1,
                   pages: 1,
                 },
               });
             })
             .catch((fallbackErr) => {
-              reject(new Error(`Fallback error: ${fallbackErr.message}`));
+              reject(new Error(`Lỗi dự phòng: ${fallbackErr.message}`));
             });
         }
       });
@@ -196,18 +239,22 @@ const getRecommendationsService = async (userId) => {
 
     return result;
   } catch (error) {
-    console.error("Recommendation service error:", error);
-    const popularVideos = await Video.find()
+    console.error("Lỗi dịch vụ đề xuất:", error);
+    const popularUnwatchedVideos = await Video.find({
+      _id: { $nin: Array.from(watchedVideoIds) },
+    })
       .sort({ views: -1 })
       .populate("user_id")
       .lean();
-    console.log(`Total videos in catch fallback: ${popularVideos.length}`);
+    console.log(
+      `Tổng số video chưa xem trong dự phòng catch: ${popularUnwatchedVideos.length}`
+    );
     return {
       message:
-        "Error in recommendation service, returning all videos sorted by views",
+        "Lỗi trong dịch vụ đề xuất, trả về video chưa xem sắp xếp theo lượt xem",
       data: {
-        videos: popularVideos,
-        total: popularVideos.length,
+        videos: popularUnwatchedVideos,
+        total: popularUnwatchedVideos.length,
         page: 1,
         pages: 1,
       },
