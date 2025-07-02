@@ -168,46 +168,54 @@ const incrementViewService = async (videoId) => {
 
 const getInteractionDataService = async () => {
   try {
-    console.time("Fetch reviews");
+    console.time("Lấy đánh giá");
     const reviews = await Review.find({}).select(
       "user_id video_id review_rating"
     );
-    console.timeEnd("Fetch reviews");
-    console.log(`Fetched ${reviews.length} reviews`);
+    console.timeEnd("Lấy đánh giá");
+    console.log(`Lấy được ${reviews.length} đánh giá`);
 
-    console.time("Fetch likes");
+    console.time("Lấy lượt thích");
     const likes = await User_Like_Video.find({}).select("user_id video_id");
-    console.timeEnd("Fetch likes");
-    console.log(`Fetched ${likes.length} likes`);
+    console.timeEnd("Lấy lượt thích");
+    console.log(`Lấy được ${likes.length} lượt thích`);
 
-    console.time("Fetch dislikes");
+    console.time("Lấy lượt không thích");
     const dislikes = await User_Dislike_Video.find({}).select(
       "user_id video_id"
     );
-    console.timeEnd("Fetch dislikes");
-    console.log(`Fetched ${dislikes.length} dislikes`);
+    console.timeEnd("Lấy lượt không thích");
+    console.log(`Lấy được ${dislikes.length} lượt không thích`);
 
-    console.time("Fetch comments");
+    console.time("Lấy bình luận");
     const comments = await Comment.find({}).select("user_id video_id");
-    console.timeEnd("Fetch comments");
-    console.log(`Fetched ${comments.length} comments`);
+    console.timeEnd("Lấy bình luận");
+    console.log(`Lấy được ${comments.length} bình luận`);
 
-    console.time("Fetch playlist videos");
+    console.time("Lấy video danh sách phát");
     const playlistVideos = await Playlist_Video.find({}).select("video_id");
-    console.timeEnd("Fetch playlist videos");
-    console.log(`Fetched ${playlistVideos.length} playlist videos`);
+    console.timeEnd("Lấy video danh sách phát");
+    console.log(`Lấy được ${playlistVideos.length} video danh sách phát`);
 
-    console.time("Fetch history");
-    const histories = await History.find({
-      watch_duration: { $gte: 5 },
-    }).select("user_id video_id");
-    console.timeEnd("Fetch history");
-    console.log(`Fetched ${histories.length} history records`);
+    console.time("Lấy lịch sử");
+    const histories = await History.find({}).select(
+      "user_id video_id watch_duration"
+    );
+    console.timeEnd("Lấy lịch sử");
+    console.log(`Lấy được ${histories.length} bản ghi lịch sử`);
 
-    console.time("Aggregate data");
+    // Lấy duration của tất cả video để so sánh
+    console.time("Lấy duration video");
+    const videos = await Video.find({}).select("_id duration").lean();
+    const videoDurationMap = new Map(
+      videos.map((v) => [v._id.toString(), v.duration])
+    );
+    console.timeEnd("Lấy duration video");
+
+    console.time("Tổng hợp dữ liệu");
     const interactionData = [];
 
-    // Xử lý reviews (explicit feedback)
+    // Xử lý reviews (phản hồi rõ ràng)
     reviews.forEach((review) => {
       interactionData.push({
         user_id: review.user_id.toString(),
@@ -216,7 +224,7 @@ const getInteractionDataService = async () => {
       });
     });
 
-    // Xử lý likes (implicit feedback: +1)
+    // Xử lý likes (phản hồi ngầm: +1)
     likes.forEach((like) => {
       interactionData.push({
         user_id: like.user_id.toString(),
@@ -225,7 +233,7 @@ const getInteractionDataService = async () => {
       });
     });
 
-    // Xử lý dislikes (implicit feedback: -1)
+    // Xử lý dislikes (phản hồi ngầm: -1)
     dislikes.forEach((dislike) => {
       interactionData.push({
         user_id: dislike.user_id.toString(),
@@ -234,7 +242,7 @@ const getInteractionDataService = async () => {
       });
     });
 
-    // Xử lý comments (implicit feedback: +1)
+    // Xử lý comments (phản hồi ngầm: +1)
     comments.forEach((comment) => {
       interactionData.push({
         user_id: comment.user_id.toString(),
@@ -243,7 +251,7 @@ const getInteractionDataService = async () => {
       });
     });
 
-    // Xử lý playlist videos (implicit feedback: +1)
+    // Xử lý playlist videos (phản hồi ngầm: +1)
     playlistVideos.forEach((pv) => {
       interactionData.push({
         video_id: pv.video_id.toString(),
@@ -251,22 +259,28 @@ const getInteractionDataService = async () => {
       });
     });
 
-    // Xử lý history (implicit feedback: +1 nếu xem >= 30 giây)
+    // Xử lý history (phản hồi ngầm: dựa trên tỷ lệ watch_duration / duration)
     histories.forEach((history) => {
-      interactionData.push({
-        user_id: history.user_id.toString(),
-        video_id: history.video_id.toString(),
-        rating: 1,
-      });
+      const videoId = history.video_id.toString();
+      const duration = videoDurationMap.get(videoId) || 1; // Tránh chia cho 0
+      const watchRatio = history.watch_duration / duration;
+      if (watchRatio < 0.7) {
+        // Chỉ thêm video xem dưới 70% vào interactionData
+        interactionData.push({
+          user_id: history.user_id.toString(),
+          video_id: videoId,
+          rating: 1, // Hoặc điều chỉnh rating dựa trên watchRatio, ví dụ: watchRatio * 5
+        });
+      }
     });
 
-    console.timeEnd("Aggregate data");
-    console.log(`Aggregated ${interactionData.length} interactions`);
+    console.timeEnd("Tổng hợp dữ liệu");
+    console.log(`Tổng hợp ${interactionData.length} tương tác`);
 
     return interactionData;
   } catch (error) {
-    console.error("Error fetching interaction data:", error);
-    throw new Error(`Error fetching interaction data: ${error.message}`);
+    console.error("Lỗi khi lấy dữ liệu tương tác:", error);
+    throw new Error(`Lỗi khi lấy dữ liệu tương tác: ${error.message}`);
   }
 };
 

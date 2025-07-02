@@ -10,7 +10,7 @@ from surprise import accuracy
 MODEL_PATH = "knn_model.joblib"
 MIN_USER_INTERACTIONS = 5
 MIN_VIDEO_INTERACTIONS = 5
-TOP_RECOMMENDATIONS = 5  # Số video được đề xuất lên đầu
+TOP_RECOMMENDATIONS = 5
 
 def train_and_save_model(data):
     """Huấn luyện mô hình SVD và lưu vào file."""
@@ -18,24 +18,22 @@ def train_and_save_model(data):
     dataset = Dataset.load_from_df(data[["user_id", "video_id", "rating"]], reader)
     trainset, testset = train_test_split(dataset, test_size=0.2, random_state=42)
     
-    # Sử dụng SVD thay vì KNNBasic
     algo = SVD(n_factors=100, n_epochs=20, random_state=42, verbose=False)
     algo.fit(trainset)
     
-    # Đánh giá mô hình
     predictions = algo.test(testset)
     rmse = accuracy.rmse(predictions, verbose=False)
     print(f"RMSE: {rmse}", file=sys.stderr)
     
-    # Lưu mô hình
     joblib.dump(algo, MODEL_PATH)
     return algo
 
 def get_recommendations(user_id, interaction_data, all_video_ids=None):
-    """Tạo đề xuất video cho người dùng dựa trên dữ liệu tương tác."""
+    """Tạo đề xuất video cho người dùng, ưu tiên video chưa xem hoặc xem dưới 70%."""
     try:
-        # Chuyển dữ liệu thành DataFrame
+        # Chuyển dữ liệu tương tác thành DataFrame
         data = pd.DataFrame(interaction_data)
+        print(f"Số dòng dữ liệu tương tác: {len(data)}", file=sys.stderr)
         
         # Tiền xử lý dữ liệu thưa
         user_counts = data["user_id"].value_counts()
@@ -44,59 +42,60 @@ def get_recommendations(user_id, interaction_data, all_video_ids=None):
             (data["user_id"].isin(user_counts[user_counts >= MIN_USER_INTERACTIONS].index)) &
             (data["video_id"].isin(video_counts[video_counts >= MIN_VIDEO_INTERACTIONS].index))
         ]
+        print(f"Số dòng dữ liệu tương tác đã lọc: {len(data)}", file=sys.stderr)
         
-        # Sử dụng all_video_ids nếu được cung cấp, nếu không thì lấy từ interaction_data
-        all_videos = all_video_ids if all_video_ids else data["video_id"].unique()
-        print(f"All videos count: {len(all_videos)}", file=sys.stderr)
+        # Sử dụng all_video_ids nếu được cung cấp
+        all_videos = [str(vid) for vid in all_video_ids] if all_video_ids else data["video_id"].astype(str).unique().tolist()
+        print(f"Tổng số video: {len(all_videos)}", file=sys.stderr)
         
         # Kiểm tra dữ liệu đủ để chạy không
         if len(data) < 10 or len(all_videos) < 2:
-            print("Not enough data, returning all videos with predicted_rating 0", file=sys.stderr)
+            print("Không đủ dữ liệu, trả về tất cả video với predicted_rating 0", file=sys.stderr)
             recommendations = [
-                {"video_id": str(vid), "predicted_rating": 0, "is_top_recommended": i < TOP_RECOMMENDATIONS}
-                for i, vid in enumerate(all_videos)
+                {"video_id": str(vid), "predicted_rating": 0, "is_top_recommended": False}
+                for vid in all_videos
             ]
             return recommendations
         
         # Tải hoặc huấn luyện mô hình
         if os.path.exists(MODEL_PATH):
-            print("Loading existing model", file=sys.stderr)
+            print("Tải mô hình hiện có", file=sys.stderr)
             algo = joblib.load(MODEL_PATH)
         else:
-            print("Training new model", file=sys.stderr)
+            print("Huấn luyện mô hình mới", file=sys.stderr)
             algo = train_and_save_model(data)
         
-        # Lấy danh sách video đã xem
-        rated_videos = data[data["user_id"] == user_id]["video_id"].values
-        unrated_videos = [vid for vid in all_videos if vid not in rated_videos]
-        print(f"Number of unrated videos for user {user_id}: {len(unrated_videos)}", file=sys.stderr)
+        # Lấy danh sách video đã tương tác từ interaction_data
+        rated_videos = data[data["user_id"] == str(user_id)]["video_id"].astype(str).unique().tolist()
+        print(f"Video đã tương tác của người dùng {user_id}: {rated_videos}", file=sys.stderr)
         
-        # Dự đoán điểm cho video chưa xem
+        # Dự đoán điểm cho tất cả video
         recommendations = []
-        if unrated_videos:
-            predictions = [algo.predict(user_id, vid) for vid in unrated_videos]
-            recommendations = [
-                {"video_id": str(pred.iid), "predicted_rating": pred.est, "is_top_recommended": False}
-                for pred in predictions
-            ]
+        for vid in all_videos:
+            pred = algo.predict(str(user_id), vid)
+            recommendations.append({
+                "video_id": str(pred.iid),
+                "predicted_rating": pred.est,
+                "is_top_recommended": False
+            })
         
         # Sắp xếp theo predicted_rating giảm dần
         recommendations = sorted(recommendations, key=lambda x: x["predicted_rating"], reverse=True)
         
-        # Đánh dấu 5 video hàng đầu
-        for i, rec in enumerate(recommendations):
-            rec["is_top_recommended"] = i < TOP_RECOMMENDATIONS
+        # Đánh dấu 5 video hàng đầu (sẽ được điều chỉnh trong recommendation.service.js để ưu tiên video chưa xem/xem dưới 70%)
+        for i, rec in enumerate(recommendations[:TOP_RECOMMENDATIONS]):
+            rec["is_top_recommended"] = True
         
-        print(f"Total recommendations: {len(recommendations)}", file=sys.stderr)
-        print(f"Top {TOP_RECOMMENDATIONS} videos marked as is_top_recommended: true", file=sys.stderr)
+        print(f"Tổng số đề xuất: {len(recommendations)}", file=sys.stderr)
+        print(f"Top {TOP_RECOMMENDATIONS} video được đánh dấu is_top_recommended: true", file=sys.stderr)
         
         return recommendations
     
     except Exception as e:
-        print(f"Error in recommendation: {str(e)}", file=sys.stderr)
+        print(f"Lỗi trong đề xuất: {str(e)}", file=sys.stderr)
         recommendations = [
-            {"video_id": str(vid), "predicted_rating": 0, "is_top_recommended": i < TOP_RECOMMENDATIONS}
-            for i, vid in enumerate(all_videos)
+            {"video_id": str(vid), "predicted_rating": 0, "is_top_recommended": False}
+            for vid in all_videos
         ]
         return recommendations
 

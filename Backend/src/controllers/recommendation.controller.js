@@ -5,7 +5,10 @@ const {
 const getRecommendations = async (req, res, next) => {
   try {
     const { user_id } = req.params;
-    const result = await getRecommendationsService(user_id);
+    console.log(
+      `Lấy đề xuất cho user_id: ${user_id || "người dùng đăng xuất"}`
+    );
+    const result = await getRecommendationsService(user_id || null);
     res.status(200).json(result);
   } catch (error) {
     next(error);
