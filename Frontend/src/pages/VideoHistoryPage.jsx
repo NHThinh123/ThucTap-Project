@@ -70,7 +70,7 @@ const VideoHistoryPage = () => {
             Lịch sử xem video
           </Title>
         </Col>
-        <Col xs={1} sm={4} md={9} lg={13} xl={15} xxl={17}></Col>
+        <Col xs={0} sm={4} md={9} lg={13} xl={15} xxl={17}></Col>
         <Col span={1}>
           <Button
             type="primary"
