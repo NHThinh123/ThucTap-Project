@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { formatTime } from "../../../../constants/formatTime";
 import { formatViews } from "../../../../constants/formatViews";
 import { formatDuration } from "../../../../constants/formatDuration";
@@ -6,18 +6,21 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { useModal } from "../../../../contexts/modal.context";
 import { AuthContext } from "../../../../contexts/auth.context";
 import PlaylistModalContent from "../../../playlist/components/templates/PlaylistModalContent";
+import LoginRequiredModal from "../../../../components/templates/LoginRequiredModal";
 import { message } from "antd";
 
 const VideoCard = ({ video, isShow = true, watchDuration }) => {
   const { auth } = useContext(AuthContext);
   const { openModal } = useModal();
-  const navigate = useNavigate();
   const user_id = auth.isAuthenticated ? auth.user.id : null;
   const video_id = video?._id;
   const [hoveredItemId, setHoveredItemId] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const showLoginModal = () => setIsModalOpen(true);
+  const handleCancelModal = () => setIsModalOpen(false);
   // Lắng nghe custom event để đóng menu
   useEffect(() => {
     const handleCloseAllMenus = (event) => {
@@ -71,9 +74,8 @@ const VideoCard = ({ video, isShow = true, watchDuration }) => {
     setIsMenuOpen(false); // Close menu after action
     switch (action) {
       case "playlists":
-        console.log("Bookmark button clicked");
         if (!auth.isAuthenticated) {
-          navigate("/login");
+          showLoginModal();
           return;
         }
         if (!video_id || !user_id) {
@@ -270,6 +272,10 @@ const VideoCard = ({ video, isShow = true, watchDuration }) => {
           </div>
         </div>
       </div>
+      <LoginRequiredModal
+        isModalOpen={isModalOpen}
+        handleCancel={handleCancelModal}
+      />
     </>
   );
 };

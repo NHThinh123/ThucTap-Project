@@ -17,6 +17,7 @@ const ChannelInVideo = ({ channelId }) => {
     nickNameFontSize: 15,
     subscriberFontSize: 13,
     buttonSize: "large",
+    paddingRight: 20,
   });
 
   // Lấy thông tin channel
@@ -57,6 +58,7 @@ const ChannelInVideo = ({ channelId }) => {
           nickNameFontSize: 12,
           subscriberFontSize: 11,
           buttonSize: "small",
+          paddingRight: 4,
         });
       } else if (width < breakpoints.md) {
         // sm
@@ -65,6 +67,7 @@ const ChannelInVideo = ({ channelId }) => {
           nickNameFontSize: 13,
           subscriberFontSize: 11,
           buttonSize: "middle",
+          paddingRight: 8,
         });
       } else if (width < breakpoints.lg) {
         // md
@@ -73,6 +76,7 @@ const ChannelInVideo = ({ channelId }) => {
           nickNameFontSize: 13,
           subscriberFontSize: 12,
           buttonSize: "middle",
+          paddingRight: 20,
         });
       } else if (width < breakpoints.xl) {
         // lg
@@ -81,6 +85,7 @@ const ChannelInVideo = ({ channelId }) => {
           nickNameFontSize: 14,
           subscriberFontSize: 12,
           buttonSize: "large",
+          paddingRight: 20,
         });
       } else if (width < breakpoints.xxl) {
         // xl
@@ -89,6 +94,7 @@ const ChannelInVideo = ({ channelId }) => {
           nickNameFontSize: 14,
           subscriberFontSize: 13,
           buttonSize: "large",
+          paddingRight: 20,
         });
       } else {
         // xxl
@@ -97,6 +103,7 @@ const ChannelInVideo = ({ channelId }) => {
           nickNameFontSize: 15,
           subscriberFontSize: 13,
           buttonSize: "large",
+          paddingRight: 20,
         });
       }
     };
@@ -132,7 +139,7 @@ const ChannelInVideo = ({ channelId }) => {
           size={dimensions.avatarSize}
         />
       </Link>
-      <div style={{ marginLeft: 5, paddingRight: 20 }}>
+      <div style={{ marginLeft: 5, paddingRight: dimensions.paddingRight }}>
         <Link
           to={`/channel/${channelId}`}
           onClick={(e) => {

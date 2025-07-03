@@ -28,6 +28,9 @@ const getHistoryByIdService = async (historyId) => {
 };
 
 const getAllHistoriesOfUserService = async (userId) => {
+  if (!userId) {
+    throw new AppError("User ID is required", 400);
+  }
   const histories = await History.find({ user_id: userId })
     .sort({
       updatedAt: -1,

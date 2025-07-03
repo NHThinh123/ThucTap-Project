@@ -3,6 +3,7 @@ import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import useSubscribe from "../../../channel/hooks/useSubscribe";
 import useUnsubscribe from "../../../channel/hooks/useUnsubscribe";
+import LoginRequiredModal from "../../../../components/templates/LoginRequiredModal";
 
 const SubscribeButton = ({
   channelId,
@@ -15,6 +16,10 @@ const SubscribeButton = ({
   const { mutate: unsubscribe, isLoading: isUnsubscribing } = useUnsubscribe();
   const [isSubscribed, setIsSubscribed] = useState(initialIsSubscribed);
   const [buttonAntdSize, setButtonAntSize] = useState(18);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const showLoginModal = () => setIsModalOpen(true);
+  const handleCancelModal = () => setIsModalOpen(false);
 
   // Cập nhật kích thước dựa trên kích thước màn hình
   useEffect(() => {
@@ -31,22 +36,22 @@ const SubscribeButton = ({
 
       if (width < breakpoints.sm) {
         // xs
-        setButtonAntSize(12);
+        setButtonAntSize("small");
       } else if (width < breakpoints.md) {
         // sm
-        setButtonAntSize(13);
+        setButtonAntSize("small");
       } else if (width < breakpoints.lg) {
         // md
-        setButtonAntSize(14);
+        setButtonAntSize("middle");
       } else if (width < breakpoints.xl) {
         // lg
-        setButtonAntSize(15);
+        setButtonAntSize("large");
       } else if (width < breakpoints.xxl) {
         // xl
-        setButtonAntSize(16);
+        setButtonAntSize("large");
       } else {
         // xxl
-        setButtonAntSize(16);
+        setButtonAntSize("large");
       }
     };
 
@@ -57,7 +62,7 @@ const SubscribeButton = ({
 
   const handleClick = () => {
     if (!userId) {
-      message.error("Vui lòng đăng nhập để đăng ký!");
+      showLoginModal();
       return;
     }
 
@@ -113,11 +118,11 @@ const SubscribeButton = ({
   return (
     <>
       <Button
+        size={buttonAntdSize}
         style={{
           color: "#fff",
           background: isSubscribed ? "#000" : "#FF0000",
           border: "none",
-          fontSize: buttonAntdSize,
           fontWeight: 500,
           padding: isSubscribed ? "0 20px 0 20px" : "0 20px",
           height: 40,
@@ -150,6 +155,10 @@ const SubscribeButton = ({
       >
         <p>Hủy đăng ký kênh này?</p>
       </Modal>
+      <LoginRequiredModal
+        isModalOpen={isModalOpen}
+        handleCancel={handleCancelModal}
+      />
     </>
   );
 };

@@ -5,7 +5,7 @@ const User = require("../models/user.model");
 
 const sendResetPasswordEmail = async (email, resetToken) => {
   const user = await User.findOne({ email });
-  const resetLink = `http://localhost:3000/api/user/reset-password/${resetToken}`;
+  const resetLink = `http://localhost:3003/api/user/reset-password/${resetToken}`;
 
   const mailOptions = {
     from: process.env.AUTH_EMAIL,

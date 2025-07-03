@@ -45,7 +45,7 @@ const VideoWatch = ({ video }) => {
   const [hasIncrementedView, setHasIncrementedView] = useState(false);
 
   useEffect(() => {
-    if (isLoadingHistory || !HistoryData?.data?.histories) return;
+    if (!userId || isLoadingHistory || !HistoryData?.data?.histories) return;
 
     let found = null;
     for (const group of HistoryData.data.histories) {
@@ -66,7 +66,7 @@ const VideoWatch = ({ video }) => {
         console.log("Tua đến thời gian đã xem:", found.watch_duration);
       }
     }
-  }, [HistoryData, isLoadingHistory, video._id]);
+  }, [HistoryData, isLoadingHistory, video?._id]);
 
   // Hàm xác định kích thước dựa trên breakpoint
   const updateDimensions = () => {
@@ -115,7 +115,7 @@ const VideoWatch = ({ video }) => {
   }, []);
 
   const saveWatchHistory = () => {
-    if (isLoadingHistory) return;
+    if (!userId || isLoadingHistory) return;
     const current = videoRef.current?.currentTime || 0;
     if (!video?._id || current <= 0) return;
 
@@ -127,6 +127,7 @@ const VideoWatch = ({ video }) => {
 
     if (!hasCreatedHistory) {
       isCreatingHistoryRef.current = true;
+      if (!userId || isLoadingHistory) return;
       createHistory(payload, {
         onSuccess: (data) => {
           setHistoryId(data?._id);
@@ -146,6 +147,7 @@ const VideoWatch = ({ video }) => {
         },
       });
     } else if (historyId && current > 0) {
+      if (!userId || isLoadingHistory) return;
       updateWatchDuration(
         {
           id: historyId,
@@ -194,6 +196,8 @@ const VideoWatch = ({ video }) => {
       video.pause();
       setIsPlaying(false);
     } else {
+      video.muted = false;
+      setIsMuted(false);
       video.play();
       setIsPlaying(true);
     }
@@ -504,7 +508,8 @@ const VideoWatch = ({ video }) => {
 
   // Kiểm tra thời gian xem để tăng lượt view
   useEffect(() => {
-    if (!video?._id || !video?.user_id?._id || hasIncrementedView) return;
+    if (!userId || !video?._id || !video?.user_id?._id || hasIncrementedView)
+      return;
 
     // Ngưỡng để tăng view: 70% thời lượng video
     const viewThreshold = duration * 0.7;
@@ -536,7 +541,7 @@ const VideoWatch = ({ video }) => {
     return () => {
       saveWatchHistory(); // lưu lần cuối khi rời khỏi trang
     };
-  }, [video._id]);
+  }, [video?._id]);
 
   useEffect(() => {
     const prevPath = prevPathRef.current;
@@ -589,11 +594,13 @@ const VideoWatch = ({ video }) => {
           <video
             ref={videoRef}
             src={video.video_url}
-            muted
             style={{
               width: "100%",
               height: "100%",
               borderRadius: "12px",
+              objectFit: "contain",
+              objectPosition: "center",
+              backgroundColor: "black",
             }}
             onClick={togglePlay}
             onLoadedMetadata={(e) => {

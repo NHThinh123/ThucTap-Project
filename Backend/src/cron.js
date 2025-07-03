@@ -198,12 +198,19 @@ const aggregateStatsForDay = async (targetDate) => {
 };
 
 // Chạy cron job hàng ngày lúc 0h UTC
-cron.schedule("0 0 * * *", async () => {
-  const yesterday = new Date();
-  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
-  yesterday.setUTCHours(0, 0, 0, 0);
-  await aggregateStatsForDay(yesterday);
-});
+cron.schedule(
+  "0 0 * * *",
+  async () => {
+    const yesterday = new Date();
+    yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+    yesterday.setUTCHours(0, 0, 0, 0);
+    await aggregateStatsForDay(yesterday);
+  },
+  {
+    timezone: "UTC",
+    scheduled: false,
+  }
+);
 
 // Chạy bù khi server khởi động
 const catchUpMissedDays = async () => {

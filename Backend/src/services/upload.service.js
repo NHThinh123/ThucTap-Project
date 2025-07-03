@@ -5,7 +5,7 @@ const retry = require("async-retry");
 
 const VIDEO_STORAGE_PATH = path.join(__dirname, "../public/videos");
 const THUMBNAIL_STORAGE_PATH = path.join(__dirname, "../public/thumbnails");
-const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
+const BASE_URL = process.env.BASE_URL || "http://localhost:3003";
 
 if (!fs.existsSync(VIDEO_STORAGE_PATH)) {
   fs.mkdirSync(VIDEO_STORAGE_PATH, { recursive: true });
