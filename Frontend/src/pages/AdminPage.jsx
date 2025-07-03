@@ -82,7 +82,17 @@ const AdminPage = () => {
     {
       key: "back",
       icon: <ArrowLeftOutlined />,
-      label: <span onClick={handleLogout}>Đăng xuất</span>,
+      label: (
+        <span 
+          onClick={handleLogout}
+          style={{ 
+            color: isLoggingOut ? '#999' : 'inherit',
+            cursor: isLoggingOut ? 'not-allowed' : 'pointer'
+          }}
+        >
+          {isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
+        </span>
+      ),
     },
   ];
 

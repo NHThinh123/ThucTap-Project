@@ -10,7 +10,6 @@ import HomePage from "./pages/HomePage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import SignupPage from "./pages/SignupPage.jsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
-import NewPasswordPage from "./pages/NewPasswordPage.jsx";
 import ChannelPage from "./pages/ChannelPage.jsx";
 import VideoWatchPage from "./pages/VideoWatchPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
@@ -99,10 +98,6 @@ const router = createBrowserRouter([
   {
     path: "resetpassword",
     element: <ResetPasswordPage />,
-  },
-  {
-    path: "reset-password/:token",
-    element: <NewPasswordPage />,
   },
   {
     path: "studio",
