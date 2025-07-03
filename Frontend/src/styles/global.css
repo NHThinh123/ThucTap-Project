@@ -27,7 +27,7 @@ body {
 
 body {
   background: #eee;
-  font-family: 'Poppins', Helvetica Neue, Helvetica, Arial, sans-serif;
+  font-family: "Poppins", Helvetica Neue, Helvetica, Arial, sans-serif;
   font-size: 14px;
   color: #000;
   margin: 0;
@@ -60,24 +60,24 @@ li.ant-menu-item.ant-menu-item-only-child {
   .hide-mobile {
     display: none !important;
   }
-  
+
   .container-responsive {
     padding: 0 15px;
   }
-  
+
   .ant-btn {
-    height: 40px !important;
+    /* height: 40px !important; */
     padding: 0 12px !important;
   }
-  
+
   .ant-input {
     padding: 10px 12px !important;
   }
-  
+
   .ant-form-item-label > label {
     font-size: 14px;
   }
-  
+
   .mobile-full-width {
     width: 100% !important;
   }
@@ -87,7 +87,7 @@ li.ant-menu-item.ant-menu-item-only-child {
   .hide-tablet {
     display: none !important;
   }
-  
+
   .tablet-center {
     text-align: center !important;
   }
@@ -121,7 +121,8 @@ li.ant-menu-item.ant-menu-item-only-child {
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
