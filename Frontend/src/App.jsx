@@ -469,8 +469,11 @@ function App() {
                     </Dropdown>
                   ) : (
                     <Button
-                      type="primary"
-                      style={{ padding: "0 16px" }}
+                      type="text"
+                      style={{ padding: "0 16px",
+                        backgroundColor: "#c90626",
+                        color: "#fff",
+                       }}
                       onClick={() =>
                         isVideoWatchPage
                           ? (window.location.href = "/login")

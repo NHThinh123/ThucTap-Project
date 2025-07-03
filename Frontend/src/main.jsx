@@ -160,7 +160,7 @@ createRoot(document.getElementById("root")).render(
         },
         token: {
           colorPrimary: "#c90626",
-          fontFamily: "Roboto, arial, sans-serif", // Font chữ
+          fontFamily: "Roboto, arial, sans-serif",
           fontSize: 16,
           borderRadius: "20px",
         },
