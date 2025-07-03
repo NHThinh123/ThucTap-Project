@@ -1,5 +1,5 @@
 import { Form, Input, Button, Card, Col, Steps } from "antd";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCheckEmailExists, useResetPasswordSimple } from "../../hooks/useResetPassword";
 
@@ -9,9 +9,21 @@ const ResetPasswordForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [verifiedEmail, setVerifiedEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const navigate = useNavigate();
   const checkEmailMutation = useCheckEmailExists();
   const resetPasswordMutation = useResetPasswordSimple();
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const isMobile = windowWidth < 768;
 
   // Bước 1: Xác minh email
   const onFinishEmailStep = async (values) => {
@@ -60,70 +72,79 @@ const ResetPasswordForm = () => {
       lg={10} 
       xl={8}
       style={{
-        background: "linear-gradient(135deg, #c90626 0%, #e74c3c 100%)",
+        background: isMobile ? "transparent" : "linear-gradient(135deg, #e74c3c 0%, #e74c3c 100%)",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        padding: "20px",
-        minHeight: "100vh",
+        padding: isMobile ? "0" : "20px",
+        minHeight: isMobile ? "auto" : "100vh",
         position: "relative",
         overflow: "hidden",
       }}
     >
-      {/* Background decorative elements */}
-      <div
-        style={{
-          position: "absolute",
-          top: "20%",
-          right: "15%",
-          width: "65px",
-          height: "65px",
-          borderRadius: "50%",
-          background: "rgba(255, 255, 255, 0.08)",
-          animation: "float 6s ease-in-out infinite",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          bottom: "25%",
-          left: "10%",
-          width: "85px",
-          height: "85px",
-          borderRadius: "50%",
-          background: "rgba(255, 255, 255, 0.05)",
-          animation: "float 8s ease-in-out infinite reverse",
-        }}
-      />
+      {/* Background decorative elements - chỉ hiện trên desktop */}
+      {!isMobile && (
+        <>
+          <div
+            style={{
+              position: "absolute",
+              top: "20%",
+              right: "15%",
+              width: "65px",
+              height: "65px",
+              borderRadius: "50%",
+              background: "rgba(255, 255, 255, 0.08)",
+              animation: "float 6s ease-in-out infinite",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              bottom: "25%",
+              left: "10%",
+              width: "85px",
+              height: "85px",
+              borderRadius: "50%",
+              background: "rgba(255, 255, 255, 0.05)",
+              animation: "float 8s ease-in-out infinite reverse",
+            }}
+          />
+        </>
+      )}
 
       <Card
         style={{
           width: "100%",
-          maxWidth: "500px",
-          padding: "2rem",
-          borderRadius: "15px",
-          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+          maxWidth: isMobile ? "100%" : "500px",
+          padding: isMobile ? "1.5rem" : "2rem",
+          borderRadius: isMobile ? "20px" : "15px",
           background: "rgba(255, 255, 255, 0.95)",
           backdropFilter: "blur(10px)",
           border: "1px solid rgba(255, 255, 255, 0.2)",
           margin: "auto",
           zIndex: 2,
+          boxShadow: isMobile ? "0 10px 40px rgba(0, 0, 0, 0.2)" : "0 8px 32px rgba(0, 0, 0, 0.3)",
         }}
       >
-        <div style={{ textAlign: "center", marginBottom: "30px" }}>
+        <div style={{ textAlign: "center", marginBottom: isMobile ? "24px" : "30px" }}>
           <h2
             style={{
-              fontSize: "clamp(24px, 5vw, 32px)",
+              fontSize: isMobile ? "26px" : "clamp(24px, 5vw, 32px)",
               fontWeight: "700",
               color: "#c90626",
-              marginBottom: "20px",
+              marginBottom: isMobile ? "16px" : "20px",
               fontFamily: "'Poppins', sans-serif",
             }}
           >
             Đặt Lại Mật Khẩu
           </h2>
 
-          <Steps current={currentStep} size="small" style={{ marginBottom: "20px" }}>
+          <Steps 
+            current={currentStep} 
+            size={isMobile ? "small" : "small"} 
+            style={{ marginBottom: isMobile ? "16px" : "20px" }}
+            direction={isMobile ? "vertical" : "horizontal"}
+          >
             <Step title="Xác minh Email" />
             <Step title="Mật khẩu mới" />
           </Steps>
@@ -131,7 +152,13 @@ const ResetPasswordForm = () => {
 
         {currentStep === 0 && (
           <div>
-            <p style={{ color: "#666", fontSize: "14px", lineHeight: "1.5", marginBottom: "20px", textAlign: "center" }}>
+            <p style={{ 
+              color: "#666", 
+              fontSize: isMobile ? "15px" : "14px", 
+              lineHeight: "1.5", 
+              marginBottom: isMobile ? "16px" : "20px", 
+              textAlign: "center" 
+            }}>
               Nhập email để xác minh tài khoản của bạn
             </p>
             
@@ -140,10 +167,10 @@ const ResetPasswordForm = () => {
               layout="vertical"
               onFinish={onFinishEmailStep}
               disabled={loading}
-              size="large"
+              size={isMobile ? "middle" : "large"}
             >
               <Form.Item
-                label="Email"
+                label={<span style={{ fontSize: isMobile ? "15px" : "14px", fontWeight: "500" }}>Email</span>}
                 name="email"
                 rules={[
                   { required: true, message: "Vui lòng nhập email!" },
@@ -151,14 +178,15 @@ const ResetPasswordForm = () => {
                 ]}
               >
                 <Input
-                  size="large"
+                  size={isMobile ? "large" : "large"}
                   placeholder="example@gmail.com"
                   autoComplete="email"
                   style={{
                     borderRadius: "10px",
-                    padding: "12px 16px",
+                    padding: isMobile ? "14px 16px" : "12px 16px",
                     transition: "all 0.3s",
                     border: "2px solid #f0f0f0",
+                    fontSize: isMobile ? "16px" : "14px",
                   }}
                   onFocus={(e) => e.target.style.borderColor = "#c90626"}
                   onBlur={(e) => e.target.style.borderColor = "#f0f0f0"}
@@ -173,17 +201,17 @@ const ResetPasswordForm = () => {
                   size="large"
                   loading={loading || checkEmailMutation.isPending}
                   style={{
-                    height: "50px",
+                    height: isMobile ? "54px" : "50px",
                     borderRadius: "10px",
                     background: "linear-gradient(135deg, #c90626 0%, #e74c3c 100%)",
                     border: "none",
-                    fontSize: "16px",
+                    fontSize: isMobile ? "17px" : "16px",
                     fontWeight: "600",
                     boxShadow: "0 4px 15px rgba(201, 6, 38, 0.3)",
                     transition: "all 0.3s",
                   }}
-                  onMouseEnter={(e) => e.target.style.transform = "translateY(-2px)"}
-                  onMouseLeave={(e) => e.target.style.transform = "translateY(0)"}
+                  onMouseEnter={(e) => !isMobile && (e.target.style.transform = "translateY(-2px)")}
+                  onMouseLeave={(e) => !isMobile && (e.target.style.transform = "translateY(0)")}
                 >
                   {loading || checkEmailMutation.isPending ? "Đang xác minh..." : "Xác minh Email"}
                 </Button>
@@ -194,7 +222,13 @@ const ResetPasswordForm = () => {
 
         {currentStep === 1 && (
           <div>
-            <p style={{ color: "#666", fontSize: "14px", lineHeight: "1.5", marginBottom: "20px", textAlign: "center" }}>
+            <p style={{ 
+              color: "#666", 
+              fontSize: isMobile ? "15px" : "14px", 
+              lineHeight: "1.5", 
+              marginBottom: isMobile ? "16px" : "20px", 
+              textAlign: "center" 
+            }}>
               Nhập mật khẩu mới cho tài khoản: <strong>{verifiedEmail}</strong>
             </p>
             
@@ -203,10 +237,10 @@ const ResetPasswordForm = () => {
               layout="vertical"
               onFinish={onFinishPasswordStep}
               disabled={loading}
-              size="large"
+              size={isMobile ? "middle" : "large"}
             >
               <Form.Item
-                label="Mật khẩu mới"
+                label={<span style={{ fontSize: isMobile ? "15px" : "14px", fontWeight: "500" }}>Mật khẩu mới</span>}
                 name="newPassword"
                 rules={[
                   { required: true, message: "Vui lòng nhập mật khẩu mới!" },
@@ -218,14 +252,15 @@ const ResetPasswordForm = () => {
                 ]}
               >
                 <Input.Password
-                  size="large"
+                  size={isMobile ? "large" : "large"}
                   placeholder="Nhập mật khẩu mới"
                   autoComplete="new-password"
                   style={{
                     borderRadius: "10px",
-                    padding: "12px 16px",
+                    padding: isMobile ? "14px 16px" : "12px 16px",
                     transition: "all 0.3s",
                     border: "2px solid #f0f0f0",
+                    fontSize: isMobile ? "16px" : "14px",
                   }}
                   onFocus={(e) => e.target.style.borderColor = "#c90626"}
                   onBlur={(e) => e.target.style.borderColor = "#f0f0f0"}
@@ -233,7 +268,7 @@ const ResetPasswordForm = () => {
               </Form.Item>
 
               <Form.Item
-                label="Xác nhận mật khẩu mới"
+                label={<span style={{ fontSize: isMobile ? "15px" : "14px", fontWeight: "500" }}>Xác nhận mật khẩu mới</span>}
                 name="confirmNewPassword"
                 dependencies={["newPassword"]}
                 rules={[
@@ -251,14 +286,15 @@ const ResetPasswordForm = () => {
                 ]}
               >
                 <Input.Password
-                  size="large"
+                  size={isMobile ? "large" : "large"}
                   placeholder="Nhập lại mật khẩu mới"
                   autoComplete="new-password"
                   style={{
                     borderRadius: "10px",
-                    padding: "12px 16px",
+                    padding: isMobile ? "14px 16px" : "12px 16px",
                     transition: "all 0.3s",
                     border: "2px solid #f0f0f0",
+                    fontSize: isMobile ? "16px" : "14px",
                   }}
                   onFocus={(e) => e.target.style.borderColor = "#c90626"}
                   onBlur={(e) => e.target.style.borderColor = "#f0f0f0"}
@@ -273,17 +309,17 @@ const ResetPasswordForm = () => {
                   size="large"
                   loading={loading || resetPasswordMutation.isPending}
                   style={{
-                    height: "50px",
+                    height: isMobile ? "54px" : "50px",
                     borderRadius: "10px",
                     background: "linear-gradient(135deg, #c90626 0%, #e74c3c 100%)",
                     border: "none",
-                    fontSize: "16px",
+                    fontSize: isMobile ? "17px" : "16px",
                     fontWeight: "600",
                     boxShadow: "0 4px 15px rgba(201, 6, 38, 0.3)",
                     transition: "all 0.3s",
                   }}
-                  onMouseEnter={(e) => e.target.style.transform = "translateY(-2px)"}
-                  onMouseLeave={(e) => e.target.style.transform = "translateY(0)"}
+                  onMouseEnter={(e) => !isMobile && (e.target.style.transform = "translateY(-2px)")}
+                  onMouseLeave={(e) => !isMobile && (e.target.style.transform = "translateY(0)")}
                 >
                   {loading || resetPasswordMutation.isPending ? "Đang cập nhật..." : "Đặt Lại Mật Khẩu"}
                 </Button>
@@ -297,9 +333,9 @@ const ResetPasswordForm = () => {
                   onClick={goBackToEmailStep}
                   disabled={loading}
                   style={{
-                    height: "50px",
+                    height: isMobile ? "52px" : "50px",
                     borderRadius: "10px",
-                    fontSize: "16px",
+                    fontSize: isMobile ? "16px" : "16px",
                     fontWeight: "500",
                     border: "2px solid rgba(255, 255, 255, 0.3)",
                     background: "rgba(255, 255, 255, 0.1)",
@@ -307,12 +343,16 @@ const ResetPasswordForm = () => {
                     transition: "all 0.3s",
                   }}
                   onMouseEnter={(e) => {
-                    e.target.style.background = "rgba(255, 255, 255, 0.2)";
-                    e.target.style.borderColor = "rgba(255, 255, 255, 0.5)";
+                    if (!isMobile) {
+                      e.target.style.background = "rgba(255, 255, 255, 0.2)";
+                      e.target.style.borderColor = "rgba(255, 255, 255, 0.5)";
+                    }
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.background = "rgba(255, 255, 255, 0.1)";
-                    e.target.style.borderColor = "rgba(255, 255, 255, 0.3)";
+                    if (!isMobile) {
+                      e.target.style.background = "rgba(255, 255, 255, 0.1)";
+                      e.target.style.borderColor = "rgba(255, 255, 255, 0.3)";
+                    }
                   }}
                 >
                   Quay lại bước trước
@@ -322,29 +362,33 @@ const ResetPasswordForm = () => {
           </div>
         )}
 
-        <Form.Item style={{ marginBottom: "24px" }}>
+        <Form.Item style={{ marginBottom: isMobile ? "20px" : "24px" }}>
           <Button
             type="default"
             block
             size="large"
             onClick={() => navigate("/login")}
             style={{
-              height: "50px",
+              height: isMobile ? "52px" : "50px",
               borderRadius: "10px",
-              fontSize: "16px",
+              fontSize: isMobile ? "16px" : "16px",
               fontWeight: "500",
               border: "2px solid rgba(255, 255, 255, 0.3)",
               background: "rgba(255, 255, 255, 0.1)",
-              color: "#fff",
+              color: "#000",
               transition: "all 0.3s",
             }}
             onMouseEnter={(e) => {
-              e.target.style.background = "rgba(255, 255, 255, 0.2)";
-              e.target.style.borderColor = "rgba(255, 255, 255, 0.5)";
+              if (!isMobile) {
+                e.target.style.background = "rgba(255, 255, 255, 0.2)";
+                e.target.style.borderColor = "rgba(255, 255, 255, 0.5)";
+              }
             }}
             onMouseLeave={(e) => {
-              e.target.style.background = "rgba(255, 255, 255, 0.1)";
-              e.target.style.borderColor = "rgba(255, 255, 255, 0.3)";
+              if (!isMobile) {
+                e.target.style.background = "rgba(255, 255, 255, 0.1)";
+                e.target.style.borderColor = "rgba(255, 255, 255, 0.3)";
+              }
             }}
           >
             Quay lại đăng nhập
@@ -352,15 +396,14 @@ const ResetPasswordForm = () => {
         </Form.Item>
 
         <div style={{ textAlign: "center" }}>
-          <p style={{ margin: "10px 0", fontSize: "14px" }}>
+          <p style={{ margin: "10px 0", fontSize: isMobile ? "15px" : "14px" }}>
             Chưa có tài khoản?{" "}
             <a 
               href="/signup" 
               style={{ 
-                color: "#fff", 
+                color: "#000", 
                 fontWeight: "600",
                 textDecoration: "none",
-                textShadow: "0 1px 2px rgba(0, 0, 0, 0.3)"
               }}
               onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
               onMouseLeave={(e) => e.target.style.textDecoration = "none"}

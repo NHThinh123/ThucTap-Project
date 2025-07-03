@@ -1,13 +1,25 @@
 import { Form, Input, Button, Card, Row, Col, DatePicker, Spin } from "antd";
 import { useSignup } from "../../hooks/useSignup";
 import dayjs from "dayjs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const SignupForm = () => {
   const { mutate: signupMutation } = useSignup();
   const [loading, setLoading] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const isMobile = windowWidth < 768;
 
   const onFinish = (values) => {
     setLoading(true);
@@ -38,72 +50,76 @@ const SignupForm = () => {
       lg={10} 
       xl={8}
       style={{
-        background: "linear-gradient(135deg, #e74c3c 0%, #e74c3c 100%)",
+        background: isMobile ? "transparent" : "linear-gradient(135deg, #e74c3c 0%, #e74c3c 100%)",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        padding: "20px",
-        minHeight: "100vh",
+        padding: isMobile ? "0" : "20px",
+        minHeight: isMobile ? "auto" : "100vh",
         position: "relative",
         overflow: "hidden",
       }}
     >
-      {/* Background decorative elements */}
-      <div
-        style={{
-          position: "absolute",
-          top: "10%",
-          left: "8%",
-          width: "70px",
-          height: "70px",
-          borderRadius: "50%",
-          background: "rgba(255, 255, 255, 0.08)",
-          animation: "float 7s ease-in-out infinite",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          top: "70%",
-          right: "12%",
-          width: "50px",
-          height: "50px",
-          borderRadius: "50%",
-          background: "rgba(255, 255, 255, 0.1)",
-          animation: "float 5s ease-in-out infinite reverse",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          bottom: "15%",
-          left: "20%",
-          width: "90px",
-          height: "90px",
-          borderRadius: "50%",
-          background: "rgba(255, 255, 255, 0.05)",
-          animation: "float 9s ease-in-out infinite",
-        }}
-      />
+      {/* Background decorative elements - chỉ hiện trên desktop */}
+      {!isMobile && (
+        <>
+          <div
+            style={{
+              position: "absolute",
+              top: "10%",
+              left: "8%",
+              width: "70px",
+              height: "70px",
+              borderRadius: "50%",
+              background: "rgba(255, 255, 255, 0.08)",
+              animation: "float 7s ease-in-out infinite",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: "70%",
+              right: "12%",
+              width: "50px",
+              height: "50px",
+              borderRadius: "50%",
+              background: "rgba(255, 255, 255, 0.1)",
+              animation: "float 5s ease-in-out infinite reverse",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              bottom: "15%",
+              left: "20%",
+              width: "90px",
+              height: "90px",
+              borderRadius: "50%",
+              background: "rgba(255, 255, 255, 0.05)",
+              animation: "float 9s ease-in-out infinite",
+            }}
+          />
+        </>
+      )}
 
       <Card
         style={{
           width: "100%",
-          maxWidth: "500px",
-          padding: "2rem",
-          borderRadius: "15px",
-          //boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+          maxWidth: isMobile ? "100%" : "500px",
+          padding: isMobile ? "1.5rem" : "2rem",
+          borderRadius: isMobile ? "20px" : "15px",
           background: "rgba(255, 255, 255, 0.95)",
           backdropFilter: "blur(10px)",
           border: "1px solid rgba(255, 255, 255, 0.2)",
           margin: "auto",
           zIndex: 2,
+          boxShadow: isMobile ? "0 10px 40px rgba(0, 0, 0, 0.2)" : "0 8px 32px rgba(0, 0, 0, 0.3)",
         }}
       >
-        <div style={{ textAlign: "center", marginBottom: "24px" }}>
+        <div style={{ textAlign: "center", marginBottom: isMobile ? "20px" : "24px" }}>
           <h2
             style={{
-              fontSize: "clamp(24px, 5vw, 32px)",
+              fontSize: isMobile ? "26px" : "clamp(24px, 5vw, 32px)",
               fontWeight: "700",
               color: "#c90626",
               marginBottom: "8px",
@@ -112,7 +128,7 @@ const SignupForm = () => {
           >
             Đăng Ký
           </h2>
-          <p style={{ color: "#666", fontSize: "14px" }}>
+          <p style={{ color: "#666", fontSize: isMobile ? "15px" : "14px" }}>
             Tạo tài khoản mới để bắt đầu
           </p>
         </div>
@@ -122,13 +138,13 @@ const SignupForm = () => {
           layout="vertical"
           onFinish={onFinish}
           disabled={loading}
-          size="large"
+          size={isMobile ? "middle" : "large"}
         >
           {/* Row 1: Tên hiển thị và Email */}
-          <Row gutter={16}>
+          <Row gutter={isMobile ? 0 : 16}>
             <Col xs={24} sm={12}>
               <Form.Item
-                label="Tên hiển thị"
+                label={<span style={{ fontSize: isMobile ? "15px" : "14px", fontWeight: "500" }}>Tên hiển thị</span>}
                 name="user_name"
                 rules={[
                   { required: true, message: "Hãy nhập tên" },
@@ -137,16 +153,17 @@ const SignupForm = () => {
                     message: "Tên không hợp lệ",
                   },
                 ]}
-                style={{ marginBottom: "16px" }}
+                style={{ marginBottom: isMobile ? "16px" : "16px" }}
               >
                 <Input 
-                  size="large" 
+                  size={isMobile ? "large" : "large"} 
                   placeholder="Nguyễn Nhật Duy"
                   style={{
                     borderRadius: "8px",
-                    padding: "10px 12px",
+                    padding: isMobile ? "12px 14px" : "10px 12px",
                     transition: "all 0.3s",
                     border: "2px solid #f0f0f0",
+                    fontSize: isMobile ? "16px" : "14px",
                   }}
                   onFocus={(e) => e.target.style.borderColor = "#c90626"}
                   onBlur={(e) => e.target.style.borderColor = "#f0f0f0"}
@@ -155,7 +172,7 @@ const SignupForm = () => {
             </Col>
             <Col xs={24} sm={12}>
               <Form.Item
-                label="Email"
+                label={<span style={{ fontSize: isMobile ? "15px" : "14px", fontWeight: "500" }}>Email</span>}
                 name="email"
                 rules={[
                   { required: true, message: "Hãy nhập email" },
@@ -164,16 +181,17 @@ const SignupForm = () => {
                     message: "Email không hợp lệ",
                   },
                 ]}
-                style={{ marginBottom: "16px" }}
+                style={{ marginBottom: isMobile ? "16px" : "16px" }}
               >
                 <Input 
-                  size="large" 
+                  size={isMobile ? "large" : "large"} 
                   placeholder="example@gmail.com"
                   style={{
                     borderRadius: "8px",
-                    padding: "10px 12px",
+                    padding: isMobile ? "12px 14px" : "10px 12px",
                     transition: "all 0.3s",
                     border: "2px solid #f0f0f0",
+                    fontSize: isMobile ? "16px" : "14px",
                   }}
                   onFocus={(e) => e.target.style.borderColor = "#c90626"}
                   onBlur={(e) => e.target.style.borderColor = "#f0f0f0"}
@@ -183,24 +201,25 @@ const SignupForm = () => {
           </Row>
 
           {/* Row 2: Tên Kênh và Ngày sinh */}
-          <Row gutter={16}>
+          <Row gutter={isMobile ? 0 : 16}>
             <Col xs={24} sm={12}>
               <Form.Item
-                label="Tên Kênh"
+                label={<span style={{ fontSize: isMobile ? "15px" : "14px", fontWeight: "500" }}>Tên Kênh</span>}
                 name="nickname"
                 rules={[
                   { required: true, message: "Hãy nhập tên kênh" },
                 ]}
-                style={{ marginBottom: "16px" }}
+                style={{ marginBottom: isMobile ? "16px" : "16px" }}
               >
                 <Input 
-                  size="large" 
+                  size={isMobile ? "large" : "large"} 
                   placeholder="CUSCTube"
                   style={{
                     borderRadius: "8px",
-                    padding: "10px 12px",
+                    padding: isMobile ? "12px 14px" : "10px 12px",
                     transition: "all 0.3s",
                     border: "2px solid #f0f0f0",
+                    fontSize: isMobile ? "16px" : "14px",
                   }}
                   onFocus={(e) => e.target.style.borderColor = "#c90626"}
                   onBlur={(e) => e.target.style.borderColor = "#f0f0f0"}
@@ -209,10 +228,10 @@ const SignupForm = () => {
             </Col>
             <Col xs={24} sm={12}>
               <Form.Item
-                label="Ngày sinh"
+                label={<span style={{ fontSize: isMobile ? "15px" : "14px", fontWeight: "500" }}>Ngày sinh</span>}
                 name="dateOfBirth"
                 rules={[{ required: true, message: "Hãy nhập ngày sinh" }]}
-                style={{ marginBottom: "16px" }}
+                style={{ marginBottom: isMobile ? "16px" : "16px" }}
               >
                 <DatePicker
                   format="YYYY-MM-DD"
@@ -220,11 +239,12 @@ const SignupForm = () => {
                   style={{
                     width: "100%",
                     borderRadius: "8px",
-                    padding: "10px 12px",
+                    padding: isMobile ? "12px 14px" : "10px 12px",
                     transition: "all 0.3s",
                     border: "2px solid #f0f0f0",
+                    fontSize: isMobile ? "16px" : "14px",
                   }}
-                  size="large"
+                  size={isMobile ? "large" : "large"}
                   disabledDate={disabledDate}
                   onFocus={(e) => e.target.style.borderColor = "#c90626"}
                   onBlur={(e) => e.target.style.borderColor = "#f0f0f0"}
@@ -234,10 +254,10 @@ const SignupForm = () => {
           </Row>
 
           {/* Row 3: Mật khẩu và Xác nhận mật khẩu */}
-          <Row gutter={16}>
+          <Row gutter={isMobile ? 0 : 16}>
             <Col xs={24} sm={12}>
               <Form.Item
-                label="Mật Khẩu"
+                label={<span style={{ fontSize: isMobile ? "15px" : "14px", fontWeight: "500" }}>Mật Khẩu</span>}
                 name="password"
                 rules={[
                   { required: true, message: "Hãy nhập mật khẩu" },
@@ -248,16 +268,17 @@ const SignupForm = () => {
                     message: "Mật khẩu phải có chữ Hoa, số, ký tự đặc biệt",
                   },
                 ]}
-                style={{ marginBottom: "16px" }}
+                style={{ marginBottom: isMobile ? "16px" : "16px" }}
               >
                 <Input.Password 
-                  size="large" 
+                  size={isMobile ? "large" : "large"} 
                   placeholder="Yumzy123@"
                   style={{
                     borderRadius: "8px",
-                    padding: "10px 12px",
+                    padding: isMobile ? "12px 14px" : "10px 12px",
                     transition: "all 0.3s",
                     border: "2px solid #f0f0f0",
+                    fontSize: isMobile ? "16px" : "14px",
                   }}
                   onFocus={(e) => e.target.style.borderColor = "#c90626"}
                   onBlur={(e) => e.target.style.borderColor = "#f0f0f0"}
@@ -266,7 +287,7 @@ const SignupForm = () => {
             </Col>
             <Col xs={24} sm={12}>
               <Form.Item
-                label="Xác nhận mật khẩu"
+                label={<span style={{ fontSize: isMobile ? "15px" : "14px", fontWeight: "500" }}>Xác nhận mật khẩu</span>}
                 name="confirmPassword"
                 dependencies={["password"]}
                 rules={[
@@ -282,16 +303,17 @@ const SignupForm = () => {
                     },
                   }),
                 ]}
-                style={{ marginBottom: "20px" }}
+                style={{ marginBottom: isMobile ? "20px" : "20px" }}
               >
                 <Input.Password 
-                  size="large" 
+                  size={isMobile ? "large" : "large"} 
                   placeholder="Nhập lại mật khẩu"
                   style={{
                     borderRadius: "8px",
-                    padding: "10px 12px",
+                    padding: isMobile ? "12px 14px" : "10px 12px",
                     transition: "all 0.3s",
                     border: "2px solid #f0f0f0",
+                    fontSize: isMobile ? "16px" : "14px",
                   }}
                   onFocus={(e) => e.target.style.borderColor = "#c90626"}
                   onBlur={(e) => e.target.style.borderColor = "#f0f0f0"}
@@ -309,32 +331,31 @@ const SignupForm = () => {
               size="large"
               loading={loading}
               style={{
-                height: "48px",
+                height: isMobile ? "52px" : "48px",
                 borderRadius: "8px",
                 background: "linear-gradient(135deg, #c90626 0%, #e74c3c 100%)",
                 border: "none",
-                fontSize: "16px",
+                fontSize: isMobile ? "17px" : "16px",
                 fontWeight: "600",
-                //boxShadow: "0 4px 15px rgba(201, 6, 38, 0.3)",
                 transition: "all 0.3s",
               }}
-              onMouseEnter={(e) => e.target.style.transform = "translateY(-2px)"}
-              onMouseLeave={(e) => e.target.style.transform = "translateY(0)"}
+              onMouseEnter={(e) => !isMobile && (e.target.style.transform = "translateY(-2px)")}
+              onMouseLeave={(e) => !isMobile && (e.target.style.transform = "translateY(0)")}
             >
               {loading ? "Đang đăng ký..." : "Đăng Ký"}
             </Button>
           </Form.Item>
 
-          <Form.Item style={{ marginBottom: "20px" }}>
+          <Form.Item style={{ marginBottom: isMobile ? "16px" : "20px" }}>
             <Button
               type="default"
               block
               size="large"
               onClick={() => navigate("/")}
               style={{
-                height: "48px",
+                height: isMobile ? "50px" : "48px",
                 borderRadius: "8px",
-                fontSize: "16px",
+                fontSize: isMobile ? "16px" : "16px",
                 fontWeight: "500",
                 border: "2px solid rgba(255, 255, 255, 0.3)",
                 background: "rgba(255, 255, 255, 0.1)",
@@ -342,12 +363,16 @@ const SignupForm = () => {
                 transition: "all 0.3s",
               }}
               onMouseEnter={(e) => {
-                e.target.style.background = "rgba(255, 255, 255, 0.2)";
-                e.target.style.borderColor = "rgba(255, 255, 255, 0.5)";
+                if (!isMobile) {
+                  e.target.style.background = "rgba(255, 255, 255, 0.2)";
+                  e.target.style.borderColor = "rgba(255, 255, 255, 0.5)";
+                }
               }}
               onMouseLeave={(e) => {
-                e.target.style.background = "rgba(255, 255, 255, 0.1)";
-                e.target.style.borderColor = "rgba(255, 255, 255, 0.3)";
+                if (!isMobile) {
+                  e.target.style.background = "rgba(255, 255, 255, 0.1)";
+                  e.target.style.borderColor = "rgba(255, 255, 255, 0.3)";
+                }
               }}
             >
               Quay về trang chủ
@@ -355,7 +380,7 @@ const SignupForm = () => {
           </Form.Item>
 
           <div style={{ textAlign: "center" }}>
-            <p style={{ margin: "0", fontSize: "14px" }}>
+            <p style={{ margin: "0", fontSize: isMobile ? "15px" : "14px" }}>
               Bạn có tài khoản?{" "}
               <a 
                 href="/login" 
@@ -363,7 +388,6 @@ const SignupForm = () => {
                   color: "#000", 
                   fontWeight: "600",
                   textDecoration: "none",
-                  
                 }}
                 onMouseEnter={(e) => e.target.style.textDecoration = "underline"}
                 onMouseLeave={(e) => e.target.style.textDecoration = "none"}
