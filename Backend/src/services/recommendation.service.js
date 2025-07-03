@@ -131,14 +131,7 @@ const getRecommendationsService = async (userId) => {
     const data = JSON.stringify(filteredInteractionData);
     const options = {
       mode: "text",
-      pythonPath: path.join(
-        __dirname,
-        "..",
-        "..",
-        "venv",
-        "Scripts",
-        "python.exe"
-      ),
+      pythonPath: "python3",
       pythonOptions: ["-u"],
       scriptPath: "./recommendation",
       args: [String(userId), data, JSON.stringify(allVideoIds)],
@@ -152,7 +145,7 @@ const getRecommendationsService = async (userId) => {
       PythonShell.run("recommend.py", options, (err, results) => {
         clearTimeout(timeout);
         if (err) {
-          console.error("Chi tiết lỗi script Python:", err);
+          // console.error("Chi tiết lỗi script Python:", err);
           Video.find()
             .sort({ views: -1 })
             .populate("user_id")

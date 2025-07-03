@@ -405,19 +405,21 @@ function App() {
                 xl={3}
                 style={{ display: "flex", justifyContent: "center" }}
               >
-                <Button
-                  size={windowWidth < 700 ? "small" : "middle"}
-                  color="primary"
-                  variant="outlined"
-                  style={{
-                    fontSize: "16px",
-                    marginLeft: "16px",
-                  }}
-                  onClick={handleUploadClick}
-                >
-                  <PlusOutlined />
-                  {windowWidth > 1100 && "Đăng tải"}
-                </Button>
+                {isUserLoggedIn && (
+                  <Button
+                    size={windowWidth < 700 ? "small" : "middle"}
+                    color="primary"
+                    variant="outlined"
+                    style={{
+                      fontSize: "16px",
+                      marginLeft: "16px",
+                    }}
+                    onClick={handleUploadClick}
+                  >
+                    <PlusOutlined />
+                    {windowWidth > 1100 && "Đăng tải"}
+                  </Button>
+                )}
               </Col>
             )}
             {!isSearchFocused && (
