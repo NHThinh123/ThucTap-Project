@@ -131,7 +131,7 @@ const getRecommendationsService = async (userId) => {
     const data = JSON.stringify(filteredInteractionData);
     const options = {
       mode: "text",
-      pythonPath: "python3",
+      pythonPath: "python",
       pythonOptions: ["-u"],
       scriptPath: "./recommendation",
       args: [String(userId), data, JSON.stringify(allVideoIds)],
