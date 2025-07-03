@@ -173,53 +173,55 @@ const VideoComment = ({ video, isLoading }) => {
         </h4>
         <ArrangeButton onSortChange={setSortType} sortType={sortType} />
       </div>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-        <Avatar
-          src={
-            auth.user?.avatar ||
-            "https://res.cloudinary.com/nienluan/image/upload/v1747707203/avaMacDinh_jxwsog.jpg"
-          }
-          size={45}
-        />
-        <div style={{ flex: 1, position: "relative" }}>
-          <TextArea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            onKeyDown={handleKeyDown}
-            autoSize={{ minRows: 1 }}
-            placeholder="Viết bình luận..."
-            onFocus={() => setIsInputFocused(true)}
-            style={{
-              padding: "4px 10px",
-              fontSize: 14,
-              marginTop: 5,
-              borderRadius: 12,
-            }}
+      {auth.isAuthenticated && (
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+          <Avatar
+            src={
+              auth.user?.avatar ||
+              "https://res.cloudinary.com/nienluan/image/upload/v1747707203/avaMacDinh_jxwsog.jpg"
+            }
+            size={45}
           />
-          {isInputFocused && (
-            <div
+          <div style={{ flex: 1, position: "relative" }}>
+            <TextArea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              onKeyDown={handleKeyDown}
+              autoSize={{ minRows: 1 }}
+              placeholder="Viết bình luận..."
+              onFocus={() => setIsInputFocused(true)}
               style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: 8,
-                marginTop: 8,
+                padding: "4px 10px",
+                fontSize: 14,
+                marginTop: 5,
+                borderRadius: 12,
               }}
-            >
-              <Button onClick={handleCancel} style={{ fontSize: 14 }}>
-                Hủy
-              </Button>
-              <Button
-                type="primary"
-                onClick={handleAddComment}
-                disabled={!newComment.trim()}
-                style={{ fontSize: 14 }}
+            />
+            {isInputFocused && (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: 8,
+                  marginTop: 8,
+                }}
               >
-                Bình luận
-              </Button>
-            </div>
-          )}
+                <Button onClick={handleCancel} style={{ fontSize: 14 }}>
+                  Hủy
+                </Button>
+                <Button
+                  type="primary"
+                  onClick={handleAddComment}
+                  disabled={!newComment.trim()}
+                  style={{ fontSize: 14 }}
+                >
+                  Bình luận
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
       {sortedComments?.length > 0 && (
         <List
           bordered={false}

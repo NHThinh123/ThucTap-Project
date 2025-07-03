@@ -7,6 +7,7 @@ import useGetVideoAverageRating from "../../hooks/useGetVideoAverageRating";
 import useGetUserReviewForVideo from "../../hooks/useGetUserReviewForVideo";
 import useCreateOrUpdateReview from "../../hooks/useCreateOrUpdateReview";
 import { useEffect } from "react";
+import LoginRequiredModal from "../../../../components/templates/LoginRequiredModal";
 
 const desc = ["Rất tệ", "Tệ", "Bình thường", "Tuyệt vời", "Rất tuyệt vời"];
 
@@ -20,6 +21,10 @@ const ReviewSpace = () => {
     fontSize: 18,
     margin: 10,
   });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const showLoginModal = () => setIsModalOpen(true);
+  const handleCancelModal = () => setIsModalOpen(false);
 
   const { data: videoAverage } = useGetVideoAverageRating(video_id);
   const createOrUpdateReviewMutation = useCreateOrUpdateReview();
@@ -40,6 +45,10 @@ const ReviewSpace = () => {
 
   // Xử lý khi user thay đổi rating
   const handleRatingChange = (newValue) => {
+    if (!auth.isAuthenticated) {
+      showLoginModal();
+      return;
+    }
     setValue(newValue);
 
     // Chỉ gửi request khi user đã đăng nhập
@@ -152,6 +161,10 @@ const ReviewSpace = () => {
           </span>
         </div>
       </div>
+      <LoginRequiredModal
+        isModalOpen={isModalOpen}
+        handleCancel={handleCancelModal}
+      />
     </div>
   );
 };

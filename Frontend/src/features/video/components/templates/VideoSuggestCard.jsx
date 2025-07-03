@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { formatTime } from "../../../../constants/formatTime";
 import { formatViews } from "../../../../constants/formatViews";
 import { formatDuration } from "../../../../constants/formatDuration";
@@ -7,11 +7,11 @@ import { Col, message, Row } from "antd";
 import { useModal } from "../../../../contexts/modal.context";
 import { AuthContext } from "../../../../contexts/auth.context";
 import PlaylistModalContent from "../../../playlist/components/templates/PlaylistModalContent";
+import LoginRequiredModal from "../../../../components/templates/LoginRequiredModal";
 
 const VideoSuggestCard = ({ video, watchDuration }) => {
   const { auth } = useContext(AuthContext);
   const { openModal } = useModal();
-  const navigate = useNavigate();
   const user_id = auth.isAuthenticated ? auth.user.id : null;
   const video_id = video?._id;
   const [hoveredItemId, setHoveredItemId] = useState(null);
@@ -20,6 +20,10 @@ const VideoSuggestCard = ({ video, watchDuration }) => {
   const [dimensions, setDimensions] = useState({
     marginTop: 10,
   });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const showLoginModal = () => setIsModalOpen(true);
+  const handleCancelModal = () => setIsModalOpen(false);
 
   // Cập nhật kích thước dựa trên kích thước màn hình
   useEffect(() => {
@@ -135,9 +139,8 @@ const VideoSuggestCard = ({ video, watchDuration }) => {
     setIsMenuOpen(false); // Close menu after action
     switch (action) {
       case "playlists":
-        console.log("Bookmark button clicked");
         if (!auth.isAuthenticated) {
-          navigate("/login");
+          showLoginModal();
           return;
         }
         if (!video_id || !user_id) {
@@ -395,6 +398,10 @@ const VideoSuggestCard = ({ video, watchDuration }) => {
           )}
         </Col>
       </Row>
+      <LoginRequiredModal
+        isModalOpen={isModalOpen}
+        handleCancel={handleCancelModal}
+      />
     </div>
   );
 };
