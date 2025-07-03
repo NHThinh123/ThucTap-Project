@@ -4,17 +4,29 @@ import LoginForm from "../features/auth/components/templates/LoginForm";
 
 const LoginPage = () => {
   return (
-    <Row
+    <div
       style={{
         minHeight: "100vh",
+        background: "linear-gradient(135deg, #c90626 0%, #e74c3c 100%)",
+        display: "flex",
         alignItems: "center",
-        //background: "linear-gradient(135deg, #e0f7fa 0%, #80deea 100%)",
+        padding: "0",
         overflow: "hidden",
       }}
     >
-      <Illustration />
-      <LoginForm />
-    </Row>
+      <Row
+        style={{
+          width: "100%",
+          minHeight: "100vh",
+          margin: 0,
+        }}
+        align="middle"
+        gutter={0}
+      >
+        <Illustration />
+        <LoginForm />
+      </Row>
+    </div>
   );
 };
 

@@ -1,8 +1,8 @@
 import { Row } from "antd";
 import Illustration from "../features/auth/components/organisms/RegisterIllustration";
-import SignupForm from "../features/auth/components/templates/SignupForm";
+import ResetPasswordForm from "../features/auth/components/templates/ResetPasswordForm";
 
-const SignupPage = () => {
+const ResetPasswordPage = () => {
   return (
     <div
       style={{
@@ -24,10 +24,10 @@ const SignupPage = () => {
         gutter={0}
       >
         <Illustration />
-        <SignupForm />
+        <ResetPasswordForm />
       </Row>
     </div>
   );
 };
 
-export default SignupPage;
+export default ResetPasswordPage; 
