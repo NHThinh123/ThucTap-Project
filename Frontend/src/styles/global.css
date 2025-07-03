@@ -145,21 +145,15 @@ li.ant-menu-item.ant-menu-item-only-child {
 /* Improved focus states for accessibility */
 .ant-input:focus,
 .ant-input-affix-wrapper:focus,
-.ant-input-affix-wrapper-focused {
-  border-color: #c90626 !important;
-  box-shadow: 0 0 0 2px rgba(201, 6, 38, 0.2) !important;
-}
 
 .ant-btn-primary {
-  background: linear-gradient(135deg, #c90626 0%, #e74c3c 100%) !important;
   border: none !important;
-  box-shadow: 0 4px 15px rgba(201, 6, 38, 0.3) !important;
   transition: all 0.3s ease !important;
 }
 
 .ant-btn-primary:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(201, 6, 38, 0.4) !important;
+
 }
 
 .ant-btn-primary:active {
@@ -188,12 +182,12 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c90626;
+  background: #dbd6d6;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a60520;
+  background: #dbd6d6;
 }
 
 /* Loading states */
