@@ -26,6 +26,12 @@ const statsRoutes = require("./routes/stats.route");
 
 const sse = new SSE();
 app.use(cors());
+app.use(
+  cors({
+    origin: "*"
+   
+  })
+);
 app.use(express.json({ limit: "5gb" })); // Hỗ trợ JSON payload lớn
 app.use(express.urlencoded({ extended: true, limit: "5gb" })); // Hỗ trợ form data lớn
 

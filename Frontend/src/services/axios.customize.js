@@ -1,7 +1,14 @@
 import axios from "axios";
 // Set config defaults when creating the instance
+// Lấy IP và protocol động, gắn port 3003
+const backendURL =
+ 
+  `${window.location.protocol}//${window.location.hostname}:3003`;
+
+
+
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL,
+  baseURL: backendURL,
 });
 
 // Alter defaults after instance has been created

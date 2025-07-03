@@ -32,6 +32,25 @@ const getHistory = async (req, res, next) => {
   }
 };
 
+function fixVideoUrl(video, req) {
+  if (!video) return video;
+  const protocol = req.protocol;
+  const host = req.headers.host;
+  if (video.video_url && video.video_url.includes('localhost')) {
+    video.video_url = video.video_url.replace(
+      /http:\/\/localhost:\d+/,
+      `${protocol}://${host}`
+    );
+  }
+  if (video.thumbnail_video && video.thumbnail_video.includes('localhost')) {
+    video.thumbnail_video = video.thumbnail_video.replace(
+      /http:\/\/localhost:\d+/,
+      `${protocol}://${host}`
+    );
+  }
+  return video;
+}
+
 const getAllHistories = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -44,10 +63,20 @@ const getAllHistories = async (req, res, next) => {
       });
     }
     const histories = await getAllHistoriesOfUserService(id);
+    // Duyệt qua từng ngày, từng video trong histories để fix URL
+    const fixedHistories = histories.map(group => ({
+      ...group,
+      videos: group.videos.map(item => {
+        if (item.video_id && typeof item.video_id === 'object') {
+          item.video_id = fixVideoUrl(item.video_id, req);
+        }
+        return item;
+      })
+    }));
     res.status(200).json({
       status: "success",
-      results: histories.length,
-      data: { histories },
+      results: fixedHistories.length,
+      data: { histories: fixedHistories },
     });
   } catch (error) {
     next(error);

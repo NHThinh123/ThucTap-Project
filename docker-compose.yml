@@ -35,7 +35,7 @@ services:
       - "5173:5173"
     environment:
       - NODE_ENV=development
-      - VITE_API_URL
+      - VITE_API_URL=
     volumes:
       - ./Frontend:/app
       - /app/node_modules

@@ -229,10 +229,10 @@ const VideoUploadForm = ({ onSuccess, navigate }) => {
   };
 
   return (
-    <div style={{ maxWidth: 600, margin: "0 auto", padding: 24 }}>
+    <div style={{ maxWidth: 800, margin: "0 auto", padding: 24 }}>
       <Steps current={currentStep} style={{ marginBottom: 24 }}>
         <Step title="Tải video" />
-        <Step title="Tải thumbnail" />
+        <Step title="Tải ảnh bìa" />
         <Step title="Xác nhận thông tin" />
       </Steps>
 
