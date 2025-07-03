@@ -187,12 +187,12 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c90626;
+  background: #dbd6d6;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a60520;
+  background: #dbd6d6;
 }
 
 /* Loading states */
