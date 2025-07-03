@@ -598,6 +598,9 @@ const VideoWatch = ({ video }) => {
               width: "100%",
               height: "100%",
               borderRadius: "12px",
+              objectFit: "contain",
+              objectPosition: "center",
+              backgroundColor: "black",
             }}
             onClick={togglePlay}
             onLoadedMetadata={(e) => {

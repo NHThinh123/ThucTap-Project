@@ -36,22 +36,22 @@ const SubscribeButton = ({
 
       if (width < breakpoints.sm) {
         // xs
-        setButtonAntSize(12);
+        setButtonAntSize("small");
       } else if (width < breakpoints.md) {
         // sm
-        setButtonAntSize(13);
+        setButtonAntSize("small");
       } else if (width < breakpoints.lg) {
         // md
-        setButtonAntSize(14);
+        setButtonAntSize("middle");
       } else if (width < breakpoints.xl) {
         // lg
-        setButtonAntSize(15);
+        setButtonAntSize("large");
       } else if (width < breakpoints.xxl) {
         // xl
-        setButtonAntSize(16);
+        setButtonAntSize("large");
       } else {
         // xxl
-        setButtonAntSize(16);
+        setButtonAntSize("large");
       }
     };
 
@@ -118,11 +118,11 @@ const SubscribeButton = ({
   return (
     <>
       <Button
+        size={buttonAntdSize}
         style={{
           color: "#fff",
           background: isSubscribed ? "#000" : "#FF0000",
           border: "none",
-          fontSize: buttonAntdSize,
           fontWeight: 500,
           padding: isSubscribed ? "0 20px 0 20px" : "0 20px",
           height: 40,

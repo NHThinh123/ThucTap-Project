@@ -15,7 +15,7 @@ import { useModal } from "../../../../contexts/modal.context";
 import { useParams } from "react-router-dom";
 import useCountLikeVideo from "../../hooks/useCountLikeVideo";
 import { formatLikes } from "../../../../constants/formatLikes";
-import { Button, Divider, Dropdown, Menu, Space, message } from "antd";
+import { Button, Divider, Dropdown, Flex, Menu, Space, message } from "antd";
 import {
   LikeOutlined,
   LikeFilled,
@@ -259,7 +259,9 @@ const InteractButton = () => {
 
   return (
     <Space>
-      <div
+      <Flex
+        flex={1}
+        align="center"
         style={{
           border: "1px solid #d9d9d9",
           borderRadius: 50,
@@ -294,7 +296,7 @@ const InteractButton = () => {
           size="large"
           onClick={handleClickDislike}
         ></Button>
-      </div>
+      </Flex>
       {!isSmallScreen ? (
         <>
           <div style={{ border: "1px solid #d9d9d9", borderRadius: 50 }}>
