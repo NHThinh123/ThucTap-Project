@@ -63,7 +63,7 @@ app.use(errorHandler);
   try {
     await connectDB();
     console.log("Kết nối cơ sở dữ liệu thành công");
-    app.listen(port, () => {
+    app.listen(port, "0.0.0.0", () => {
       console.log(`Backend Nodejs App đang chạy trên cổng ${port}`);
     });
   } catch (error) {

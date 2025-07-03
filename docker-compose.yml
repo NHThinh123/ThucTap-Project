@@ -22,6 +22,7 @@ services:
       - CLOUDINARY_API_SECRET
       - UPSTASH_REDIS_REST_URL
       - UPSTASH_REDIS_REST_TOKEN
+      - TZ=UTC
     volumes:
       - ./Backend:/app
       - /app/node_modules
@@ -34,7 +35,7 @@ services:
       - "5173:5173"
     environment:
       - NODE_ENV=development
-      - VITE_API_URL=http://backend:3000
+      - VITE_API_URL
     volumes:
       - ./Frontend:/app
       - /app/node_modules

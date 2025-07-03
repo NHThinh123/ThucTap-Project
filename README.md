@@ -96,7 +96,7 @@
    ```
    PORT=3000
    MONGO_URI=mongodb://localhost:27017/video_sharing
-   BASE_URL=http://localhost:3000
+   BASE_URL=http://localhost:3003
    UPLOAD_PATH=./Uploads
    AUTH_EMAIL=your-email@example.com
    AUTH_PASS=your-email-password
@@ -120,7 +120,7 @@
    ```
 2. Tạo file `.env` trong thư mục `Frontend`:
    ```
-   VITE_API_URL=http://localhost:3000
+   VITE_API_URL=http://localhost:3003
    ```
    - Lưu ý: Vì frontend dùng Vite (cổng `5173`), biến môi trường bắt đầu bằng `VITE_`.
 
@@ -194,7 +194,7 @@ Một số thư viện (`scipy`, `scikit-surprise`) yêu cầu công cụ xây d
 4. **Kiểm tra FFmpeg**:
    - Gọi API xử lý video (nếu có) bằng Postman hoặc curl:
      ```bash
-     curl http://localhost:3000/api/videos
+     curl http://localhost:3003/api/videos
      ```
 
 ### Bước 9: Xử lý lỗi phổ biến

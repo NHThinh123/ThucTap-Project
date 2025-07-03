@@ -35,6 +35,14 @@ const getHistory = async (req, res, next) => {
 const getAllHistories = async (req, res, next) => {
   try {
     const { id } = req.params;
+    if (!id || id === "undefined") {
+      // Không có user id, trả về mảng rỗng
+      return res.status(200).json({
+        status: "success",
+        results: 0,
+        data: { histories: [] },
+      });
+    }
     const histories = await getAllHistoriesOfUserService(id);
     res.status(200).json({
       status: "success",
