@@ -3,6 +3,7 @@ import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import useSubscribe from "../../../channel/hooks/useSubscribe";
 import useUnsubscribe from "../../../channel/hooks/useUnsubscribe";
+import LoginRequiredModal from "../../../../components/templates/LoginRequiredModal";
 
 const SubscribeButton = ({
   channelId,
@@ -15,6 +16,10 @@ const SubscribeButton = ({
   const { mutate: unsubscribe, isLoading: isUnsubscribing } = useUnsubscribe();
   const [isSubscribed, setIsSubscribed] = useState(initialIsSubscribed);
   const [buttonAntdSize, setButtonAntSize] = useState(18);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const showLoginModal = () => setIsModalOpen(true);
+  const handleCancelModal = () => setIsModalOpen(false);
 
   // Cập nhật kích thước dựa trên kích thước màn hình
   useEffect(() => {
@@ -57,7 +62,7 @@ const SubscribeButton = ({
 
   const handleClick = () => {
     if (!userId) {
-      message.error("Vui lòng đăng nhập để đăng ký!");
+      showLoginModal();
       return;
     }
 
@@ -150,6 +155,10 @@ const SubscribeButton = ({
       >
         <p>Hủy đăng ký kênh này?</p>
       </Modal>
+      <LoginRequiredModal
+        isModalOpen={isModalOpen}
+        handleCancel={handleCancelModal}
+      />
     </>
   );
 };

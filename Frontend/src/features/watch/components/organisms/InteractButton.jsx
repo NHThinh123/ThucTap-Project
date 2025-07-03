@@ -12,7 +12,7 @@ import {
 } from "../../services/user_dislike_videoApi";
 import { AuthContext } from "../../../../contexts/auth.context";
 import { useModal } from "../../../../contexts/modal.context";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import useCountLikeVideo from "../../hooks/useCountLikeVideo";
 import { formatLikes } from "../../../../constants/formatLikes";
 import { Button, Divider, Dropdown, Menu, Space, message } from "antd";
@@ -26,6 +26,7 @@ import {
 } from "@ant-design/icons";
 import { Bookmark } from "lucide-react";
 import PlaylistModalContent from "../../../playlist/components/templates/PlaylistModalContent";
+import LoginRequiredModal from "../../../../components/templates/LoginRequiredModal";
 
 const InteractButton = () => {
   const { id } = useParams();
@@ -40,7 +41,10 @@ const InteractButton = () => {
   const [isSmallScreen, setIsSmallScreen] = useState(
     window.innerWidth < 768 || window.innerWidth > 992
   );
-  const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const showLoginModal = () => setIsModalOpen(true);
+  const handleCancelModal = () => setIsModalOpen(false);
 
   const [dimensions, setDimensions] = useState({
     fontSize: 23,
@@ -151,8 +155,8 @@ const InteractButton = () => {
   }, [video_id, user_id]);
 
   const handleClickLike = async () => {
-    if (!user_id) {
-      console.error("Người dùng chưa đăng nhập");
+    if (!auth.isAuthenticated) {
+      showLoginModal();
       return;
     }
     try {
@@ -174,8 +178,8 @@ const InteractButton = () => {
   };
 
   const handleClickDislike = async () => {
-    if (!user_id) {
-      console.error("Người dùng chưa đăng nhập");
+    if (!auth.isAuthenticated) {
+      showLoginModal();
       return;
     }
     try {
@@ -198,7 +202,7 @@ const InteractButton = () => {
   const handleClickBookmark = () => {
     console.log("Bookmark button clicked");
     if (!auth.isAuthenticated) {
-      navigate("/login");
+      showLoginModal();
       return;
     }
     if (!video_id || !user_id) {
@@ -340,6 +344,10 @@ const InteractButton = () => {
           </Dropdown>
         </div>
       )}
+      <LoginRequiredModal
+        isModalOpen={isModalOpen}
+        handleCancel={handleCancelModal}
+      />
     </Space>
   );
 };

@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { Avatar, Col, Row } from "antd";
 
 const VideoSearchCard = ({ video, watchDuration }) => {
-  const [hoveredItemId, setHoveredItemId] = useState(null);
   const [dimensions, setDimensions] = useState({
     fontsizeViewNickname: 13,
     fontsizeDescrip: 14,
@@ -257,35 +256,6 @@ const VideoSearchCard = ({ video, watchDuration }) => {
               {video.description_video}
             </div>
           </div>
-        </Col>
-        <Col span={1}>
-          <button
-            style={{
-              background:
-                hoveredItemId === video.id ? "rgb(196, 196, 196)" : "none",
-              border: hoveredItemId === video.id ? "1px solid black" : "none",
-              borderRadius: hoveredItemId === video.id ? "50%" : "none",
-              padding: 4,
-              display: "flex",
-              marginRight: -5,
-              cursor: "pointer",
-            }}
-            onMouseEnter={() => setHoveredItemId(video.id)}
-            onMouseLeave={() => setHoveredItemId(null)}
-            aria-label="More options"
-          >
-            <svg
-              style={{ width: 20, height: 20 }}
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
-                fill="currentColor"
-              />
-            </svg>
-          </button>
         </Col>
       </Row>
     </div>

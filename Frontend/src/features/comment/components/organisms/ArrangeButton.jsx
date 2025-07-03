@@ -13,7 +13,7 @@ const ArrangeButton = ({ onSortChange, sortType }) => {
             sortType === "newest"
               ? {
                   background: "rgb(196, 196, 196)",
-                  borderRadius: "4px",
+                  margin: 8,
                 }
               : {},
         },
@@ -24,18 +24,7 @@ const ArrangeButton = ({ onSortChange, sortType }) => {
             sortType === "oldest"
               ? {
                   background: "rgb(196, 196, 196)",
-                  borderRadius: "4px",
-                }
-              : {},
-        },
-        {
-          key: "mostCommented",
-          label: "Bình luận hàng đầu",
-          style:
-            sortType === "mostCommented"
-              ? {
-                  background: "rgb(196, 196, 196)",
-                  borderRadius: "4px",
+                  margin: 8,
                 }
               : {},
         },
