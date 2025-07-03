@@ -21,7 +21,7 @@ import {
   ThumbsUp,
   Trash,
 } from "lucide-react";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useVideoManagement } from "../../hooks/useVideoManagement";
 import { useAllVideos } from "../../hooks/useAllVideos";
 import { useVideoUpload } from "../../../uploadvideo/hooks/useVideoUpload";
@@ -37,11 +37,24 @@ const AllVideoList = ({ userId }) => {
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [thumbnailUrl, setThumbnailUrl] = useState(null);
   const [searchText, setSearchText] = useState("");
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [form] = Form.useForm();
   const { editVideo, isEditing, deleteVideo, isDeleting } =
     useVideoManagement(userId);
   const { data: videos, isLoading, error } = useAllVideos(userId);
   const { uploadThumbnail, isUploadingThumbnail } = useVideoUpload();
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const isMobile = windowWidth < 768;
+  const isTablet = windowWidth < 1024;
 
   const showEditModal = (video) => {
     setSelectedVideo(video);
@@ -155,65 +168,93 @@ const AllVideoList = ({ userId }) => {
   const columns = [
     {
       title: (
-        <div>
-          Video
+        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: "8px" }}>
+          <span>Video</span>
           <SearchInput
             placeholder="Tìm kiếm theo tiêu đề"
             allowClear
             onChange={(e) => handleSearch(e.target.value)}
-            style={{ width: 200, marginLeft: 8 }}
+            style={{ 
+              width: isMobile ? "100%" : 200,
+              minWidth: isMobile ? "auto" : 150
+            }}
+            size={isMobile ? "small" : "middle"}
           />
         </div>
       ),
       dataIndex: "video",
       key: "video",
-      width: "35%",
-      minWidth: 200,
+      width: isMobile ? "100%" : "40%",
       sorter: (a, b) => a.video.title.localeCompare(b.video.title),
       render: (video) => (
-        <Row gutter={16} align={"middle"}>
-          <Col span={6}>
+        <Row 
+          gutter={[8, 8]} 
+          align="middle"
+          wrap={isMobile}
+        >
+          <Col xs={24} sm={6} md={6} lg={6}>
             <img
               alt={video.title}
               src={video.thumbnailUrl}
               style={{
                 width: "100%",
-                aspectRatio: "5/3",
+                maxWidth: isMobile ? "120px" : "100%",
+                aspectRatio: "16/9",
                 borderRadius: "8px",
                 objectFit: "cover",
+                margin: isMobile ? "0 auto" : "0",
+                display: "block"
               }}
             />
           </Col>
-          <Col span={18}>
-            <p
-              style={{
-                display: "-webkit-box",
-                WebkitLineClamp: 1,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                margin: 0,
-                fontWeight: "700",
-              }}
-            >
-              {video.title}
-            </p>
-            <Row align={"middle"}>
+          <Col xs={24} sm={18} md={18} lg={18}>
+            <div style={{ padding: isMobile ? "8px 0" : "0" }}>
               <p
                 style={{
                   display: "-webkit-box",
-                  WebkitLineClamp: 2,
+                  WebkitLineClamp: isMobile ? 2 : 1,
                   WebkitBoxOrient: "vertical",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   margin: 0,
-                  fontSize: 14,
-                  color: "gray",
+                  fontWeight: "700",
+                  fontSize: isMobile ? "14px" : "16px",
+                  lineHeight: isMobile ? "1.4" : "1.2"
                 }}
               >
-                {video.description}
+                {video.title}
               </p>
-            </Row>
+              <div style={{ marginTop: "4px" }}>
+                <p
+                  style={{
+                    display: "-webkit-box",
+                    WebkitLineClamp: isMobile ? 1 : 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    margin: 0,
+                    fontSize: isMobile ? "12px" : 14,
+                    color: "gray",
+                    lineHeight: "1.3"
+                  }}
+                >
+                  {video.description}
+                </p>
+              </div>
+              {isMobile && (
+                <div style={{ 
+                  marginTop: "8px", 
+                  display: "flex", 
+                  gap: "12px",
+                  flexWrap: "wrap",
+                  fontSize: "11px",
+                  color: "#666"
+                }}>
+                  <span>{formatDate(video.createdAt)}</span>
+                  <span>{formatViews(video.views)} lượt xem</span>
+                </div>
+              )}
+            </div>
           </Col>
         </Row>
       ),
@@ -222,27 +263,58 @@ const AllVideoList = ({ userId }) => {
       title: "Ngày đăng tải",
       key: "createdAt",
       dataIndex: "video",
+      width: isMobile ? 0 : "20%",
+      responsive: ["md"],
       sorter: (a, b) =>
         new Date(a.video.createdAt) - new Date(b.video.createdAt),
-      render: (video) => <p>{formatDate(video.createdAt)}</p>,
+      render: (video) => (
+        <p style={{ 
+          margin: 0,
+          fontSize: isTablet ? "13px" : "14px"
+        }}>
+          {formatDate(video.createdAt)}
+        </p>
+      ),
     },
     {
       title: "Lượt xem",
       dataIndex: "video",
       key: "views",
+      width: isMobile ? 0 : "15%",
+      responsive: ["lg"],
       sorter: (a, b) => a.video.views - b.video.views,
-      render: (video) => <p>{formatViews(video.views)}</p>,
+      render: (video) => (
+        <p style={{ 
+          margin: 0,
+          fontSize: isTablet ? "13px" : "14px",
+          fontWeight: "500"
+        }}>
+          {formatViews(video.views)}
+        </p>
+      ),
     },
     {
       title: "Hành động",
       key: "action",
+      width: isMobile ? "20%" : "15%",
+      fixed: isMobile ? false : "right",
       render: (_, record) => (
-        <Space size="middle">
-          <Button type="text" onClick={() => showEditModal(record.video)}>
-            <Pencil strokeWidth={1.5} size={18} />
+        <Space size={isMobile ? "small" : "middle"} direction={isMobile ? "vertical" : "horizontal"}>
+          <Button 
+            type="text" 
+            onClick={() => showEditModal(record.video)}
+            size={isMobile ? "small" : "middle"}
+            style={{ padding: isMobile ? "4px" : "4px 8px" }}
+          >
+            <Pencil strokeWidth={1.5} size={isMobile ? 16 : 18} />
           </Button>
-          <Button type="text" onClick={() => showDeleteModal(record.video)}>
-            <Trash strokeWidth={1.5} size={18} color="#c90626" />
+          <Button 
+            type="text" 
+            onClick={() => showDeleteModal(record.video)}
+            size={isMobile ? "small" : "middle"}
+            style={{ padding: isMobile ? "4px" : "4px 8px" }}
+          >
+            <Trash strokeWidth={1.5} size={isMobile ? 16 : 18} color="#c90626" />
           </Button>
         </Space>
       ),
@@ -263,16 +335,33 @@ const AllVideoList = ({ userId }) => {
   return (
     <>
       {contextHolder}
-      <Table
-        columns={columns}
-        dataSource={filteredData}
-        showSorterTooltip={false}
-        pagination={{
-          pageSize: 5,
-          showSizeChanger: false,
-          position: ["bottomCenter"],
-        }}
-      />
+      <div style={{ width: "100%", overflowX: "auto" }}>
+        <Table
+          columns={columns}
+          dataSource={filteredData}
+          showSorterTooltip={false}
+          scroll={{ 
+            x: isMobile ? 600 : 1000,
+            y: window.innerHeight > 800 ? 400 : 300 
+          }}
+          pagination={{
+            pageSize: isMobile ? 3 : 5,
+            showSizeChanger: !isMobile,
+            showQuickJumper: !isMobile,
+            position: ["bottomCenter"],
+            showTotal: (total, range) => 
+              isMobile 
+                ? `${range[0]}-${range[1]} / ${total}`
+                : `Hiển thị ${range[0]}-${range[1]} trong tổng số ${total} video`,
+            responsive: true,
+            size: isMobile ? "small" : "default",
+            pageSizeOptions: isMobile ? ["3", "5"] : ["5", "10", "20"],
+          }}
+          size={isMobile ? "small" : "middle"}
+          className="responsive-video-table"
+          rowClassName={() => isMobile ? "mobile-row" : ""}
+        />
+      </div>
       <Modal
         title="Chỉnh sửa video"
         open={isEditModalVisible}
@@ -282,6 +371,16 @@ const AllVideoList = ({ userId }) => {
         cancelText="Hủy"
         centered
         confirmLoading={isEditing || isUploadingThumbnail}
+        width={isMobile ? "90%" : 600}
+        style={{ 
+          maxWidth: isMobile ? "95vw" : "600px",
+          margin: isMobile ? "16px" : "auto"
+        }}
+        bodyStyle={{
+          padding: isMobile ? "16px" : "24px",
+          maxHeight: isMobile ? "70vh" : "80vh",
+          overflowY: "auto"
+        }}
       >
         <Form form={form} layout="vertical">
           <Form.Item
@@ -295,14 +394,17 @@ const AllVideoList = ({ userId }) => {
                   src={thumbnailPreview}
                   alt="Thumbnail Preview"
                   style={{
-                    width: "70%",
+                    width: isMobile ? "100%" : "70%",
+                    maxWidth: "300px",
                     aspectRatio: "16/9",
                     borderRadius: "8px",
                     objectFit: "cover",
+                    display: "block",
+                    margin: "0 auto"
                   }}
                 />
               ) : (
-                <p>Chưa có thumbnail</p>
+                <p style={{ textAlign: "center", color: "#666" }}>Chưa có thumbnail</p>
               )}
             </div>
             <Upload
@@ -312,7 +414,15 @@ const AllVideoList = ({ userId }) => {
               onChange={handleThumbnailChange}
               disabled={isUploadingThumbnail}
             >
-              <Button icon={<UploadOutlined />} loading={isUploadingThumbnail}>
+              <Button 
+                icon={<UploadOutlined />} 
+                loading={isUploadingThumbnail}
+                block={isMobile}
+                style={{ 
+                  marginBottom: "16px",
+                  width: isMobile ? "100%" : "auto"
+                }}
+              >
                 Chọn ảnh
               </Button>
             </Upload>
@@ -322,14 +432,21 @@ const AllVideoList = ({ userId }) => {
             label="Tiêu đề"
             rules={[{ required: true, message: "Vui lòng nhập tiêu đề!" }]}
           >
-            <Input placeholder="Nhập tiêu đề video" />
+            <Input 
+              placeholder="Nhập tiêu đề video" 
+              size={isMobile ? "large" : "middle"}
+            />
           </Form.Item>
           <Form.Item
             name="description"
             label="Mô tả"
             rules={[{ required: true, message: "Vui lòng nhập mô tả!" }]}
           >
-            <Input.TextArea rows={6} placeholder="Nhập mô tả video" />
+            <Input.TextArea 
+              rows={isMobile ? 4 : 6} 
+              placeholder="Nhập mô tả video"
+              style={{ resize: "vertical" }}
+            />
           </Form.Item>
         </Form>
       </Modal>
@@ -342,10 +459,31 @@ const AllVideoList = ({ userId }) => {
         cancelText="Hủy"
         okButtonProps={{ danger: true }}
         confirmLoading={isDeleting}
+        width={isMobile ? "90%" : 400}
+        style={{ 
+          maxWidth: isMobile ? "95vw" : "400px",
+          margin: isMobile ? "16px" : "auto"
+        }}
+        bodyStyle={{
+          padding: isMobile ? "16px" : "24px"
+        }}
       >
-        <p>
+        <p style={{ 
+          fontSize: isMobile ? "14px" : "16px",
+          lineHeight: "1.5",
+          textAlign: "center"
+        }}>
           Bạn có chắc chắn muốn xóa video "
-          <strong>{selectedVideo?.title}</strong>" không?
+          <strong style={{ color: "#c90626" }}>{selectedVideo?.title}</strong>" không?
+        </p>
+        <p style={{ 
+          fontSize: "12px", 
+          color: "#666", 
+          textAlign: "center",
+          marginTop: "8px",
+          marginBottom: 0
+        }}>
+          Hành động này không thể hoàn tác.
         </p>
       </Modal>
     </>

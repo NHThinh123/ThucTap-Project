@@ -512,6 +512,89 @@ const getEmail = async (req, res) => {
     res.status(500).json({ message: "Lỗi server, vui lòng thử lại" });
   }
 };
+//Kiểm tra email có tồn tại trong database không
+const checkEmailExists = async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ 
+        status: "FAILED",
+        message: "Email không được để trống!" 
+      });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ 
+        status: "FAILED",
+        message: "Email không tồn tại trong hệ thống!" 
+      });
+    }
+
+    res.status(200).json({ 
+      status: "SUCCESS",
+      message: "Email hợp lệ",
+      data: { email: user.email }
+    });
+  } catch (error) {
+    console.error("Lỗi kiểm tra email:", error);
+    res.status(500).json({ 
+      status: "FAILED",
+      message: "Lỗi server khi kiểm tra email" 
+    });
+  }
+};
+// Đặt lại mật khẩu đơn giản (không cần token)
+const resetPasswordSimple = async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    if (!email || !newPassword) {
+      return res.status(400).json({ 
+        status: "FAILED",
+        message: "Email và mật khẩu không được để trống!" 
+      });
+    }
+
+    // Kiểm tra email có tồn tại
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ 
+        status: "FAILED",
+        message: "Email không tồn tại trong hệ thống!" 
+      });
+    }
+
+    // Mã hóa mật khẩu mới
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Cập nhật mật khẩu
+    const updatedUser = await User.findByIdAndUpdate(
+      user._id,
+      { password: hashedPassword },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(400).json({
+        status: "FAILED",
+        message: "Cập nhật mật khẩu thất bại!",
+      });
+    }
+
+    res.status(200).json({
+      status: "SUCCESS",
+      message: "Mật khẩu đã được đặt lại thành công! Vui lòng đăng nhập lại.",
+    });
+  } catch (error) {
+    console.error("Lỗi đặt lại mật khẩu:", error);
+    res.status(500).json({ 
+      status: "FAILED",
+      message: "Lỗi server khi đặt lại mật khẩu" 
+    });
+  }
+};
 //Lấy danh sách người dùng
 const getListUser = async (req, res) => {
   try {
@@ -546,4 +629,6 @@ module.exports = {
   getEmail,
   getListUser,
   deleteUser,
+  checkEmailExists,
+  resetPasswordSimple,
 };

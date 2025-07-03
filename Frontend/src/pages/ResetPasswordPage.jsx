@@ -1,9 +1,9 @@
 import { Row } from "antd";
 import { useState, useEffect } from "react";
 import Illustration from "../features/auth/components/organisms/RegisterIllustration";
-import LoginForm from "../features/auth/components/templates/LoginForm";
+import ResetPasswordForm from "../features/auth/components/templates/ResetPasswordForm";
 
-const LoginPage = () => {
+const ResetPasswordPage = () => {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   useEffect(() => {
@@ -31,7 +31,7 @@ const LoginPage = () => {
       {isMobile ? (
         // Mobile layout - chỉ hiển thị form
         <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
-          <LoginForm />
+          <ResetPasswordForm />
         </div>
       ) : (
         // Desktop layout - hiển thị cả illustration và form
@@ -45,11 +45,11 @@ const LoginPage = () => {
           gutter={0}
         >
           <Illustration />
-          <LoginForm />
+          <ResetPasswordForm />
         </Row>
       )}
     </div>
   );
 };
 
-export default LoginPage;
+export default ResetPasswordPage; 

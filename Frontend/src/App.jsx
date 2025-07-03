@@ -12,6 +12,7 @@ import {
   Dropdown,
   Drawer,
   Typography,
+  Spin,
 } from "antd";
 import {
   MenuOutlined,
@@ -269,6 +270,8 @@ function App() {
       if (isUserLoggedIn) {
         setAuth({ isAuthenticated: false, user: {} });
         localStorage.removeItem("authUser");
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
       }
       setIsLoggingOut(false);
       isVideoWatchPage ? (window.location.href = "/") : navigate("/");
@@ -284,7 +287,12 @@ function App() {
           ? (window.location.href = "/profile")
           : navigate("/profile"),
     },
-    { key: "logout", label: "Đăng xuất", onClick: handleLogout },
+    { 
+      key: "logout", 
+      label: isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất", 
+      onClick: handleLogout,
+      disabled: isLoggingOut
+    },
   ];
 
   const userMenu = <Menu items={userMenuItems} />;
@@ -331,226 +339,244 @@ function App() {
         draggable
         pauseOnHover
       />
-      <Layout style={{ minHeight: "100vh" }}>
-        <Header
-          style={{
-            position: "fixed",
-            zIndex: 1000,
-            width: "100%",
-            background: "#fff",
-            padding: "0 24px",
-          }}
-        >
-          <Row align="middle" justify="space-between">
-            {!isSearchFocused && (
-              <Col span={1}>
-                <Button
-                  icon={<MenuOutlined />}
-                  onClick={toggleMenu}
-                  style={{
-                    border: "none",
-                    fontSize: windowWidth < 600 ? "14px" : "18px",
-                    marginRight: "16px",
-                  }}
-                />
-              </Col>
-            )}
-            {!isSearchFocused && windowWidth > 600 && (
-              <Col span={windowWidth < 600 ? 2 : 5}>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    flex: 1,
-                    cursor: "pointer",
-                    width: "fit-content",
-                    gap: "8px",
-                  }}
-                  onClick={handleLogoClick}
-                >
-                  <img
-                    src={logo}
+      <Spin
+        spinning={isLoggingOut}
+        tip="Đang đăng xuất..."
+        size="large"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 2000,
+          background: "rgba(255, 255, 255, 0.8)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Layout style={{ minHeight: "100vh" }}>
+          <Header
+            style={{
+              position: "fixed",
+              zIndex: 1000,
+              width: "100%",
+              background: "#fff",
+              padding: "0 24px",
+            }}
+          >
+            <Row align="middle" justify="space-between">
+              {!isSearchFocused && (
+                <Col span={1}>
+                  <Button
+                    icon={<MenuOutlined />}
+                    onClick={toggleMenu}
                     style={{
-                      height: windowWidth < 720 ? 25 : 35,
-                      width: "auto",
+                      border: "none",
+                      fontSize: windowWidth < 600 ? "14px" : "18px",
+                      marginRight: "16px",
                     }}
-                    alt="logo"
                   />
-                  <Typography.Text
+                </Col>
+              )}
+              {!isSearchFocused && windowWidth > 600 && (
+                <Col span={windowWidth < 600 ? 2 : 5}>
+                  <div
                     style={{
-                      fontSize: windowWidth < 720 ? 14 : 18,
-                      fontWeight: "bold",
-                      display: windowWidth < 600 ? "none" : "block",
+                      display: "flex",
+                      alignItems: "center",
+                      flex: 1,
+                      cursor: "pointer",
+                      width: "fit-content",
+                      gap: "8px",
                     }}
+                    onClick={handleLogoClick}
                   >
-                    CUSC Tube
-                  </Typography.Text>
-                </div>
-              </Col>
-            )}
-            <Col
-              span={isSearchFocused ? 24 : 12}
-              style={{ display: "flex", justifyContent: "center" }}
-            >
-              <SearchBar
-                setSearchFocused={setSearchFocused}
-                isSearchFocused={isSearchFocused}
-              />
-            </Col>
-            {!isSearchFocused && (
+                    <img
+                      src={logo}
+                      style={{
+                        height: windowWidth < 720 ? 25 : 35,
+                        width: "auto",
+                      }}
+                      alt="logo"
+                    />
+                    <Typography.Text
+                      style={{
+                        fontSize: windowWidth < 720 ? 14 : 18,
+                        fontWeight: "bold",
+                        display: windowWidth < 600 ? "none" : "block",
+                      }}
+                    >
+                      CUSC Tube
+                    </Typography.Text>
+                  </div>
+                </Col>
+              )}
               <Col
-                sm={3}
-                md={3}
-                lg={windowWidth < 1100 ? 2 : 3}
-                xl={3}
+                span={isSearchFocused ? 24 : 12}
                 style={{ display: "flex", justifyContent: "center" }}
               >
-                {isUserLoggedIn && (
-                  <Button
-                    size={windowWidth < 700 ? "small" : "middle"}
-                    color="primary"
-                    variant="outlined"
-                    style={{
-                      fontSize: "16px",
-                      marginLeft: "16px",
-                    }}
-                    onClick={handleUploadClick}
-                  >
-                    <PlusOutlined />
-                    {windowWidth > 1100 && "Đăng tải"}
-                  </Button>
-                )}
+                <SearchBar
+                  setSearchFocused={setSearchFocused}
+                  isSearchFocused={isSearchFocused}
+                />
               </Col>
-            )}
-            {!isSearchFocused && (
-              <Col
-                sm={2}
-                md={2}
-                lg={windowWidth < 1100 ? 2 : 3}
-                xl={3}
-                style={{ display: "flex", justifyContent: "flex-end" }}
-              >
-                {isUserLoggedIn ? (
-                  <Dropdown overlay={userMenu} trigger={["click"]}>
-                    <Space style={{ cursor: "pointer" }}>
-                      <Avatar
-                        src={avatarSrc}
-                        icon={!avatarSrc && <CircleUserRound />}
-                      />
-                      <span style={{ display: windowWidth < 1100 && "none" }}>
-                        {displayName}
-                      </span>
-                    </Space>
-                  </Dropdown>
-                ) : (
-                  <Button
-                    type="primary"
-                    style={{ padding: "0 16px" }}
-                    onClick={() =>
-                      isVideoWatchPage
-                        ? (window.location.href = "/login")
-                        : navigate("/login")
-                    }
-                  >
-                    <CircleUserRound style={{ marginRight: "8px" }} />
-                    Đăng nhập
-                  </Button>
-                )}
-              </Col>
-            )}
-          </Row>
-        </Header>
+              {!isSearchFocused && (
+                <Col
+                  sm={3}
+                  md={3}
+                  lg={windowWidth < 1100 ? 2 : 3}
+                  xl={3}
+                  style={{ display: "flex", justifyContent: "center" }}
+                >
+                  {isUserLoggedIn && (
+                    <Button
+                      size={windowWidth < 700 ? "small" : "middle"}
+                      color="primary"
+                      variant="outlined"
+                      style={{
+                        fontSize: "16px",
+                        marginLeft: "16px",
+                      }}
+                      onClick={handleUploadClick}
+                    >
+                      <PlusOutlined />
+                      {windowWidth > 1100 && "Đăng tải"}
+                    </Button>
+                  )}
+                </Col>
+              )}
+              {!isSearchFocused && (
+                <Col
+                  sm={2}
+                  md={2}
+                  lg={windowWidth < 1100 ? 2 : 3}
+                  xl={3}
+                  style={{ display: "flex", justifyContent: "flex-end" }}
+                >
+                  {isUserLoggedIn ? (
+                    <Dropdown overlay={userMenu} trigger={["click"]}>
+                      <Space style={{ cursor: "pointer" }}>
+                        <Avatar
+                          src={avatarSrc}
+                          icon={!avatarSrc && <CircleUserRound />}
+                        />
+                        <span style={{ display: windowWidth < 1100 && "none" }}>
+                          {displayName}
+                        </span>
+                      </Space>
+                    </Dropdown>
+                  ) : (
+                    <Button
+                      type="primary"
+                      style={{ padding: "0 16px" }}
+                      onClick={() =>
+                        isVideoWatchPage
+                          ? (window.location.href = "/login")
+                          : navigate("/login")
+                      }
+                    >
+                      <CircleUserRound style={{ marginRight: "8px" }} />
+                      Đăng nhập
+                    </Button>
+                  )}
+                </Col>
+              )}
+            </Row>
+          </Header>
 
-        <Layout style={{ marginTop: "64px" }}>
-          {!(isVideoWatchPage || windowWidth < 1000) && (
-            <Sider
-              collapsed={collapsed}
-              width={200}
+          <Layout style={{ marginTop: "64px" }}>
+            {!(isVideoWatchPage || windowWidth < 1000) && (
+              <Sider
+                collapsed={collapsed}
+                width={200}
+                style={{
+                  position: "fixed",
+                  height: "calc(100vh - 64px)",
+                  left: 0,
+                  top: "64px",
+                  overflow: "auto",
+                  background: "#fff",
+                }}
+              >
+                <Menu
+                  mode="inline"
+                  selectedKeys={[selectedKey]}
+                  openKeys={openKeys}
+                  onOpenChange={onOpenChange}
+                  items={menuItems}
+                  style={{ height: "100%", borderRight: 0 }}
+                />
+              </Sider>
+            )}
+
+            {(isVideoWatchPage || windowWidth < 1000) && (
+              <Drawer
+                title={
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      flex: 1,
+                    }}
+                  >
+                    <img
+                      src={logo}
+                      style={{
+                        height: "30px",
+                        width: "auto",
+                        marginRight: "8px",
+                      }}
+                      alt="logo"
+                    />
+                    <span style={{ fontSize: "16px", fontWeight: "bold" }}>
+                      CUSC Tube
+                    </span>
+                  </div>
+                }
+                placement="left"
+                onClose={closeDrawer}
+                open={drawerVisible}
+                width={210}
+                bodyStyle={{
+                  flex: 1,
+                  minWidth: 0,
+                  minHeight: 0,
+                  padding: 0,
+                  overflow: "auto",
+                }}
+              >
+                <Menu
+                  mode="inline"
+                  selectedKeys={[selectedKey]}
+                  openKeys={openKeys}
+                  onOpenChange={onOpenChange}
+                  items={menuItems}
+                  style={{ borderRight: 0 }}
+                />
+              </Drawer>
+            )}
+
+            <Content
               style={{
-                position: "fixed",
-                height: "calc(100vh - 64px)",
-                left: 0,
-                top: "64px",
-                overflow: "auto",
+                marginLeft:
+                  isVideoWatchPage || windowWidth < 1000
+                    ? "0px"
+                    : collapsed
+                    ? "80px"
+                    : "200px",
+                padding: "8px",
+                minHeight: "calc(100vh - 64px)",
+                transition: "margin-left 0.2s",
                 background: "#fff",
               }}
             >
-              <Menu
-                mode="inline"
-                selectedKeys={[selectedKey]}
-                openKeys={openKeys}
-                onOpenChange={onOpenChange}
-                items={menuItems}
-                style={{ height: "100%", borderRight: 0 }}
-              />
-            </Sider>
-          )}
-
-          {(isVideoWatchPage || windowWidth < 1000) && (
-            <Drawer
-              title={
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    flex: 1,
-                  }}
-                >
-                  <img
-                    src={logo}
-                    style={{
-                      height: "30px",
-                      width: "auto",
-                      marginRight: "8px",
-                    }}
-                    alt="logo"
-                  />
-                  <span style={{ fontSize: "16px", fontWeight: "bold" }}>
-                    CUSC Tube
-                  </span>
-                </div>
-              }
-              placement="left"
-              onClose={closeDrawer}
-              open={drawerVisible}
-              width={210}
-              bodyStyle={{
-                flex: 1,
-                minWidth: 0,
-                minHeight: 0,
-                padding: 0,
-                overflow: "auto",
-              }}
-            >
-              <Menu
-                mode="inline"
-                selectedKeys={[selectedKey]}
-                openKeys={openKeys}
-                onOpenChange={onOpenChange}
-                items={menuItems}
-                style={{ borderRight: 0 }}
-              />
-            </Drawer>
-          )}
-
-          <Content
-            style={{
-              marginLeft:
-                isVideoWatchPage || windowWidth < 1000
-                  ? "0px"
-                  : collapsed
-                  ? "80px"
-                  : "200px",
-              padding: "8px",
-              minHeight: "calc(100vh - 64px)",
-              transition: "margin-left 0.2s",
-              background: "#fff",
-            }}
-          >
-            <Outlet />
-          </Content>
+              <Outlet />
+            </Content>
+          </Layout>
         </Layout>
-      </Layout>
+      </Spin>
     </>
   );
 }

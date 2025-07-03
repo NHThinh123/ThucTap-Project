@@ -9,6 +9,7 @@ import { AuthWrapper } from "./contexts/auth.context";
 import HomePage from "./pages/HomePage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import SignupPage from "./pages/SignupPage.jsx";
+import ResetPasswordPage from "./pages/ResetPasswordPage.jsx";
 import ChannelPage from "./pages/ChannelPage.jsx";
 import VideoWatchPage from "./pages/VideoWatchPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
@@ -93,6 +94,10 @@ const router = createBrowserRouter([
   {
     path: "signup",
     element: <SignupPage />,
+  },
+  {
+    path: "resetpassword",
+    element: <ResetPasswordPage />,
   },
   {
     path: "studio",

@@ -13,6 +13,8 @@ const {
   getEmail,
   deleteUser,
   refreshToken,
+  checkEmailExists,
+  resetPasswordSimple,
 } = require("../controllers/user.controller");
 const upload = require("../middlewares/uploadImage");
 const { protect, adminOnly } = require("../middlewares/admin");
@@ -38,6 +40,12 @@ router.post("/login", signin);
 router.post("/refresh-token", refreshToken);
 //Gửi yêu cầu đặt lại mật khẩu
 router.post("/reset-password-request", requestPasswordReset);
+
+// Kiểm tra email có tồn tại không (cho flow reset password đơn giản)
+router.post("/check-email", checkEmailExists);
+
+// Đặt lại mật khẩu đơn giản (không cần token)
+router.post("/reset-password-simple", resetPasswordSimple);
 
 router.get("/reset-password/:token", (req, res) => {
   res.sendFile(path.join(__dirname, "../views/reset-password.html"));

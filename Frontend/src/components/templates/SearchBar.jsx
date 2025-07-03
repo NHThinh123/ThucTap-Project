@@ -108,7 +108,7 @@ const SearchBar = ({ setSearchFocused, isSearchFocused }) => {
         />
       </AutoComplete>
       <Button
-        type="primary"
+        type="text"
         size={windowWidth < 700 ? "small" : "middle"}
         style={{
           fontSize: windowWidth < 700 ? "12px" : "16px",
